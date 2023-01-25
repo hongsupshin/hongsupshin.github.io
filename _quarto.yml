@@ -1,0 +1,22 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Asymptote"
+  navbar:
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/hongsups
+      - icon: twitter
+        href: https://twitter.com/hongsupshin
+      - icon: linkedin
+        href: https://www.linkedin.com/in/hongsupshin/
+format:
+  html:
+    theme: journal
+    css: styles.css
+
+
+
