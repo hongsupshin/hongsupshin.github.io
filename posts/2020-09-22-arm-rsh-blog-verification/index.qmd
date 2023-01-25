@@ -1,6 +1,7 @@
 ---
 title: Efficient Bug Discovery with Machine Learning for Hardware Verification
 date: "2020-09-22"
+image: "2020-09-22-random-constraint-testing-diagram.png"
 description: At Arm, I have been doing research to use ML to solve hardware verification problems. I wrote this post for general audience to explain the challenges in hardware verification and how my team has been tackling it. The original post can be found <a href="https://community.arm.com/developer/research/b/articles/posts/efficient-bug-discovery-with-machine-learning-for-hardware-verification">here</a>.
 categories: 
     - ML
@@ -19,7 +20,7 @@ Currently, our application is being **used consistently by Arm verification engi
 
 ## Filtering prospective tests using ML
 
-![]({{ site.baseurl }}2020-09-22-random-constraint-testing-diagram.png "Schematic of random-constraint testing in hardware verification")
+![](2020-09-22-random-constraint-testing-diagram.png "Schematic of random-constraint testing in hardware verification")
 
 Now let us take a deeper look at how our application works. The main challenge of using ML for hardware verification is that everything revolves around random-constraint testing. Not only is the data collected by this method, but also the testing infrastructure is built to optimize this process. The problem is that random-constraint testing consists of two very different parts:
 

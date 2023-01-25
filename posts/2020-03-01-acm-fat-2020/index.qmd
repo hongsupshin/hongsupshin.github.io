@@ -1,12 +1,15 @@
 ---
 title: Critiquing and Rethinking at ACM FAT 2020
 date: "2020-03-01"
+image: "2020-03-01-acm-fat-badge.png"
 description: This is my third time attending the ACM FAT conference. This year, the conference has gotten much larger than the last year and also it was held in Europe (Barcelona, Spain) for the first time. I was happy to see that this year the conference embraced more diverse disciplines. This post summarizes my experience at the conference.
 categories: 
     - conference
     - fairness
     - ML
 ---
+
+![](2020-03-01-acm-fat-badge.png)
 
 ACM Conference on Fairness, Accountability, and Transparency (ACM FAT*) is a computer science conference that aims to bring together “researchers and practitioners interested in fairness, accountability, and transparency (FAccT) in sociotechnical systems” to nurture multidisciplinary approach and collaborations. Fortunately, I was able to attend the conference every year since 2018 when it first started. I attended the entirety of the conference, which includes tutorials, main conference, and the Critiquing and Rethinking Accountability, Fairness and Transparency (CRAFT) session. (FYI, The conference affiliated with ACM in 2019 (Atlanta, GA) and changed its name to **ACM FAccT** immediately following this year’s conference in Barcelona, Spain.)
 

@@ -1,6 +1,7 @@
 ---
 title: Markdown and GitHub for Scientific Writing
 date: "2020-11-24"
+image: "2020-11-24-HS_scipy_example_reviewer_screenshot.png"
 description: At this and last year's SciPy conference, I learned to use GitHub for publishing and reviewing academic manuscripts. Although it has some limitations, using markup languages to write manuscripts and using GitHub for reviewing them has many benefits especially in terms of tracking, communication, and transparency.
 categories: collaboration
 ---
