@@ -1,5 +1,5 @@
 ---
-title: Critiquing and Rethinking at ACM FAT 2020
+title: Critiquing and rethinking at ACM FAT 2020
 date: "2020-03-01"
 image: "2020-03-01-acm-fat-badge.png"
 description: Summary of FAT 2020 in Barcelona, Spain

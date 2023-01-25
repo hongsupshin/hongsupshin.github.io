@@ -6,7 +6,7 @@ categories:
     - conference
     - fairness
     - ML
-description: Several key moments from the conference and shared my thoughts in this post
+description: Several key moments from the conference and my thoughts
 ---
 
 ![](2019-02-01-acm-fat.jpeg "From Moritz Hardt's CS 294: Fairness in Machine Learning course")

@@ -1,5 +1,5 @@
 ---
-title: Efficient Bug Discovery with Machine Learning for Hardware Verification
+title: Efficient bug discovery with ML for hardware verification
 date: "2020-09-22"
 image: "2020-09-22-random-constraint-testing-diagram.png"
 description: My Arm Research blog post about using ML in hardware verification

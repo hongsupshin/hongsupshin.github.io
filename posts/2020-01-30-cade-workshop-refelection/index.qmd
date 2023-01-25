@@ -1,5 +1,5 @@
 ---
-title: "Tech Policy Workshop and Data Ethics"
+title: "Reflection on USF tech policy and data ethics workshop"
 date: "2020-01-30"
 image: "2020-01-30-presentation.png"
 description: A reflection piece about the USF tech ethics and policy workshop focusing on data ethics of a tech worker 

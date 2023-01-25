@@ -1,5 +1,5 @@
 ---
-title: Data Science Volunteering Part 2. Tips for Tech Volunteering for Nonprofits
+title: Tech volunteering tips for nonprofits
 date: "2021-05-25"
 description: Lessons I've learned from my own tech volunteering experience
 categories: 

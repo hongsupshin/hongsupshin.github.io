@@ -1,5 +1,5 @@
 ---
-title: Markdown and GitHub for Scientific Writing
+title: Markdown and GitHub for scientific writing
 date: "2020-11-24"
 image: "2020-11-24-HS_scipy_example_reviewer_screenshot.png"
 description: How to use GitHub to publish and review academic manuscripts for better tracking, communication, and transparency

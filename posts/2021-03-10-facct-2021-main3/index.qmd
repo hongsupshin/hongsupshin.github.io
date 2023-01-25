@@ -1,5 +1,5 @@
 ---
-title: FAccT Day 3. Journalism, Data Leverage, Education, and Language Models
+title: FAccT 2021. Journalism, data leverage, education, and language models
 date: "2021-03-10"
 description: Summary of Day 3 at FAccT 2021 (Julian Anguin's Markup, language models, measurements, and data average)
 categories: 
