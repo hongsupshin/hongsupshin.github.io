@@ -1,0 +1,67 @@
+---
+title: Notes on FAccT 2021 Tutorial Sessions
+date: "2021-03-04"
+description: This is my 4th time attending the ACM FAccT conference (previously called ACM FAT). This year, due to the pandemic, the conference is held virtual. Starting from today, I will upload a summary of each day in a short post. This post summarizes the tutorials I attended today.
+categories: 
+    - conference
+    - causality
+    - fairness
+    - explainability
+    - responsible AI
+    - ML
+---
+
+Last year during the SciPy 2020 conference, I participated in a mentoring program and I've got to know a fellow data scientist, [Henrik Hain](https://twitter.com/MrHenHan). He diligently uploaded a daily update during the conference, which was impressive. Inspired by him, I've decided to follow his practice and to write notes during my attendance in the FAccT 2021 this year.
+
+## Conference Overview
+
+The conference is held virtually this year for the obvious reason. It's on a platform called [circle.so](https://circle.so/). Everything happens in one platform; video streaming, general announcement, community boards, internal messaging, etc., which is pretty convenient.
+
+As an international *virtual* conference, the schedule is a bit brutal. For my time zone (UTC-6), the schedule starts at 6 am and lasts until 4-7 pm in the evening. Talks in the main session are pre-recorded and thus attendees can watch at their convenience but some sessions occur in real time. Luckily, the conference organizers set up dedicated watching times for the main session, which I really appreciate.
+
+Today was about tutorials. I attended the following:
+- Causal Fairness Analysis
+- Explainable ML in the Wild:  When Not to Trust Your Explanations
+- Responsible AI in Industry: Lessons Learned in Practice
+- A Behavioral and Economic Approach to Algorithmic Fairness & Human-Centered Mechanism Design
+- How to Achieve Both Transparency and Accuracy in Predictive Decision Making:  an Introduction to Strategic Prediction
+
+Each tutorial was about 90 minutes, which was a bit short for me. Since FATE (fairness, accountability, transparency, and ethics) topics are highly diverse, it makes sense to have many different tutorials. But because they were so short, they weren't much of a deep-dive and an overview (at least for the ones I attended).
+
+## Causal Fairness Analysis
+
+This tutorial was about conducting fairness analysis through causal framework by using **structural causal models (SCMs)**. The speaker (Elias Bareinboim) started the talk by mentioning that the burden of proof is on the plaintiff in discrimination lawsuit, meaning they have to prove the causal connection if they were treated unfairly. I found this emphasis and motivation from legal lense quite refreshing.
+
+The material was relatively easy to follow in the beginning where Elias explained SCM models and how we evaluate them with given empirical data. However, it got a bit challenging to follow where we started combining fairness and causal models, especially given that fairness metrics are so diverse.
+
+For me the most interesting part was where Elias compared various counterfactual scenarios. I've always assumed that the causal DAGs will not change when we switch the group membership to simulate counterfactuals, but obviously there is no guarantee. It's **possible that we can have indirect and spurious effects for counterfactual scenarios** and he explained that we need to subtract those effects from direct effects.
+
+## Explainable ML in the Wild:  When Not to Trust Your Explanations
+
+This tutorial consisted of three parts: overview of explainable AI (XAI) methods, their limitations and ethical/practical challenges. I found the second part most interesting.
+
+The speaker (Chirag Agarwal) introduced four aspects of XAI limitations: **faithfulness, stability, fragility**, and **evaluation gap**. Faithfulness refers to whether explanations change when models changes (and perhaps also [the Rashomon effect](https://dl.acm.org/doi/abs/10.1145/3351095.3372836)). Stability refers to whether post-hoc explanations are unstable with respect to small non-adversarial input perturbation. For instance, some evidence shows that [LIME](https://arxiv.org/abs/1602.04938) explanations may change if we change random seed in certain ML algorithms. We also wouldn't want our models to chance explanations based on hyperparameters.
+
+Fragility is about whether explanation changes according to data drift in input space. This is closely related to adversarial attack on explanations (i.e., whether small perturbation can change explanation without changing prediction). Finally, in general, it is very difficult to properly evaluate XAI methods and currently there is no ground truth for evaluation.
+
+Perhaps because of these problematic features, the case studies presented in the following session felt very nuanced and complicated. As I've seen in other responsible AI talks, XAI methods are closely related to human-in-the-loop systems and the level of trust in human end users.
+
+## Responsible AI in Industry: Lessons Learned in Practice
+
+This talk consisted of two parts: overview of responsible AI tools and related case studies. These tools are useful for **model monitoring/inspection, generating explanations, fairness mitigation, error analysis, and counterfactual analysis**. I was surprised that there are already several open-source tools available such as [InterepretML](https://interpret.ml/), [Fairlearn](https://fairlearn.org/), [What-If Tool](https://pair-code.github.io/what-if-tool/).
+
+The live demo from Microsoft was impressive but it was too fast to follow (I personally think Jupyter notebook isn't the best method for presentation if we have to go back and forth a lot). Also I was not sure whether the examples were from deployed projects or toy datasets especially since the speaker talked about fairness mitigation and I was curious about how the full cycle of mitigation process looked like.
+
+The case study from LinkedIn at the end was interesting (especially since they presented similar material last year at the same conference) but it felt somewhat disconnected for the same reason I just mentioned above; I wasn't sure how human end users were involved in the fairness mitigation process.
+
+## A Behavioral and Economic Approach to Algorithmic Fairness
+
+This talk was about looking at the fairness problem from economic perspective. Different from the traditional computer science approach, this talk suggested that economic approach presents the fairness problem in the form **social welfare functions** where social planner can optimize efficiency (expected outcome of interest among groups) and equity.
+
+What was interesting was that the optimal algorithm isn't just about prediction function but also about **admission rule**, meaning how social planner can use the predictions to make decisions. Normally, these admission rules are threshold-based; we make a decision on certain group of individuals based on certain thresholds, which is affected by equity preference of social planner. Another interesting aspect was that this equity preference can even affect the prediction function because **decision makers who prefer discrimination may want to use additional features** from data to discriminate protected groups.
+
+## How to Achieve Both Transparency and Accuracy in Predictive Decision Making: an Introduction to Strategic Prediction
+
+The whole idea of strategic prediction is very interesting because it's about **human users trying to game the system if they start understanding the rule of the game**. For instance, if students learn about the criteria universities use for their admission process, they will try to find ways to cross that threshold so that they can be admitted. This tutorial gave an overview of this phenomenon from the perspective each stakeholder group in the process; institution (algorithm designers), individual (data provider), and society (all people as a whole).
+
+Instead of doing a deep dive on a specific topic, the tutorial presented various topics in the domain. **Recourse and incentivization** was one of them. If the deployed algorithm uses a feature that can harm individuals because the feature incentivizes them to behave in a certain way, automated harm at a massive scale will be expected. Another way to look at the strategic prediction is through causality. If we find a true **causal relationship between features and model predictions**, it might be able to utilize the benefit of strategic prediction from the institution's perspective and to encourage improvement without encouraging gaming, which will be crucial for modellers.
