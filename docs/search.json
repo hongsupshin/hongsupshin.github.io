@@ -1,19 +1,5 @@
 [
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
-    "section": "",
-    "text": "This is a post with executable code."
-  },
-  {
-    "objectID": "posts/welcome/index.html",
-    "href": "posts/welcome/index.html",
-    "title": "Welcome To My Blog",
-    "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
-  },
-  {
     "objectID": "posts/2019-02-01-acm-fat-2019/index.html",
     "href": "posts/2019-02-01-acm-fat-2019/index.html",
     "title": "Fairness in ML at ACM FAT 2019",
@@ -58,9 +44,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "blog",
+    "title": "Machine learning and data science blog",
     "section": "",
-    "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nJan 24, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJan 21, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\n  \n\n\n\n\nFairness in ML at ACM FAT 2019\n\n\n\n\n\n\n\nconference\n\n\nfairness\n\n\nML\n\n\n\n\nThis is the second time I attended the ACM FAT (Fairness, Accountability, and Transparency in ML) conference. I summarized several key moments from the conference and shared my thoughts in this post.\n\n\n\n\n\n\nFeb 1, 2019\n\n\n\n\n\n\nNo matching items"
+    "text": "Fairness in ML at ACM FAT 2019\n\n\n\n\n\n\n\nconference\n\n\nfairness\n\n\nML\n\n\n\n\nThis is the second time I attended the ACM FAT (Fairness, Accountability, and Transparency in ML) conference. I summarized several key moments from the conference and shared my thoughts in this post.\n\n\n\n\n\n\nFeb 1, 2019\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
