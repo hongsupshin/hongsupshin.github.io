@@ -15,7 +15,7 @@ website:
         href: https://www.linkedin.com/in/hongsupshin/
 format:
   html:
-    theme: quartz
+    theme: pulse
     css: styles.css
 
 
