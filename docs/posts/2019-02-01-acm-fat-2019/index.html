@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2019-02-01">
+<meta name="description" content="This is the second time I attended the ACM FAT (Fairness, Accountability, and Transparency in ML) conference. I summarized several key moments from the conference and shared my thoughts in this post.">
+
+<title>Asymptote - Fairness in ML at ACM FAT 2019</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Asymptote</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">Hongsup</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Fairness in ML at ACM FAT 2019</h1>
+                  <div>
+        <div class="description">
+          This is the second time I attended the ACM FAT (Fairness, Accountability, and Transparency in ML) conference. I summarized several key moments from the conference and shared my thoughts in this post.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">conference</div>
+                <div class="quarto-category">fairness</div>
+                <div class="quarto-category">ML</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 1, 2019</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p><img src="2019-02-01-acm-fat.jpeg" title="From Moritz Hardt's CS 294: Fairness in Machine Learning course" class="img-fluid"></p>
+<p>ACM Conference on Fairness, Accountability, and Transparency (ACM FAT*) is a “multi- disciplinary conference that brings together researchers and practitioners interested in fairness, accountability, and transparency in socio-technical systems.” The conference originated from a fairness workshop in machine learning workshop at NIPS a few years and last year they had the first inaugural event as an independent conference. This year, they were joined with ACM and it was held in Atlanta, GA in Jan 2019. I attended both the tutorials and the main conference.</p>
+<section id="general-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="general-thoughts">General thoughts</h2>
+<p>Compared to the last year’s conference, which I also attended, it seemed that the academic discipline has become more mature; last year, there were many talks focused on showing the examples of biased machine learning in practice and researchers discussed how they can agree upon defining terms such as fairness in mathematical concept. This year, there were many in- depth theoretical studies where researchers built mathematical models to simulate the propagated effect of bias in machine learning (ML). Empirical studies were also presented as well, in which researchers crowd-sourced data to show bias in human judgment especially when they interact with ML algorithms. Unfortunately, due to the recent long-term government shutdown, there weren’t many government officials who were supposed to participate. Hence, it was lacking to see how the discoveries made in academia can be translated into actual policies and legislation. However, it’s important to notice that there is huge growing interest in this field as ML-based algorithmic decision making is widespread in our society.</p>
+</section>
+<section id="tutorials" class="level2">
+<h2 class="anchored" data-anchor-id="tutorials">Tutorials</h2>
+<p>For tutorials, I attended the <a href="https://www.youtube.com/watch?v=nksfAaEJtm8">Translation Tutorial: A History of Quantitative Fairness in Testing</a> and <a href="https://youtu.be/XCFDckvyC0M">Hands-on Tutorial: AI Fairness 360 Part 1</a> and <a href="https://youtu.be/_TueqDj_vfU">Part 2</a>.</p>
+<p>The tutorials are divided into two categories: translation and hands-on. Since the conference is multi-disciplinary, there are attendees from various backgrounds; computer science, social science, law and policy, etc.</p>
+<section id="translation-tutorial-a-history-of-quantitative-fairness-in-testing" class="level3">
+<h3 class="anchored" data-anchor-id="translation-tutorial-a-history-of-quantitative-fairness-in-testing">Translation Tutorial: A History of Quantitative Fairness in Testing</h3>
+<p>The translation tutorials are designed to have everyone more or less be on the same page. This specific translation tutorial I attended seemed to be aimed at computer scientists who are not much aware of the history of research on fairness and automated decision making. This was given by Google researchers Ben Hutchinson and Margaret Mitchell, who showed that the growing current interest on fairness in ML isn’t something new but existed in 1960’s when the civil rights movement started, which made sense.</p>
+<p>Then, the interest was on designing fair standardized tests like SAT or LSAT. Based on correlation studies, researchers then discovered that standardized tests require specific cultural knowledge, which is unfair to racial minorities. There were several views on how to build a fairer model, similar to the various modeling perspectives found in modern studies, such as whether to use sensitive features like race or gender exclusively in models. Also, researchers then pointed out that what we are trying to predict and what we should do are two different questions, which is always mentioned in almost every presentation at this conference.</p>
+<p>Ben and Margaret finished the talk by inspiring the audience with various research opportunities that we can learn from the history. For instance, these historical studies started by asking the question of “what is unfair?” instead of the definition of fairness itself. Correlation- based approach and addressing regression problem (instead of classification) in fairness are other examples.</p>
+</section>
+<section id="hands-on-tutorial-ai-fairness-360" class="level3">
+<h3 class="anchored" data-anchor-id="hands-on-tutorial-ai-fairness-360">Hands-on Tutorial: AI Fairness 360</h3>
+<p>The second tutorial I attended (“AI Fairness 360”) was a hands-on one. Here, I learned about IBM Research’s effort to build an open-source Python package that implemented mathematical definition of various fairness criteria and how to apply them to a user’s existing workflow. The package seemed quite comprehensive and had great usability for the following reasons:</p>
+<ul>
+<li>There is no one definition that satisfies all the needs and hence they have implemented a variety of metrics.</li>
+<li>The package addresses different steps in ML pipeline where the fairness adjustment (i.e., mitigation algorithm) can be made: pre-process (mitigation to training data), in-process (mitigation to model during training), post-process (mitigation to predicted labels). This gives freedom and flexibility in the mitigation process.</li>
+<li>Its syntax is similar to scikit-learn, which make everything easy and familiar. Plus, their API is well-established, and the repository has many notebook examples.</li>
+<li>The package can have various types of data (tabular, images, etc.)</li>
+</ul>
+<p>This is just a start and of course, there are aspects that can be improved and investigated. First, some mitigation algorithms require tuning. It’ll be interesting to understand how this works on top of the main ML model’s tuning process. Since there are various fairness metrics, it would be nice to directly target those metrics for tuning. When a mitigation algorithm is applied, we sometimes see a compromise in model performance. In this case, it will be interesting to conduct an error analysis to find in which examples the model starts missing predictions.</p>
+</section>
+</section>
+<section id="keynote" class="level2">
+<h2 class="anchored" data-anchor-id="keynote">Keynote</h2>
+<p>There were two keynotes from two very different domains: computer science and law. The computer science one was given by Jon Kleinberg at Cornell University. His talk was about mathematical formulation of a mitigation policy called Rooney Rule. The Rooney Rule is a requirement that at least one of the finalists be chosen from the affected group. His researched showed that it not only improves the representation of this affected group, but also leads to higher payoffs in absolute terms for the organization performing the recruiting. He presented a mathematical proof to prove his point. His model has only three parameters: composition of pool (diversity), level of bias, and abundance of outliers (superstars) and he showed that with certain constraints, Rooney Rule can be used to improve to the utility of the entire group (not just for the minority).</p>
+<p>The second one was given by Deirdre Mulligan from UC Berkeley. Her talk was on “fostering cultures of algorithmic responsibility through administrative law and design”. She started by citing the case Loomis v. Wisconsin where Eric Loomis challenged the State of Wisconsin’s use of proprietary, closed-source risk assessment software (COMPAS) in the sentencing of himself to six years in prison. His argument was that there was gender and race bias in the software, which was also addressed by many investigative journalists. One of the interesting and disappointing part of this case was that the court addressed that “it is unclear how COMPAS accounts for gender and race…”, meaning the lack of transparency of the software but also the lack of ability to handle these cases in law. To fix this problem, she emphasized that there should be case laws addressing limits and details of math and algorithms, but more importantly, a “contestable” design. This means whenever there is a wrong done to a person by automated decision, they should be able to contest on this algorithmic decision.</p>
+</section>
+<section id="main-sessions" class="level2">
+<h2 class="anchored" data-anchor-id="main-sessions">Main sessions</h2>
+<p>In total, there were 11 sessions and there was a wide range of topics ranging from problem formulation to content distribution and economic models. The following sessions stood out.</p>
+<section id="framing-and-abstraction" class="level3">
+<h3 class="anchored" data-anchor-id="framing-and-abstraction">Framing and Abstraction</h3>
+<p>The talks in this session here mentioned that problems in ML projects can start from the very beginning where ML practitioners and data scientists start formulating ideas and framing problems. For examples, if what one wants to measure cannot be obtained or measurable, they use a proxy that is correlated to the original metric they wanted to measure. Sometimes data scientists transform a regression problem as classification by discretizing variables. Unfortunately, these decisions are often not well documented even though they happen in many layers in a ML project.</p>
+</section>
+<section id="profiling-and-representation" class="level3">
+<h3 class="anchored" data-anchor-id="profiling-and-representation">Profiling and Representation</h3>
+<p>Chakraborty at al.&nbsp;presented an interesting idea of handling online trolls in their talk, “Equality of Voice: Towards Fair Representation in Crowdsourced Top-K Recommendations.” Since algorithms trained by online user data make often offensive and biased prediction, they came up with a fairer “voting” system by considering that there are a few bad actors (the trolls) and that most users are silent (who don’t case a vote). Here, the main challenge was the latter because they need to infer how a silent user might have voted. To solve this, they used existing personalized recommendation techniques.</p>
+</section>
+<section id="fairness-methods" class="level3">
+<h3 class="anchored" data-anchor-id="fairness-methods">Fairness methods</h3>
+<p>In “From Soft Classifiers to Hard Decisions: How fair can we be?”, Canetti at al.&nbsp;tackles the fairness problem by implementing a deferral process. Instead of making hard yes/no decisions, the model can defer the decision to a group of moderators so that they can gather more information and make more socially-acceptable decisions. Their paper discussion a couple of options of deferrals: applying different thresholds per group for deferral or equalizing the accuracy with equal deferral rate.</p>
+<p>Similarly, in “Deep Weighted Averaging Classifiers”, Card et al.&nbsp;questions when we should know when not to trust a classifier. On top of traditional model performance, they come up with a separate measure of model credibility which can address whether this model is a right tool. They provided a fun example where they build a model by using the MNIST dataset and then used the trained model on the Fashion MNIST (the former has images of numerical digits and the latter, images of clothes and shoes). The model can still make predictions but clearly this model is not built for the testing data. In this case, the model’s “credibility” is very low.</p>
+</section>
+<section id="explainability" class="level3">
+<h3 class="anchored" data-anchor-id="explainability">Explainability</h3>
+<p>Ustun at al.&nbsp;points out that explanability does not mean contestability in their talk, “Actionable Recourse in Linear Classification”. When a model explains why your loan is rejected, it doesn’t mean what you should do about it, especially the explanation is based on immutable features like your race. They suggest that we should have a system and model that provides “ability to obtain a desired prediction from a model by changing actionable input” so that the model’s explanation is actually useful. Their tool provides two answers: 1) what users can do to flip the decision and 2) the proof of no recourse (by checking every option in actionable features). The second answer can be still valuable because then it provides the user with contestable information.</p>
+</section>
+<section id="economic-models" class="level3">
+<h3 class="anchored" data-anchor-id="economic-models">Economic Models</h3>
+<p>There were two dedicated sessions just for economic fairness, new to this year’s program compared to the last year’s. One interesting concept discussed in multiple talks was “strategic manipulation.” It is also called “Stackelberg game”, where candidates might try to change their feature to game the system (the model) and the learner anticipates this and adjust the classifier by changing the decision boundary more stringent, which can also result in changes in candidates’ behavior. Milli et al.’s discussed in “The Social Cost of Strategic Classification” that so far the approach to this problem has institutional-centric view. For instance, when the institution, who build the model, wants to come up with a counter-measure to strategic manipulation, they weigh hard-to-change features such as parents’ income or zip code more highly. Then it becomes extremely high-cost for credit-worthy individuals in the wrong zip code area to obtain a loan, meaning the social burden is now on individuals. Their study found that as the game is played, individual social burden increases and returns more unfair outcome.</p>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>I enjoy this conference very much not just because of personal interest but also of the fact that studies discussed here emphasize robustness and responsibility of ML algorithms, often ignored in ML community. Plus, the crosstalk between different domains enlighten me because they the topics can be applied to many aspects of ML engineering work. The theoretical studies provide new insights on how to measure abstract concepts like fairness and bias, transferrable to processes like problem statement that are highly important in ML. The empirical studies help theoretical studies grounded and more realistic. Finally, the law and policy side of works emphasizes the real implementation of these studies, which resembles constructing deployment plans and the results with stakeholders.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

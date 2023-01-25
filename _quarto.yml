@@ -8,14 +8,14 @@ website:
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/hongsups
+        href: https://github.com/hongsupshin
       - icon: twitter
         href: https://twitter.com/hongsupshin
       - icon: linkedin
         href: https://www.linkedin.com/in/hongsupshin/
 format:
   html:
-    theme: journal
+    theme: litera
     css: styles.css
 
 
