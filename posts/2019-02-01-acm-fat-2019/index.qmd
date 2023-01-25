@@ -6,7 +6,7 @@ categories:
     - conference
     - fairness
     - ML
-description: Several key moments from the conference and my thoughts
+description: Several key moments from the conference and my thoughts at the FAT (Fairness, Accountability, and Transparency in ML) conference
 ---
 
 ![](2019-02-01-acm-fat.jpeg "From Moritz Hardt's CS 294: Fairness in Machine Learning course")

@@ -1,7 +1,7 @@
 ---
 title: Tutorials at FAccT 2021 
 date: "2021-03-04"
-description: FAccT 2021 (virtual) tutorial summary (causal analysis, XAI, and algorithmic impact)
+description: FAccT 2021 (virtual) tutorial summary. Causal analysis, XAI, and algorithmic impact
 categories: 
     - conference
     - causality
