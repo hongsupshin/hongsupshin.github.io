@@ -2,7 +2,7 @@
 title: "Tech Policy Workshop and Data Ethics"
 date: "2020-01-30"
 image: "2020-01-30-presentation.png"
-description: I participated a two-day workshop on tech ethics and policy at USF. The speakers and attendees were from a variety of disciplines ranging from tech to non-profit, law, and government. This is a reflection piece about my workshop experience focusing on data ethics of a tech worker like myself.
+description: A reflection piece about the USF tech ethics and policy workshop focusing on data ethics of a tech worker 
 categories: ethics
 ---
 

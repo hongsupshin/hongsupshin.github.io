@@ -2,7 +2,7 @@
 title: Efficient Bug Discovery with Machine Learning for Hardware Verification
 date: "2020-09-22"
 image: "2020-09-22-random-constraint-testing-diagram.png"
-description: At Arm, I have been doing research to use ML to solve hardware verification problems. I wrote this post for general audience to explain the challenges in hardware verification and how my team has been tackling it. The original post can be found <a href="https://community.arm.com/developer/research/b/articles/posts/efficient-bug-discovery-with-machine-learning-for-hardware-verification">here</a>.
+description: My Arm Research blog post about using ML in hardware verification
 categories: 
     - ML
     - verification

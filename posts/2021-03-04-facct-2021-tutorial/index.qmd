@@ -1,7 +1,6 @@
 ---
 title: Notes on FAccT 2021 Tutorial Sessions
 date: "2021-03-04"
-description: This is my 4th time attending the ACM FAccT conference (previously called ACM FAT). This year, due to the pandemic, the conference is held virtual. Starting from today, I will upload a summary of each day in a short post. This post summarizes the tutorials I attended today.
 categories: 
     - conference
     - causality

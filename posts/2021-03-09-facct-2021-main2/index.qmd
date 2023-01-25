@@ -1,7 +1,7 @@
 ---
 title: FAccT Day 2. Automated Decision-Making, (Causal) Accountability, and Robustness
 date: "2021-03-09"
-description: Summary of Day 2 at FAccT 2021. Today's topics; automated decision-making, accountability and recourse, and model robustness
+description: Summary of Day 2 at FAccT 2021 (automated decision-making, accountability and recourse, and model robustness)
 categories: 
     - conference
     - explainability

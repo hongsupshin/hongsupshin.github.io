@@ -2,7 +2,7 @@
 title: Critiquing and Rethinking at ACM FAT 2020
 date: "2020-03-01"
 image: "2020-03-01-acm-fat-badge.png"
-description: This is my third time attending the ACM FAT conference. This year, the conference has gotten much larger than the last year and also it was held in Europe (Barcelona, Spain) for the first time. I was happy to see that this year the conference embraced more diverse disciplines. This post summarizes my experience at the conference.
+description: Summary of FAT 2020 in Barcelona, Spain
 categories: 
     - conference
     - fairness
