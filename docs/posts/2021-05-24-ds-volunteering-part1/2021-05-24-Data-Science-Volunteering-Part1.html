@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2021-05-24">
+
+<title>Hongsup Shin - Data Science Volunteering Part 1. Police Shooting in Texas</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">Hongsup</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Data Science Volunteering Part 1. Police Shooting in Texas</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 24, 2021</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<blockquote class="blockquote">
+<p>I have met several tech workers who were interested in using their technical skills in more meaningful projects particularly for social good. As a tech worker myself, I’ve been volunteering at several organizations about two years now. Among those, I have been volunteering at Texas Justice Initiative (TJI). In this post, I’d like to share some of my volunteering at TJI, particularly on police shooting in Texas.</p>
+</blockquote>
+<div class="cell" data-execution_count="1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'precision'</span>, <span class="dv">2</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>plt.style.use(<span class="st">'ggplot'</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>config InlineBackend.figure_format <span class="op">=</span> <span class="st">'retina'</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.core.pylabtools <span class="im">import</span> figsize</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>figsize(<span class="dv">8</span>, <span class="dv">5</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># custom modules</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>sys.path.append(<span class="st">'../src/'</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plot</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> preprocess</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>load_ext watermark</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>load_ext autoreload</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>autoreload <span class="dv">2</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>watermark <span class="op">-</span>d <span class="op">-</span>t <span class="op">-</span>u <span class="op">-</span>v <span class="op">-</span>g <span class="op">-</span>r <span class="op">-</span>b <span class="op">-</span>iv <span class="op">-</span>a <span class="st">"Hongsup Shin"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Author: Hongsup Shin
+
+Last updated: 2021-05-24 18:31:44
+
+Python implementation: CPython
+Python version       : 3.7.10
+IPython version      : 7.20.0
+
+Git hash: d7b4e435d90633a7d179a01e136b02487d2c5f0b
+
+Git repo: https://github.com/hongsups/blog.git
+
+Git branch: TJI_volunteering
+
+numpy     : 1.20.2
+pandas    : 1.2.3
+seaborn   : 0.11.1
+matplotlib: 3.4.1
+sys       : 3.7.10 | packaged by conda-forge | (default, Feb 19 2021, 15:59:12) 
+[Clang 11.0.1 ]
+</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="2">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># styling setup</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.family'</span>] <span class="op">=</span> <span class="st">'sans-serif'</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.size'</span>] <span class="op">=</span> <span class="dv">11</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'axes.labelsize'</span>] <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'axes.titlesize'</span>] <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.dpi'</span>] <span class="op">=</span> <span class="dv">72</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.titlesize'</span>] <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'legend.frameon'</span>] <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'legend.edgecolor'</span>] <span class="op">=</span> <span class="st">'white'</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'xtick.labelsize'</span>] <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'ytick.labelsize'</span>] <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>cols_race <span class="op">=</span> [<span class="st">'#CE2827'</span>, <span class="st">'#3167AE'</span>, <span class="st">'#4C5151'</span>, <span class="st">'#B8BAB9'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>As a tech worker, I’ve been volunteering at several organizations about two years now. Among those, I have been volunteering at <a href="https://texasjusticeinitiative.org/">Texas Justice Initiative (TJI)</a> consistently over a year where I published <a href="https://texasjusticeinitiative.org/static/TJI_OISReport_2020.pdf">a data journalism report on police shooting in Texas</a> with our TJI director, <a href="https://www.linkedin.com/in/eva-ruth-moravec-m-a-1aa9332/">Eva Ruth Moravec</a>. <a href="https://texasjusticeinitiative.org/">Texas Justice Iniative (TJI)</a> is a criminal justice nonprofit in Austin, TX. It was founded in 2016 by Eva Ruth Moravec, a journalist, and Amanda Woog, a researcher. The main goal of TJI is to <strong>create data portal for criminal justice in Texas</strong>. TJI mostly relies on tech volunteers. We currently have <a href="https://texasjusticeinitiative.org/about">11 active volunteers</a>, including myself.</p>
+<p>In this post, I’d like to share some of my volunteering at TJI, particularly on police shooting in Texas. In the follow-up post, I will share some tips on tech volunteering at nonprofits, especially focusing on how to use machine learning and data science knowledge.</p>
+<section id="police-shooting-in-the-us-is-a-globally-recognized-public-health-issue" class="level2">
+<h2 class="anchored" data-anchor-id="police-shooting-in-the-us-is-a-globally-recognized-public-health-issue">Police shooting in the US is a globally recognized public health issue</h2>
+<p>It’s 2021 now and almost everyone in the US is aware that there is an epidemic of police brutality all over the country. Academic researchers now agree that <a href="https://pubmed.ncbi.nlm.nih.gov/31383756/">police contact is a significant contributing factor to health inequality and particuarly to early mortality for people of color</a>. The police brutality in the US is also internationally recognizied such as in <a href="https://www.justsecurity.org/wp-content/uploads/2014/11/UN-Committee-Against-Torture-Concluding-Observations-United-States.pdf">the 2014 report by the UN Committee Against Torture</a>: &gt; The Committee is concerned about numerous reports of police brutality and excessive use of force by law enforcement officials, in particular against persons belonging to certain racial and ethnic groups, immigrants and LGBTI individuals, racial profiling by police and immigration offices and growing militarization of policing activities.</p>
+<p>If the issue of police brutality is this severe, one would expect that there might be a national database of police shooting incidents. <strong>Unfortunately, the US goverment does not maintain a national database of police shooting incidents.</strong> Rather, most efforts to collect police shooting incidents were done by journalists. D. Brian Burghart’s <a href="https://fatalencounters.org/">Fatal Encounter</a> and Washington Post’s <a href="https://www.washingtonpost.com/graphics/investigations/police-shootings-database/">Fatal Force</a> are famous examples. Some local goverments have pulic data portals for police shooting but they are mostly at a city level and it’s rare to find a state-level database.</p>
+</section>
+<section id="in-texas-law-enforcement-agencies-must-report-officer-involved-shooting-ois-incidents" class="level2">
+<h2 class="anchored" data-anchor-id="in-texas-law-enforcement-agencies-must-report-officer-involved-shooting-ois-incidents">In Texas, law enforcement agencies must report <em>officer-involved shooting</em> (OIS) incidents</h2>
+<p>The state of Texas collects officer-involved shooting (OIS) data from all law enforcement agencies in the state. The term <strong>officer-involved shooting</strong> refers to two different types of incidents: 1. <strong>Shooting <em>by</em> officers</strong>. In this case, people harmed during a shooting incident are <strong>civilians</strong>. 2. <strong>Shooting <em>of</em> officers</strong>. Here, those harmed during an incident are <strong>police officers.</strong></p>
+<p>This was possible thanks to the legistation in 2015 (HB 1036) which requires all officer-involved shootings to be reported to the <strong>Office of Attorney General (OAG) of Texas</strong>. In 2017, another bill was passed, which now requires OAG to investigate missing reports and to fine law enforcement agencies if the reports were delayed. This data is is available in public in <a href="https://oagtx.force.com/oisreports/apex/OISReportsPage">the OAG website</a>. Every report in the data is saved as a PDF file, which makes it challenging to digest.</p>
+</section>
+<section id="data-collection-takes-a-huge-amount-of-effort" class="level2">
+<h2 class="anchored" data-anchor-id="data-collection-takes-a-huge-amount-of-effort">Data collection takes a huge amount of effort</h2>
+<p>Many ML practicioners and data scientists are usually detached from data collection process, which makes it easy for us to overlook the importance of the effort and cost of data collection. Thus, in this section, I’d like to describe the data collection process for the OIS data briefly to show you that <strong>data doesn’t just appear for free</strong>.</p>
+<p>First and foremost, for a government dataset like this, legislations and polices should be established as a consorted effort to collect data formally. Now every law enforcement agency has to file a one-page report (see the example <a href="https://www.austintexas.gov/sites/default/files/files/Police/Olson_Dr._-_Peace_Officer_Involved_Injuries.pdf">here</a>) whenever they identify an officer-involved shooting incident in their jurisdiction. This OIS report contains many pieces of valuable information. To list a few: - Date and location of the incident (location as detailed as street address) - Demographic information (gender, race, and age) of the person who was shot by police and the police officer who shot the person - Severity of the incident (binary; injury or death) and whether the person shot possessed a deadly weapon - Whether multiple officers were involved, whether the officer was on duty, and so on.</p>
+<p>To acquire this data, every month, TJI submits an open records request via OAG’s online portal. Luckily, we get a tabular data (not the PDF files) in a csv file format and our director Eva manually inspects and fixes errors. In this process, we contact the agencies and ask for clarification for errors. Finally, the data is added to the existing data and the data on our website is updated. You can download the <a href="https://texasjusticeinitiative.org/datasets/civilians-shot">OIS data on our website</a>.</p>
+</section>
+<section id="the-oags-annual-report-lacks-insight.-can-we-do-better" class="level2">
+<h2 class="anchored" data-anchor-id="the-oags-annual-report-lacks-insight.-can-we-do-better">The OAG’s annual report lacks insight. Can we do better?</h2>
+<p>Since the legislations were passed, the OAG publishes an annual report to provide a summary of all OIS incidents in Texas in a given year. The two-page <a href="https://www.texasattorneygeneral.gov/sites/default/files/files/divisions/criminal-justice/2020-Annual-Report.pdf">2020 report</a> has only three paragraphs where they discuss the data:</p>
+<blockquote class="blockquote">
+<p>From January 1, 2020 until December 31, 2020, there were one hundred ninety-four (194) separate incidents statewide involving peace officer shootings with a firearm that caused injury or death. Those incidents resulted in one hundred ten (110) deaths and eighty-four (84) injuries to individuals. Additionally, twenty-nine (29) peace officers were injured and six (6) were killed.</p>
+<p>Of the individuals (non-peace officers) who were either injured or killed in these incidents, sixty-seven (67) were Hispanic, sixty-three (63) were Caucasian, sixty-one (61) were African-American, one (1) was Asian or Pacific Islander, one (1) was not available and one (1) was of another nationality or race. One hundred seventy-six (176) of these incidents involved individuals who were reported to be carrying a deadly weapon; eighteen (18) did not.</p>
+<p>The reason for the officers’ involvement are broken down as follows: one hundredfour (104) Emergency Calls or Requests for Assistance; twenty-five (25) involving Execution of a Warrant; twenty (20) Hostage, Barricade and Other Emergency Situations; thirty-eight (38) Traffic Stops; and forty-one (41) Other Uncategorized Situations.</p>
+</blockquote>
+<p>This summary from the OAG report has several issues: 1. The data is <strong>aggregated at the state level</strong>. Texas has over 250 counties and that granular information is nowhere to be found. 2. There are <strong>no intersectional analyses</strong>. There are counts based on race and the reasons for officer involvement but that’s all. 3. There are <strong>no multi-year analyses</strong>. They have been collecting the data since 2015 but year-to-year comparison doesn’t exist. 4. There is <strong>no disclosure on data preprocessing</strong>. When analyzing a dataset, one has to make numerous decisions how they handle the data such as data exclusion, imputation, discretization, aggregation, and so on. For public data, preprocessing information is a key to transparancey and accountability. 5. There is <strong>missing information</strong>. The OIS report has information such as age demographics, report dates, on-duty-ness of officers, etc. However, none of that information is addressed in the report.</p>
+<p>To address these points, I’ve decided to analyze the Texas police shooting data in the following way: 1. <strong>Comparison with reference datasets</strong>. If we want to make a value assessment on the OIS dataset, we need a target that we can compare with. To do this, I used US Census data and mortality data from Texas Department of Health Services. 2. <strong>County-level analyses</strong>. Texas nas numerous counties and some are quite different from others. This aspect should be reflected. 3. <strong>Various intersectional analyses</strong>. We can find many different ways to create interesting intersections of the data. Given the serious racial bias in police brutality, I made sure we look at intersections that contain race demographics. 4. <strong>Multi-year analyses</strong>. This way, we can idenfity whether there is any temporal trend in the analyses. 5. <strong>Reproducible and publically available data preprocessing information</strong>. I published all the code, visualizations, raw &amp; intermediate datasets, and Jupyter notebooks on <a href="https://github.com/texas-justice-initiative/officer_involved_shooting">our GitHub repository</a>. 6. <strong>Analyses on age demogrphics</strong>. This was never addressed in the OAG’s annual reports, and I made sure we utilize this information.</p>
+<p>In this post, I am going to focus on several major findings from my <a href="https://texasjusticeinitiative.org/static/TJI_OISReport_2020.pdf">original report</a> (but updated with 2020 information) focusing on the race demogrphics.</p>
+</section>
+<section id="overview-of-the-ois-data" class="level2">
+<h2 class="anchored" data-anchor-id="overview-of-the-ois-data">Overview of the OIS data</h2>
+<div class="cell" data-execution_count="3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df_civilian <span class="op">=</span> pd.read_pickle(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'https://github.com/texas-justice-initiative/officer_involved_shooting/blob/master/Data/Preprocessed/civilian_preprocessed_20162020.pkl?raw=true'</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>columns_to_show <span class="op">=</span> [<span class="st">'date_incident'</span>, <span class="st">'incident_county'</span>, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'civilian_gender'</span>, <span class="st">'civilian_age'</span>, <span class="st">'civilian_race'</span>, <span class="st">'civilian_died'</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'Traffic Stop'</span>, <span class="st">'Emergency/Request for Assistance'</span>, <span class="st">'Execution of a Warrant'</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'Hostage/Barricade/Other Emergency'</span>, <span class="st">'Other'</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                  ]</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>display(df_civilian[columns_to_show].tail().reset_index(drop<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>date_incident</th>
+      <th>incident_county</th>
+      <th>civilian_gender</th>
+      <th>civilian_age</th>
+      <th>civilian_race</th>
+      <th>civilian_died</th>
+      <th>Traffic Stop</th>
+      <th>Emergency/Request for Assistance</th>
+      <th>Execution of a Warrant</th>
+      <th>Hostage/Barricade/Other Emergency</th>
+      <th>Other</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2020-12-14</td>
+      <td>HARRIS</td>
+      <td>MALE</td>
+      <td>34.0</td>
+      <td>WHITE</td>
+      <td>DEATH</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2020-12-14</td>
+      <td>HARRIS</td>
+      <td>MALE</td>
+      <td>30.0</td>
+      <td>BLACK</td>
+      <td>INJURY</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2020-12-15</td>
+      <td>BRAZORIA</td>
+      <td>MALE</td>
+      <td>80.0</td>
+      <td>WHITE</td>
+      <td>DEATH</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2020-12-25</td>
+      <td>HARRIS</td>
+      <td>MALE</td>
+      <td>31.0</td>
+      <td>BLACK</td>
+      <td>DEATH</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2020-12-31</td>
+      <td>JEFFERSON</td>
+      <td>MALE</td>
+      <td>39.0</td>
+      <td>WHITE</td>
+      <td>DEATH</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<p>This is a snapshot of a <em>preprocessed</em> OIS dataset (only a small portion of all columns shown). In general, the data has information about the time and location of the incident, demographics, and incident causes (the last 5 columns that are one-hot encoded). The <a href="https://texasjusticeinitiative.org/static/TJI_OISReport_2020.pdf">original report</a> has a number of intersectional visualizations but here, I would like to share one example to give you an idea.</p>
+<p>This heatmap below shows the number of civilians shot by police by race and age groups at the state level. The numbers in the parentheses represent the total in the corresponding category and the gray cells represent 0s.</p>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>plot.plot_heatmap_age_race_year(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    df_civilian, </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">3.5</span>), </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'Blues'</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'Number of Civilians Shot in OIS Incidents (All Counties) by Age Groups'</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-5-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>This simple intersection of race and age already reveals something important that was hiddne in the OAG’s reports; <strong>almost every year, young children were shot by police.</strong></p>
+</section>
+<section id="racial-disparity-in-police-shooting-in-texas" class="level2">
+<h2 class="anchored" data-anchor-id="racial-disparity-in-police-shooting-in-texas">Racial disparity in police shooting in Texas</h2>
+<div class="cell" data-execution_count="5">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>df_census <span class="op">=</span> pd.read_pickle(<span class="st">'https://github.com/texas-justice-initiative/officer_involved_shooting/blob/master/Data/Interim/census_county_race_2010.pkl?raw=true'</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># highlighting the top 5 counties in terms of the no. civilians shot</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>top5_locs <span class="op">=</span> df_civilian[<span class="st">'incident_county'</span>].value_counts()[:<span class="dv">5</span>].index.values</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>temp <span class="op">=</span> df_civilian.groupby([<span class="st">'incident_county'</span>])[<span class="st">'date_incident'</span>].count().sort_values(ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>county_names_by_incidents <span class="op">=</span> temp.index</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>pop_size <span class="op">=</span> df_census.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>).loc[county_names_by_incidents.values]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="6">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">4</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ax.plot(pop_size, temp, <span class="st">'o'</span>, color<span class="op">=</span><span class="st">'k'</span>, markersize<span class="op">=</span><span class="dv">5</span>, alpha<span class="op">=</span><span class="fl">0.25</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xscale<span class="op">=</span><span class="st">'log'</span>, xlabel<span class="op">=</span><span class="st">'Population Size'</span>, ylabel<span class="op">=</span><span class="st">'Civilians Shot'</span>, title<span class="op">=</span><span class="st">'General population vs. OIS data by County'</span>, xlim<span class="op">=</span>[<span class="fl">1e3</span>, <span class="fl">1e7</span><span class="op">*</span><span class="dv">3</span>], ylim<span class="op">=</span>[<span class="op">-</span><span class="dv">5</span>, <span class="dv">200</span>])</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> county_name <span class="kw">in</span> top5_locs:</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    ax.annotate(county_name.capitalize(), (pop_size.loc[county_name]<span class="op">+</span><span class="fl">3e5</span>, temp.loc[county_name]<span class="op">+</span><span class="dv">1</span>), fontsize<span class="op">=</span><span class="dv">11</span>, color<span class="op">=</span><span class="st">'crimson'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>When I broke down the OIS data at the county level, I found that the number of civilians shot by police is positively correlated with the population size. Interestingly, most counties have a very small number of incidents and more than half of the data come from the top 5 most populous counties (annotated in the figure); <strong>Harris, Bexas, Dallas, Tarrant, and Travis.</strong></p>
+<p>The race composition of all the civilians shot by police in our data shows that the proportion of each race group, white, Black and Hispanic is comparable.</p>
+<div class="cell" data-execution_count="20">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plot.plot_pie(df_civilian, <span class="st">'civilian_race'</span>, colors<span class="op">=</span>cols_race, remove_labels<span class="op">=</span><span class="va">True</span>, </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>              title<span class="op">=</span><span class="st">'Race Composition in the OIS Data</span><span class="ch">\n</span><span class="st">(All Counties)'</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>              figsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>), </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>              fontsize<span class="op">=</span><span class="dv">13</span>,              </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>              bbox_to_anchor<span class="op">=</span>(<span class="fl">1.5</span>, <span class="fl">0.1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>However, if we focus on the top 5 counties, it is now clear that <strong>Black people are shot more often (39.3%) than white (25.1%) and Hispanic (32.2%).</strong></p>
+<div class="cell" data-execution_count="8">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>df_civilian_top5 <span class="op">=</span> df_civilian.loc[df_civilian[<span class="st">'incident_county'</span>].isin(top5_locs), :]</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plot.plot_pie(df_civilian_top5, <span class="st">'civilian_race'</span>, colors<span class="op">=</span>cols_race, remove_labels<span class="op">=</span><span class="va">True</span>, </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>              title<span class="op">=</span><span class="st">'Race Composition in the OIS Data</span><span class="ch">\n</span><span class="st">(Top 5 Counties)'</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>              figsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>              fontsize<span class="op">=</span><span class="dv">13</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>              bbox_to_anchor<span class="op">=</span>(<span class="fl">1.5</span>, <span class="fl">0.1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<section id="black-people-are-overrepresented-in-police-shooting-incidents" class="level3">
+<h3 class="anchored" data-anchor-id="black-people-are-overrepresented-in-police-shooting-incidents">Black people are overrepresented in police shooting incidents</h3>
+<p>At this point, one might think that this is simply because the top 5 counties have larger Black populations than other counties. It’s true that in Texas, these top 5 counties with metropolitan areas have more Black people. If this hypothesis is true, this disproportionate distribution across race groups <em>should be reflected in the census data</em>.</p>
+<div class="cell" data-execution_count="9">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>plot.plot_scatter_compare_race_incident_vs_population_pulled(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    df_civilian, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    df_census,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    n_county<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    annotate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    xylim<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    figsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'Racial Bias in Police Shooting</span><span class="ch">\n</span><span class="st">(Top 5 Counties, 2016-2020)'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Unfortunately, I found that that was not the case. The plot above shows race representation of general population (US census, x axis) and of the police shooting incidents (OIS data, y axis). The dotted diagonal line shows equal representation between the census and the police shooting data. <strong>Any data points above the line indicate overrepresentation in the OIS data compared with the general population data</strong> (census).</p>
+<p>The four colored dots represent the race groups in our data; Black (B), Hispanic (H), white (w), and others (O). The annotated numbers next to the dots show the rate of overrepresentation in the police shooting data of a race group compared to the census data. This analysis shows that <strong>Black people are 2.4 times overrepresented in police shooting compared with general population</strong> in these top 5 counties. The figure below shows that this pattern is in fact consistent across all 5 counties although <strong>the rate of overrepresentation for Black people is much higher particuarly for Harris and Dallas counties</strong>.</p>
+<div class="cell" data-execution_count="18">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>plot.plot_scatter_compare_race_incident_vs_population(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    df_civilian, </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    df_census, </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">13</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'Racial Bias in Police Shooting (2016-2020)'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="black-and-hispanic-people-are-overrepresented-in-fatal-police-shooting-incidents" class="level3">
+<h3 class="anchored" data-anchor-id="black-and-hispanic-people-are-overrepresented-in-fatal-police-shooting-incidents">Black and Hispanic people are overrepresented in <em>fatal</em> police shooting incidents</h3>
+<p>Since the OIS data has a column that shows severity of incidents in terms of whether victims were killed or just injured, I decided to use the morality data of general population published by Texas Department of State Health Services (DSHS) to examine the <strong>racial bias in fatal police shooting incidents</strong>.</p>
+<div class="cell" data-execution_count="11">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>df_civilian_died <span class="op">=</span> df_civilian[df_civilian[<span class="st">'died'</span>]<span class="op">==</span><span class="dv">1</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>df_death_county <span class="op">=</span> pd.read_csv(<span class="st">'https://raw.githubusercontent.com/texas-justice-initiative/officer_involved_shooting/master/Data/Raw/Census/mortality_rate_by_county.csv'</span>, index_col<span class="op">=</span><span class="st">'County'</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>df_death_county <span class="op">=</span> df_death_county.drop(<span class="st">'TOTAL'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="12">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>plot.plot_scatter_compare_race_incident_vs_population_pulled(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    df_civilian, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    df_death_county,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    n_county<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    annotate<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    xylim<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    figsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'Racial Bias in Fatal Police Shooting</span><span class="ch">\n</span><span class="st">(Top 5 Counties, 2016-2020)'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Similar to the comparison with the census data, I found the <strong>overrepresentation of Black people in the fatal police shooting incidents (2.1 times overrepresented)</strong>. In addition, <strong>Hispanic people were overrepresented as well (1.6 times)</strong>. This pattern of overrepresentation of Black and Hispanic people was consistent across all 5 counties:</p>
+<div class="cell" data-execution_count="19">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>plot.plot_scatter_compare_race_incident_vs_population(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    df_civilian_died, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    df_death_county, </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">13</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">'Racial Bias in Fatal Police Shooting (2016-2020)'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="young-black-men-are-overrepresented-in-fatal-police-shooting-incidents" class="level3">
+<h3 class="anchored" data-anchor-id="young-black-men-are-overrepresented-in-fatal-police-shooting-incidents">Young Black men are overrepresented in fatal police shooting incidents</h3>
+<p>I found a similar result when I looked at the intersection of race and age demographics. In the figure below, I’ve compared the race composition of mortality data (left, “County Deaths”) and the OIS data (right, “Deaths by OIS”) in various age groups (5 subplots). I used the same color palette as above (red for white, blue for Black, and dark gray for Hispanic). If there is no disproportionate race representation in the fatal police shooting data per age group, the two stacked bars (general population’s mortality and fata police shooting) in a subplot should look similar.</p>
+<p>However, it is clear that Black people are overrepresented especially in younger age groups (ages 15-24 particularly). <strong>In the ages 15-24, Black people were about 3 times overrepresented in fatal police shooting incidents.</strong> This pattern quickly disappears as we move towards older age groups (plots on the right side).</p>
+<div class="cell" data-tags="[]" data-execution_count="14">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>race_list <span class="op">=</span> [<span class="st">'WHITE'</span>, <span class="st">'BLACK'</span>, <span class="st">'HISPANIC'</span>, <span class="st">'OTHER'</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># mortality data by age and gender (male only)</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>df_death_age_male <span class="op">=</span> pd.read_csv(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'https://raw.githubusercontent.com/texas-justice-initiative/officer_involved_shooting/master/Data/Raw/Census/mortality_rate_by_age_male.csv'</span>, </span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    index_col<span class="op">=</span><span class="st">'Age'</span>).iloc[<span class="dv">1</span>:, :]</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>age_range_names <span class="op">=</span> df_death_age_male.index.values</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co"># intersection of race and gender</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>df_civilian_died_male_age <span class="op">=</span> df_civilian_died.loc[df_civilian_died[<span class="st">'civilian_gender'</span>]<span class="op">==</span><span class="st">'MALE'</span>].groupby([<span class="st">'civilian_age_binned'</span>, <span class="st">'civilian_race'</span>])[<span class="st">'date_incident'</span>].count().unstack().fillna(<span class="dv">0</span>)[race_list]</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting the age groups of interest</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>inds_age_binned <span class="op">=</span> np.arange(<span class="dv">2</span>, <span class="dv">7</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>df_civilian_died_male_age <span class="op">=</span> df_civilian_died_male_age.loc[inds_age_binned, :].drop(<span class="st">'OTHER'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>df_death_age_male <span class="op">=</span> df_death_age_male.iloc[inds_age_binned, :].drop(<span class="st">'TOTAL'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co"># convert counts to proportions</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>df_civilian_died_male_age_pct <span class="op">=</span> preprocess.pct(df_civilian_died_male_age, <span class="dv">1</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>df_death_age_male_pct <span class="op">=</span> preprocess.pct(df_death_age_male, <span class="dv">1</span>)</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="co"># changing the index for plotting</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>df_civilian_died_male_age_pct.index <span class="op">=</span> [<span class="st">'Age </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(s) <span class="cf">for</span> s <span class="kw">in</span> age_range_names[inds_age_binned]]</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>df_death_age_male_pct.index <span class="op">=</span> [<span class="st">'Age </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(s) <span class="cf">for</span> s <span class="kw">in</span> age_range_names[inds_age_binned]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="15">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>plot.plot_stackedbar_compare_ratio(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    df_civilian_died_male_age_pct,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    df_death_age_male_pct,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    df_civilian_died_male_age.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>).astype(<span class="bu">int</span>), </span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    severity<span class="op">=</span><span class="st">'Deaths'</span>, </span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    legend<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-16-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="incident-cause-for-black-people-is-often-other" class="level3">
+<h3 class="anchored" data-anchor-id="incident-cause-for-black-people-is-often-other">Incident cause for Black people is often “Other”</h3>
+<p>I found another example of racial disparity in how law enforcement agencies labeled the cause of incidents. The OIS report provides a list of five categories as a potential cause of an incident; “Traffic Stop”, “Emergency/Request for Assistance”, “Execution of a Warrant”, “Hostage/Barricade/Other Emergency”, and “Other”. Obviously, the last category, <strong>“Other” has the lowest accountability and transparency</strong> because it can be anything.</p>
+<div class="cell" data-execution_count="16">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>incident_causes_list <span class="op">=</span> [<span class="st">"Traffic Stop"</span>, <span class="st">"Emergency/Request for Assistance"</span>, <span class="st">"Execution of a Warrant"</span>, <span class="st">"Hostage/Barricade/Other Emergency"</span>, <span class="st">"Other"</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>incident_causes_list_sorted <span class="op">=</span> df_civilian[incident_causes_list].<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">0</span>).sort_values(ascending<span class="op">=</span><span class="va">False</span>).index</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>df_civilian_top5 <span class="op">=</span> df_civilian.loc[df_civilian[<span class="st">'incident_county'</span>].isin(top5_locs), :]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>df_civilian_incident_race_top5 <span class="op">=</span> df_civilian_top5.groupby(<span class="st">'civilian_race'</span>)[incident_causes_list_sorted].<span class="bu">sum</span>().loc[race_list, incident_causes_list_sorted]</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>df_civilian_incident_race_top5_pct <span class="op">=</span> preprocess.pct(df_civilian_incident_race_top5, <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="17">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">3</span>))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>df_civilian_incident_race_top5_pct.T[::<span class="op">-</span><span class="dv">1</span>].plot(kind<span class="op">=</span><span class="st">'barh'</span>, stacked<span class="op">=</span><span class="va">True</span>, ax<span class="op">=</span>ax, legend<span class="op">=</span><span class="va">False</span>, width<span class="op">=</span><span class="fl">0.75</span>, color<span class="op">=</span>cols_race)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plot.annotate(ax, <span class="st">'h'</span>, <span class="st">'percent'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlim<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">100</span>])</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels([s <span class="op">+</span> <span class="st">' (</span><span class="sc">{}</span><span class="st">)'</span>.<span class="bu">format</span>(n) <span class="cf">for</span> s, n <span class="kw">in</span> <span class="bu">zip</span>(df_civilian_incident_race_top5.columns, </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                                                          df_civilian_incident_race_top5.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">0</span>).values)][::<span class="op">-</span><span class="dv">1</span>], fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>fig.legend(race_list, ncol<span class="op">=</span><span class="dv">4</span>, bbox_to_anchor<span class="op">=</span>(<span class="fl">0.81</span>, <span class="fl">0.09</span>), fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">'Race Demographics by Incident Cause (Top 5 Counties)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>, x<span class="op">=</span><span class="fl">0.6</span>, y<span class="op">=</span><span class="fl">1.03</span>)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="2021-05-24-Data-Science-Volunteering-Part1_files/figure-html/cell-18-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>When incident cause data is broken down by race groups, the “Other” category shows unusually high proportion of Black people. This means that <strong>when OIS reports were filed, more than half of the times, the incident cause was identified as “Other” when the victim was a Black person.</strong> Again, considering this category’s low accountability and transparency, this racial disparity was another concerning example.</p>
+</section>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>In this post, I’ve introduced several examples of my data science volunteering work at Texas Justice Initiative and a larger context surrounding it. Using reference data and conducting intersectional analyses, I was able to identify important racial disparity in Texas police shooting data that was never addressed in the state government’s official annual reports. In the follow-up post, I will share some useful tips for tech volunteering (especially in terms of using data science skills).</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

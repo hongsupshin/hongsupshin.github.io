@@ -2,6 +2,16 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2020-01-30-cade-workshop-refelection/index.html",
+      "/posts/2021-05-25-ds-volunteering-part2/index.html",
+      "/posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html",
+      "/posts/2021-03-10-facct-2021-main3/index.html",
+      "/posts/2021-03-09-facct-2021-main2/index.html",
+      "/posts/2021-03-08-facct-2021-main1/index.html",
+      "/posts/2021-03-04-facct-2021-tutorial/index.html",
+      "/posts/2020-11-24-github-manuscript-review/index.html",
+      "/posts/2020-09-22-arm-rsh-blog-verification/index.html",
+      "/posts/2020-03-01-acm-fat-2020/index.html",
       "/posts/2019-02-01-acm-fat-2019/index.html"
     ]
   }

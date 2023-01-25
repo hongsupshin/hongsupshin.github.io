@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2021-03-08">
+<meta name="description" content="Summary of Day 1 at the main program of the FAccT 2021. Today’s topics; algorithm audit, impact assessment, data governance, trust in AI, and explainable AI.">
+
+<title>Hongsup Shin - FAccT Day 1. AI Audit, Governance, and Trustworthiness</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">Hongsup</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">FAccT Day 1. AI Audit, Governance, and Trustworthiness</h1>
+                  <div>
+        <div class="description">
+          Summary of Day 1 at the main program of the FAccT 2021. Today’s topics; algorithm audit, impact assessment, data governance, trust in AI, and explainable AI.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">conference</div>
+                <div class="quarto-category">governance</div>
+                <div class="quarto-category">explainability</div>
+                <div class="quarto-category">responsible AI</div>
+                <div class="quarto-category">ML</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 8, 2021</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>This year, for the first time, the FAccT conference has more than one track and there are 27 sessions (+80 talks) happening in 3 days. This is a summary of the first day of the main conference. My summary is based on the talks I attended based on my interest.</p>
+<section id="keynote-health-technology-and-race" class="level2">
+<h2 class="anchored" data-anchor-id="keynote-health-technology-and-race">Keynote: Health, Technology and Race</h2>
+<p>As a person who’s been attending FAccT every year, I’ve been familiar with the criticism to the FAccT academic community; many studies appeared here are often too abstract or disconnected from the real world and the impacted communities. The organizers are aware of this and they have been making efforts such as organizing CRAFT (Critiquing and Rethinking Accountability, Fairness and Transparency) sessions where they bring more multidisciplinary stakeholders. I considered the first keynote from today, given by Yeshimabeit “Yeshi” Milner, the executive director and co-founder of <a href="https://d4bl.org/"><em>Data for Black Lives (D4BL)</em></a>, as a signal from the conference saying that they are actively working on this criticism. In this regard, it was an excellent keynote speech to kick off the conference.</p>
+<p>At the very beginning of the talk, Yeshi said, “we will never achieve fairness, accountability, and transparency <strong>without first demanding justice, power, and self-determination</strong>.” Again, this directly points out that without a holistic approach where we bring all the stakeholders, achieving justice and making changes isn’t going to happen. Yeshi then talked about racial disparity examples where Black people were discriminated and disproportionately affected in a negative way, especially in healthcare.</p>
+<p>She introduced the <a href="https://d4bl.org/covid19-data"><em>COVID-19 Data Tracker Project</em></a> where organizers in the D4BL members compiled a dataset by themselves to highlight the stark disparities in health outcomes related to COVID-19. She mentioned that the larger goal here is to “build the political power of Black communities” as well, which is a critical point. She also emphasized that <strong>any intervention that does not build political power or agency of the marginalized community is liable to harm</strong> rather than to help. Considering that even some tech-for-good projects with good intentions often sideline those who are affected by the system, her remark was poignant.</p>
+<p>“We need to think ‘who do we need to be’” At the end of the talk, she mentioned the importance of reflection, and said we need to resist the urge to feel compelled to keep moving forward, but to pause and reflect on ourselves. This involves identifying what we should unlearn and how we need to create new spaces to bring people who are directly impacted. I think this passionate and moving speech from Yeshi sent out this important message to all attendees, especially to academics and tech workers, like myself.</p>
+</section>
+<section id="algorithm-audit-and-impact-assessment" class="level2">
+<h2 class="anchored" data-anchor-id="algorithm-audit-and-impact-assessment">Algorithm Audit and Impact Assessment</h2>
+<p>For tech workers who are interested robust and responsible AI like myself, case studies are like gems. We are always curious about how others do things and want to learn from each other. That’s why I was very happy to see a case study about algorithm audit from Wilson et al., <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445928"><em>Building and Auditing Fair Algorithms: A Case Study in Candidate Screening</em></a>.</p>
+<p>Researchers from Northeastern University worked with <a href="https://www.pymetrics.ai/">Pymetrics</a>, a company that uses gamification and AI to assist hiring in other companies. This collaboration itself was a unique instance because most audits happen internally or in a permission-less form where the companies being audited do not cooperate with the auditors. The academic researchers seemed to be quite transparent about the process (e.g., they revealed they were paid but the audit was done independently) and disclosed some problems in Pymetric’s system based on the criteria they used. I don’t know the full details yet but it was nice to hear that Pymetrics started working on solutions to fix these.</p>
+<p>Speaking of the audit, there was another interesting paper about Amazon’s questionable practice in product recommendation. It’s been known that Amazon created their own private brand and started competing against other brands. The paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445944"><em>When the Umpire is also a Player: Bias in Private Label Product Recommendations on E-commerce Marketplaces</em></a> investigates this issue by conducting a systematic audit on Amazon’s recommendation system. They found that Amazon’s private brand has greater exposure in the sponsored ads by comparing related item network (RIN) models between the private brand’s and others’ networks.</p>
+<p>Finally, there was a paper dedicated to algorithmic impact assessment. The authors in the paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445935"><em>Algorithmic Impact Assessments (AIA) and Accountability: The Co-construction of Impacts</em></a>, pointed out that often poor impact assessment practices neither mitigate harm nor bring effective algorithm governance. They emphasized that impact assessment should be closely related to accountability, especially for both institutions and people who are affected. The paper showcases impact assessment examples from different domains, which will be useful to design an effective and accountable algorithmic impact assessment procedure.</p>
+</section>
+<section id="trust-in-ai" class="level2">
+<h2 class="anchored" data-anchor-id="trust-in-ai">Trust in AI</h2>
+<p>Speaking of impact assessment, if we have incredibly thoughtful (which is probably very detailed) impact assessment and documentation of deployed algorithms, does it bring more trust? The paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445890"><em>The Sanction of Authority: Promoting Public Trust in AI</em></a>, says, perhaps not. The authors bring up the example of aviation industry. When we board on a plane, do we want to see the maintenance log, history of pilot performance to reassure ourselves? Or, do we normally trust that aviation is <strong>“highly regulated, comparatively safe, and any breach of safety will be sanctioned”</strong>? The authors suggest that the latter is how public trust is formed. This is an excellent point. Documentation of deployed AI systems can be as bad as terms of service statements, which usually have extremely poor readability and can be easily manipulated. I liked that the authors emphasized both the importance of regulatory system but also of <strong>externally auditable AI documentation</strong>, which would facilitate the development of AI regulations.</p>
+</section>
+<section id="explainable-ai" class="level2">
+<h2 class="anchored" data-anchor-id="explainable-ai">Explainable AI</h2>
+<p><a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445941"><em>How Can I Choose an Explainer? An Application-Grounded Evaluation of Post-hoc Explanations</em></a> was a case study of comparing various XAI methods (LIME, SHAP, and <a href="https://github.com/andosa/treeinterpreter">TreeInterpreter</a>) and how human participants use explanations to perform fraud detection task. I was hoping to see a discussion of comparison and evaluation of various XAI methods in a standardized way but it was more about evaluating the suitability of these methods using case-specific real-human tasks. I’d like to take a deeper look at the paper to see whether the authors mentioned any suggestions on cases where it is challenging to run those tasks.</p>
+</section>
+<section id="data-governance" class="level2">
+<h2 class="anchored" data-anchor-id="data-governance">Data Governance</h2>
+<p>My favorite talk of the day was <a href="https://arxiv.org/pdf/2010.13561.pdf"><em>Towards Accountability for Machine Learning Datasets: Practices from Software Engineering and Infrastructure</em></a> by Hutchinson et al.</p>
+<p>It’s not too difficult to meet ML practitioners who are obsessed with state-of-the-art deep learning models and conveniently ignore training data and how their data is preprocessed. These people often have a tendency of even looking down upon data preprocessing process and consider it demeaning. This paper takes a jab at this phenomenon.</p>
+<p>The authors first talk about data scapegoating. Even though everyone is well aware of “garbage in, garbage out” relationship between data and ML models, often data is overlooked and undervalued. Many ML practitioners depend on benchmark datasets, which <strong>“reinforce the notion of data as fixed resources.”</strong> In my experience, this tendency intensifies the fanaticism on ML algorithms even though they are just a tiny part of a much bigger picture. With many good off-the-shelf models readily available, frankly speaking, models are rather becoming commodities.</p>
+<p>They also point out the lack of good governance practice in data maintenance. Understanding ML model performance often requires good and detailed understanding of training data. However, validation and verification of training data is rarely conducted in ML engineering pipelines.</p>
+<p>Finally, the authors didn’t forget to mention the power imbalanced between ML practitioners and data providers. I often feel extremely fortunate that I have experienced the entire end-to-end process of an academic research. I started from scratch and designed a process to collect the data by myself, which required great care and intense labor. In the current ML trend, this step is often conveniently removed and thus creates a bad habit of ignoring labor and responsibility in the data collection and development process.</p>
+<p>I really appreciated the simplicity of the authors’ suggestion on this problem; <strong>“acknowledge that datasets are technical infrastructures.”</strong> Since many ML practitioners are familiar with tech infrastructures such as software programs, the authors suggest that we simply apply existing practices to datasets; create <strong>requirements, design, and tests</strong>. Once this formally becomes a part of infrastructure, it also becomes easy to get all the existing stakeholders in the pipeline involved.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
