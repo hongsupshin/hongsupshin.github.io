@@ -18,10 +18,10 @@ website:
 format:
   html:
     theme: 
-      - litera
+      - journal
       - custom.scss
     css: styles.css
-    fontsize: 16px
+    # fontsize: 16px
 
 
 
