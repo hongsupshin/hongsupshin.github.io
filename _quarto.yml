@@ -6,17 +6,22 @@ website:
   title: "Hongsup Shin"
   navbar:
     right:
-      - about.qmd
+      - text: "About"
+        file: about.qmd
       - icon: github
         href: https://github.com/hongsupshin
       - icon: twitter
         href: https://twitter.com/hongsupshin
       - icon: linkedin
         href: https://www.linkedin.com/in/hongsupshin/
+  site-url: "https://hongsupshin.github.io/"
 format:
   html:
-    theme: journal
+    theme: 
+      - litera
+      - custom.scss
     css: styles.css
+    fontsize: 16px
 
 
 

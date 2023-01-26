@@ -1,5 +1,10 @@
 ---
-title: "Hongsup"
+title: Hi there!
+format:
+  html:
+    fontsize: 16px
+    li:
+      fontsize: 12px
 about:
   template: solana
   image: profile.png
