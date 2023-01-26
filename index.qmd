@@ -1,5 +1,4 @@
 ---
-title: "ML and Data Science Blog"
 listing:
   contents: posts
   sort: "date desc"
