@@ -3,20 +3,15 @@ title: Hi there!
 format:
   html:
     fontsize: 16px
-    li:
-      fontsize: 12px
 about:
   template: solana
   image: profile.png
   links:
     - icon: github
-      text: Github
       href: https://github.com/hongsupshin
     - icon: linkedin
-      text: LinkedIn
       href: https://www.linkedin.com/in/hongsupshin/
     - icon: twitter
-      text: Twitter
       href: https://twitter.com/hongsupshin
 ---
 
