@@ -8,11 +8,15 @@ categories:
     - ML
 ---
 
+Throughout my career, I have met many tech workers interested in using their technical skills in more meaningful ways. When I started my industry career, I had similar thoughts and luckily I have been able to volunteer at various non-profits for several occasions. Some may say volunteering will require much less effort than paid labor because the work is free but because of that exact reason, more caution is required. Based on my experience, I would like to share some tips especially regarding using ML and data science skills for tech volunteering. 
+
+I gave a talk at [Austin Python Meetup](https://www.meetup.com/austinpython/) in Apr, 2021 About this. If you're interested, check out the video below.
+
 {{< video https://www.youtube.com/watch?v=gfqKaplRTsk&ab_channel=AustinPythonMeetup >}}
 
 ## General advice
 
-Before delving into specific tech-skill tips, let's talk about more general aspects of tech volunteering.
+First, before delving into specific tech-skill tips, let's talk about more general aspects of tech volunteering.
 
 ### Local than national or international
 
