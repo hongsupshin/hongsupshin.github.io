@@ -8,6 +8,8 @@ website:
     right:
       - text: "About"
         file: about.qmd
+      - text: "Publications"
+        file: publications.qmd
       - icon: github
         href: https://github.com/hongsupshin
       - icon: twitter
