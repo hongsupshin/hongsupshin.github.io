@@ -123,6 +123,7 @@
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/index.html</guid>
   <pubDate>Tue, 25 May 2021 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/datakind.png" medium="image" type="image/png" height="31" width="144"/>
 </item>
 <item>
   <title>Police shooting in Texas 2016-2019</title>
@@ -668,6 +669,7 @@ sys       : 3.7.10 | packaged by conda-forge | (default, Feb 19 2021, 15:59:12)
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/index.html</guid>
   <pubDate>Wed, 10 Mar 2021 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/parrots.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
   <title>FAccT 2021. Automated decision-making, causal accountability, and robustness</title>
@@ -712,6 +714,7 @@ sys       : 3.7.10 | packaged by conda-forge | (default, Feb 19 2021, 15:59:12)
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/index.html</guid>
   <pubDate>Tue, 09 Mar 2021 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/toolkit.png" medium="image" type="image/png" height="52" width="144"/>
 </item>
 <item>
   <title>FAccT 2021. AI audit, governance, and trustworthiness</title>
@@ -764,6 +767,7 @@ sys       : 3.7.10 | packaged by conda-forge | (default, Feb 19 2021, 15:59:12)
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/index.html</guid>
   <pubDate>Mon, 08 Mar 2021 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/data dev cycle.png" medium="image" type="image/png" height="105" width="144"/>
 </item>
 <item>
   <title>Tutorials at FAccT 2021</title>

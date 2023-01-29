@@ -2,6 +2,7 @@
 title: Tech volunteering tips for nonprofits
 date: "2021-05-25"
 description: Lessons I've learned from my own experience by working with various nonprofit organizations such as DataKind and Texas Justice Initiative
+image: "datakind.png"
 categories: 
     - volunteering
     - journalism
