@@ -1,0 +1,42 @@
+---
+title: Publications and Talks
+---
+
+## 2022
+- [Data-Centric Machine Learning Pipeline for Hardware Verification](https://ieeexplore.ieee.org/document/9908095/). The 35th IEEE International System-on-Chip.
+
+## 2021
+- [Data science volunteering for criminal justice](https://www.youtube.com/watch?v=gfqKaplRTsk&ab_channel=AustinPythonMeetup). Austin Python Meetup.
+
+## 2020
+- [Efficient Bug Discovery with Machine Learning for Hardware Verification](https://community.arm.com/arm-research/b/articles/posts/efficient-bug-discovery-with-machine-learning-for-hardware-verification). Arm Research Blog.
+- Exploiting while exploring: effective bug discovery in unit-level verification via supervised learning. The 57th Design Automation Conference.
+- [Officer-involver shooting (OIS) in Texas](https://texasjusticeinitiative.org/static/TJI_OISReport_2020.pdf) ([talk video](https://drive.google.com/file/d/1aXvxJ8E4pP9uE4WU0dW3A4ncglxvZhCH/view)). Texas Justice Initiative.
+
+## 2019
+- [Reflection](https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/) on the [Tech Policy Workshop](https://usfblogs.usfca.edu/dataethics/2020/02/09/big-picture/) event at USF Data Institute Center for Applied Data Ethics.
+- [Case study: Real-world machine learning application for hardware failure detection](https://conference.scipy.org/proceedings/scipy2019/pdfs/Hongsup_Shin.pdf). Proc. of the 18th Python In Science Conf (Scipy 2019).
+- Fairness in ML. Arm Global Engineering Conference; Data & Diversity Workshop.
+- [Introduction to Fairness in ML](https://github.com/hongsupshin/publications/blob/main/Fairness_in_ML_Hongsup_Shin_DS_ML_Club_2018.pdf). Arm DS/ML Journal club.
+
+## 2018
+- [A Practical Guide to Machine Learning](https://github.com/hongsupshin/publications/blob/main/UT_lecture_Hongsup_Shin_Dec_5.pdf). Guest lecture at the Computer Architecture course at UT Austin.
+- [Talent, luck and success: simulating meritocracy and inequality with stochasticity](https://medium.com/@hongsupshin/talent-luck-and-success-simulating-meritocracy-and-inequality-with-stochasticity-501e0c1b4969). Medium.
+
+## 2017
+- [The effects of delay duration on visual working memory for orientation](https://jov.arvojournals.org/article.aspx?articleid=2666126). Journal of Vision.
+- [Visual short-term memory for oriented, colored objects](https://jov.arvojournals.org/article.aspx?articleid=2648987). Journal of Vision.
+
+## 2016
+- [Crowdsourced single-trial probes of visual working memory for irrelevant features](https://jov.arvojournals.org/article.aspx?articleid=2503856). Journal of Vision.
+
+## 2015
+- [Visual working memory of irrelevant features in multi-feature objects](https://jov.arvojournals.org/article.aspx?articleid=2433649). Journal of Vision.
+
+## 2013
+- [Visual short-term memory resource is not shared among features](https://jov.arvojournals.org/article.aspx?articleid=2142565). Journal of Vision.
+- [Continuous resources and variable precision in working memory](https://jov.arvojournals.org/article.aspx?articleid=2143472). Journal of Vision.
+
+## 2012
+- [Variability in encoding precision accounts for visual short-term memory limitations](https://www.pnas.org/doi/10.1073/pnas.1117465109). PNAS.
+
