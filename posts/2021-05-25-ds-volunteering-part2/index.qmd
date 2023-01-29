@@ -1,0 +1,120 @@
+---
+title: Tech volunteering tips for nonprofits
+date: "2021-05-25"
+description: Lessons I've learned from my own experience by working with various nonprofit organizations such as DataKind and Texas Justice Initiative
+image: "datakind.png"
+categories: 
+    - volunteering
+    - journalism
+    - ML
+---
+
+Throughout my career, I have met many tech workers interested in using their technical skills in more meaningful ways. When I started my industry career, I had similar thoughts and luckily I have been able to volunteer at various non-profits for several occasions. Some may say volunteering will require much less effort than paid labor because the work is free but because of that exact reason, more caution is required. Based on my experience, I would like to share some tips especially regarding using ML and data science skills for tech volunteering. 
+
+I gave a talk at [Austin Python Meetup](https://www.meetup.com/austinpython/) in Apr, 2021 About this. If you're interested, check out the video below.
+
+{{< video https://www.youtube.com/watch?v=gfqKaplRTsk&ab_channel=AustinPythonMeetup >}}
+
+## General advice
+
+First, before delving into specific tech-skill tips, let's talk about more general aspects of tech volunteering.
+
+### Local than national or international
+
+The first thing you'll have to do is to choose a nonprofit. If you've been interested in data science for social good, you are already familiar with an organization such as [DataKind](https://www.datakind.org/). I've worked with DataKind a couple of times for small projects and normally you go through a detailed application process to become a volunteer. Since it's a popular international organization, the application process is competitive and it's possible that you will get rejected, which also happened to me several time.
+
+Famous organizations are all good but I'd like to suggest you look around and go for **local nonprofits**. They often lack resources to afford tech workers which means that you can easily work with them and your work will make a bigger impact. I've joined [Texas Justice Initiative (TJI)](https://texasjusticeinitiative.org/) through a local nonprofit [Open Austin](https://www.open-austin.org/), a Code for America Brigade which advocates for open government and civic technology. I went to their meetup a couple of times and joined their Slack channel, where I met our TJI director, Eva.
+
+### Long-term than short-term
+
+Depending on the situation, you may work on one-off type projects or more long-term ones. After working with TJI for over a year, I am learning that I get to work on **more diverse and in-depth projects** since I've been here more than a year. For instance, now that I have better understanding of backend, I am paying more attention to automating many backend processes. Plus, with newly accumulated data, I also get to update data journalism reports and launch new investigation.
+
+### Do your homework
+
+If you're a first-timer and your nonprofit-of-interest doesn't have any existing volunteers, you might feel intimidated. Then find an organization that already has tech volunteers. When I was reading about TJI before I joined, I found that there are a dozen tech volunteers already, which gave me a sense of reassurance. Most nonprofits disclose **funding sources and board members** information on their websites. This will give you a better idea on whether your values and what they represent are aligned.
+
+### Reasonable expectations
+
+Nonprofits can be like any other workplaces; there will be some you enjoy working with and some you don't, and there will be times when things are going really well or falling apart. Thus, having realistic and healthy expectations is important. 
+
+## 1. ML and statistical inference
+
+Now let's talk about specific tech-skill opportunities. Let's start with ML and statistical inference first.
+
+### Predictive modeling
+
+For my police shooting report, **I purposefully did not use any ML models** because I am aware of how ML tools can generate unintended harm easily when used prematurely (or at all). Whenever I talk to ML practitioners, they often love to devour any datasets and create predictive models. This is extremely dangerous.
+
+Let's assume that for whatever reason, we decided to build a predictive model by using the police shooting data. One can potentially use the `severity` column (whether a person was killed or injured during an incident) as a target and use the rest of the data as predictor variables. Given that most of our data has demographic and location information, **this can easily become a bias-reproducing machine.**
+
+Besides, if these models are deployed in public, it's possible that **the models can be used by bad actors to exploit community members who are already suffering** from these tragic incidents. For instance, insurance companies might be able to use a model like this and predict how likely people of certain demographics are more likely to be killed by police. Then they can increase health insurance premium for these people.
+
+Before even starting a project, I strongly recommend **considering and evaluating the risk and ethical concerns first**. If the risk is too high, then you shouldn't build a model. Note that this thoughtful examination **requires a diverse set of opinions**. Thus, please open the discussion to other members in the organization (and even further) and try to thoroughly examine the risk.
+
+### On significance testing
+
+Some data scientists like computing *p*-values from their analyses but first and foremost, ***p*-values have many issues** (see [the official statement from American Statistical Association](https://www.amstat.org/asa/files/pdfs/P-ValueStatement.pdf) cautioning the use of *p*-values). Plus, given that they are usually not the domain experts, it is likely that the hypotheses are not well thought out. Moreover, once you make value statements based on thresholding by using *p*-values, it is very likely that **you will contribute to propagation of misinformation** because these statements (e.g., "A is significantly different from baseline") can be easily cherry-picked and propagated.
+
+### Then what can I do?
+
+I am not telling you to drop any statistical inference or ML completely. Rather, I am asking you to **recognize the responsibility that comes with using ML techniques**. In fact, there are many research papers that use ML in clever ways. For instance, in Gonen and Goldberg's 2019 paper, [Lipstick on a Pig: Debiasing Methods Cover up Systematic Gender Biases in Word Embeddings But do not Remove Them](https://arxiv.org/abs/1903.03862), the authors used predictive modeling to show that (gender) de-biased word embeddings still contain information about gender, which proves that the de-biasing technique doesn't work. In short, we need to **be more thoughtful and creative** when it comes to ML.
+
+## 2. Data governance
+
+If ML requires more cautious approach, an easier project you can tackle as a data person is to help a nonprofit establish a good data governance practice. Data governance is a practice of **documenting what the data contains and how it should be used**. It's a great opportunity to learn about data and help the nonprofit utilize the datasets responsibly.
+
+There is an excellent paper, **[Datasheets for Datasets (Gebru et al., 2018)](https://www.fatml.org/media/documents/datasheets_for_datasets.pdf)** that can guide you through this process. The paper has an exhaustive list of questions that you can answer to understand a dataset and its potential problems and impact. At TJI, I've gone through this process and published [a Datasheet on TJI's custodial death dataset](https://github.com/texas-justice-initiative/data-processing/blob/hs-datasheet/datasheet/datasheet_DIC_composition.md) focusing on the dataset's composition. This was a great exercise for all of us because we were able to discuss some potential caveats such as sampling bias of our dataset. Another template you can follow is [Data Protection Impact Assessment](https://gdpr.eu/data-protection-impact-assessment-template/) from European Union's General Data Protection Regulation (GDPR). This also asks you to answer questions to understand the impact and ethical concerns that come with the data.
+
+Finally, once you've created data governance documentation, make sure you provide it to users when they consume the dataset so that they are also aware of the information. This creates a chain of responsibility.
+
+## 3. Data journalism
+
+### Interactive dashboards need a context
+
+Interactive dashboards are useful in that audience can play with the data directly. However, it's likely that **you can't have comprehensive knowledge on what users might see** when they start slicing the data in every possible way. Plus, you still need **context** to provide a narrative. Personally, I **prefer data journalism reports with static images** because I can control what audience can see and I can minimize the chance of them misunderstanding the data.
+
+### Find a reference point
+
+Providing a context is extremely important. If I don't know where something stands compared with others, how would I know whether it is better or worse? Luckily, this comparison can be easily done by **comparing your data with other reference datasets**. In Part 1, I've used the US census data and public health data for this. You can see this approach all the time in data journalism reports from major news organizations such as [New York Times](https://www.nytimes.com/interactive/2020/04/23/upshot/five-ways-to-monitor-coronavirus-outbreak-us.html). Comparing your data with a reference data helps you ask more interesting questions to understand the difference.
+
+### Get a domain expert review
+
+It's likely that tech workers are not the domain experts. In this case, make sure your work is seen by them before you publish. You can start by sharing your work with other members in the nonprofit. You can also **reach out to academics** who are most likely very interested in this type of work. For my report, Eva helped me reach out to Howard Henderson of Texas Southern University’s Barbara Jordan-Mickey Leland School of Public Affairs and Center for Justice Research, and Kevin Buckler of University of Houston-Downtown’s Department of Criminal Justice for a review.
+
+### Leave out any questionable information
+
+You might want to use everything that's in a dataset to write a report. This is not necessarily the best idea, unfortunately. In our police shooting dataset, there is a column called `deadly_weapon` which shows whether the person shot by police possessed a *deadly* weapon. It turns out that **this information is highly contentious** because whether an object is perceived as *deadly* varies widely. Based on studies and news reports, a BB gun, a butter knife, or a candlestick can be perceived as a deadly weapon. After deliberation, we've decided not to use this information because we thought this categorization misrepresents true information. We plan to revisit this after collecting information about actual objects used in the incidents.
+
+### Research opportunities
+
+**Datasets gathered by local nonprofits are so specific and unique** that they provide interesting research opportunities, which becomes great material for a data journalism report. Currently at TJI, several volunteers and I have been working on identifying systematic pattern in interaction between officers and civilians in police shooting incidents. [Jiletta Kubena](https://www.linkedin.com/in/jiletta-kubena-phd-21849812a/), a criminologist and a TJI volunteer, has been studying survey results on various populations, such as people in custody, of those who’ve been impacted by COVID-19.
+
+### Tech setup
+
+You will be creating same types of plots over and over with small changes depending on how your investigation goes. Thus, it's better to **spend time in the beginning to create modules for plotting**. At the same time, ask if your nonprofit already has a specific visual style guide that you can follow. This helps visual consistency.
+
+## 4. Sustainable workflow
+
+What kind of tech tools and workflow gets to be implemented in a nonprofit heavily depends on their volunteers. However, the **volunteer-dependent workflow is quite fragile** because volunteers in general have weaker commitment because they are not always readily available. Thus, it's quite important to help a nonprofit build a sustainable workflow.
+
+**Implementing CI/CD flow** is a must and you can even reuse your notebooks to create analytics reports with updated data by using a package such as [Papermill](https://papermill.readthedocs.io/en/latest/). If you have a heterogenous dataset, you can utilize scikit-learn's [`ColumnTransformer`](https://scikit-learn.org/stable/modules/generated/sklearn.compose.ColumnTransformer.html) to build a consistent and robust data preprocessing pipeline. Finally, you can also set up a data validation check by using a tool like [Pandera](https://pandera.readthedocs.io/en/stable/). This will help you monitor and flag any unexpected data drift.
+
+A sustainable workflow is also more than just the tech side. Recently, at TJI, we've implemented a **formal review process** to improve the quality of our work. We used to review manuscripts on Google Docs but now we review them on GitHub as a **pull request**. [Nick Holden](https://www.linkedin.com/in/nickholden/), a software engineer and a TJI volunteer, connected our content management system (CMS) to this process so that people who are not familiar with GitHub can easily create a manuscript. Writing a plain text document on the CMS automatically creates a pull request and other members at TJI can review and exchange feedback transparently.
+
+## 5. Community building
+
+As a volunteer, you can always work by yourself on a one-off project. Even if that's the case, having a sense of community makes your work more enjoyable and prevents fast volunteer turnover. In this sense, community building is quite important.
+
+Community building can be socializing but it's also about building robust infrastructure because it reduces unnecessary stress. Given that **volunteer-dependent workflow is fragile, and robustness, accountability, and transparency matter even more.** As a tech worker, you can help nonprofits adopt good practices from tech workflow such as automation, code review, software engineering practices, and so on. But when bringing a new tech tool, please try to **use open source software** as much as possible. I've seen a case where a tech worker brought their company's product and left, which made the nonprofit's entire backend hugely dependent on a niche commercial product. Sometimes nonprofits are approached by private partners. With your corporate experience, you can help the nonprofit protect their asset too.
+
+Implementing **a good practice for collaboration** is equally important. You can start by encouraging other volunteers to showcase and highlight their work. I've suggested a dedicated **blog where all volunteers can write about their work in their own words**. This accelerates knowledge transfer within the organization and helps other nonprofits too.
+
+Finally, I want to emphasize that you should **watch out for volunteer burnout**. It happened to me multiple times unfortunately. I got super excited and passionate about a subject matter and I ended up with exhausting all my energy in a short period of time. So please pace yourself and take breaks if needed. But when you do so, instead of ghosting please tell others so that they have reasonable expectations while you're gone.
+
+## My personal experience
+
+Some may think volunteering would be using your existing skills without learning. That was never the case for me. It's been amazing to have **opportunities to work with different types of data** that I don't get to see at work. I've also got to work on various projects from exercising data assessment practice and writing data journalism reports, to creating custom data visualization modules and transferring ML Ops practices to the existing workflow. I'm looking forward to exploring research opportunities with causal modeling and explainable AI with our dataset in the future.
+
+But more importantly, I've been lucky to work with our director Eva and all the volunteers who have been kind, cordial, and open to new ideas. It was also fantastic to **work with people from different disciplines** and to learn from these domain experts. This helped me expand my network and meet other nonprofit organizers, academics, and tech workers. Finally, I've **learned a lot about local social issues surrounding my neighborhood and my city**, which have significant impact on our community members. I am looking forward to many other interesting opportunities in TJI.
+
+I hope these tips help you start exploring volunteering opportunities. Finally, you are more helpful than you think! So don't worry about whether you have the right skill sets or not. They will appreciate your knowledge and there will be many things you can contribute to. So if you find any interesting organizations, don't be afraid to reach out. You will help other people and learn a lot in the process. Good luck!

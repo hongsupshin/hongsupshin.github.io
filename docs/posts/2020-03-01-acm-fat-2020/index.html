@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2020-03-01">
+<meta name="description" content="Summary of FAT 2020 in Barcelona, Spain. “Critiquing and rethinking” was their new attempt to open up a discussion between multidisciplinary stakeholders">
+
+<title>Hongsup Shin - Critiquing and rethinking at ACM FAT 2020</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Critiquing and rethinking at ACM FAT 2020</h1>
+                  <div>
+        <div class="description">
+          Summary of FAT 2020 in Barcelona, Spain. “Critiquing and rethinking” was their new attempt to open up a discussion between multidisciplinary stakeholders
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">conference</div>
+                <div class="quarto-category">fairness</div>
+                <div class="quarto-category">ML</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 1, 2020</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p><img src="2020-03-01-acm-fat-badge.png" class="img-fluid"></p>
+<p>ACM Conference on Fairness, Accountability, and Transparency (ACM FAT*) is a computer science conference that aims to bring together “researchers and practitioners interested in fairness, accountability, and transparency (FAccT) in sociotechnical systems” to nurture multidisciplinary approach and collaborations. Fortunately, I was able to attend the conference every year since 2018 when it first started. I attended the entirety of the conference, which includes tutorials, main conference, and the Critiquing and Rethinking Accountability, Fairness and Transparency (CRAFT) session. (FYI, The conference affiliated with ACM in 2019 (Atlanta, GA) and changed its name to <strong>ACM FAccT</strong> immediately following this year’s conference in Barcelona, Spain.)</p>
+<section id="whats-new" class="level2">
+<h2 class="anchored" data-anchor-id="whats-new">What’s new</h2>
+<p>Compared to the last year’s event, the organizers made several changes to reflect that FAccT topics require a more holistic view rather than a pure computer science one. In addition to the computer science (CS) track, they created tracks dedicated to social sciences and humanities (SSH), and legal scholarship (LAW). They have also added the CRAFT session, inspired by the NeurIPS 2018 Workshop, “Critiquing and Correcting Trends in Machine Learning” (CRACT). The session focused on critiques of the field of FAccT, such as its blind spots, omissions, or alternative possibilities that take a more holistic approach. This is to give voice to those who suffer the impact, daring formats and beyond academia.</p>
+</section>
+<section id="tutorials" class="level2">
+<h2 class="anchored" data-anchor-id="tutorials">Tutorials</h2>
+<p>This year, the tutorials are divided into four categories (hands-on, translation, implications, and invited). The hands-on tutorials included explanatory tools (Google’s What-If and IBM’s “AI Explainability 360”) and University of Colorado’s fairness-aware recommendation package called librec-auto. These are useful tools, but I assumed I could learn about these tools on my own from their websites. Instead, I attended translation and implications tutorials where the former includes topics on ethics, law and policy, and the latter is about case studies of FAccT topics in industry. Interestingly, some of the translation tutorials focused on positionality, the social and political context that influences, and potentially biases, a person’s unique but partial understanding of the world. Here is the summary of the tutorials I attended.</p>
+<section id="explainable-ai-in-industry-practical-challenges-and-lessons-learned" class="level3">
+<h3 class="anchored" data-anchor-id="explainable-ai-in-industry-practical-challenges-and-lessons-learned">Explainable AI in Industry: Practical Challenges and Lessons Learned</h3>
+<p>This tutorial discussed several techniques on how to provide explainability in ML models and introduced several case studies. Generally, there are two approaches to achieve explainable AI. We can build an interpretable model such as linear models or decision trees, or we consider coming up with post-hoc explanation for a given model. We focused on the latter. The post-hoc explanation approach can be rephrased as the “attribution” problem. In other words, we want to know why a model makes a certain prediction and attribute the model decision to the feature of an input. The main technique we discussed, integrated gradients<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> address this aspect by interpreting explainability as feature gradient. For instance, if I changed a feature X, and then the target Y has changed, we may consider the change of X as an explanation to change of Y. Integrated gradients are model-agnostic interpretation of this idea. Here, we look for feature regions where model performance changes dramatically (i.e., large gradient) and integrate them to create an explanation. One application example was diabetic retinopathy to predict severity of the disorder in retinal images. The method was able to provide explanation to deep learning model prediction by locating retinal legions. Although this is useful for its model-agnostic approach, it still lacks global explanation.</p>
+</section>
+<section id="leap-of-fate-human-rights-as-a-complementary-framework-for-ai-policy-and-practice" class="level3">
+<h3 class="anchored" data-anchor-id="leap-of-fate-human-rights-as-a-complementary-framework-for-ai-policy-and-practice">Leap of FATE: Human Rights as a Complementary Framework for AI Policy and Practice</h3>
+<p>Even though AI governance has emerged as a hot topic, many are disappointed by the current ethical framework for AI-related problems. The speakers suggest that we can use human-rights based approach to bring more rigorous and specific groundwork for AI governance. Existing treaties or resolutions such as Universal Declaration of Human Rights (UHDR) or International Covenant on Civil and Political Rights (ICCPR) are good examples. Adopting a human rights perspective for AI governance provides several benefits. First, these are well-established universal standards that have been existing for many decades. Second, they have more currency than ethics, and thus provide better accountability especially when these are violated (i.e., violation to human rights). Since these resolutions are much more specific than ethics, it is possible to make human rights impact assessment of AI technology and companies who own it.</p>
+</section>
+<section id="two-computer-scientists-and-a-cultural-scientist-get-hit-by-a-driver-less-car-situating-knowledge-in-the-cross-disciplinary-study-of-f-a-t-in-machine-learning" class="level3">
+<h3 class="anchored" data-anchor-id="two-computer-scientists-and-a-cultural-scientist-get-hit-by-a-driver-less-car-situating-knowledge-in-the-cross-disciplinary-study-of-f-a-t-in-machine-learning">Two computer scientists and a cultural scientist get hit by a driver-less car: Situating knowledge in the cross-disciplinary study of F-A-T in machine learning</h3>
+<p>This tutorial focused on positionality and attempted to give audience first-hand experience of how researchers’ perspectives and approaches can differ across many disciplines. After a brief introduction, we were split into several groups and read three papers all from different disciplines such as computer science, social science and philosophy. The computer science paper was about identifying racial bias in online comments. The social science paper discussed intricate relation between racial minority and their particular usage of certain words in English. In addition to using several questionable methods, the authors from the first paper clearly lacked domain knowledge. Thus, the conclusion of this paper inevitably made a blanket statement on the topic, which was inaccurate and ignorant. It was a good hands-on exercise on the importance of domain knowledge and collaboration across multiple disciplines, which is usually required in FAccT-related studies.</p>
+</section>
+</section>
+<section id="main-conference" class="level2">
+<h2 class="anchored" data-anchor-id="main-conference">Main conference</h2>
+<p>There were three keynote talks and 15 sessions of talks for accepted papers. These sessions are grouped into the following topics:</p>
+<ul>
+<li>Accountability</li>
+<li>Explainability</li>
+<li>Auditing/Assessment</li>
+<li>Fairness</li>
+<li>Ethics and Policy</li>
+<li>Values</li>
+<li>Data collection</li>
+<li>Cognition and education</li>
+<li>Sensitive attributes</li>
+</ul>
+<section id="keynote" class="level3">
+<h3 class="anchored" data-anchor-id="keynote">Keynote</h3>
+<p>They were given by Ayanna Howard from Georgia Institute of Technology, Yochai Benkler from Harvard Law School, Nani Jansen Reventlow from Digital Freedom Fund, which supports partners in Europe to advance digital rights through strategic litigation. Howard’s talk was about human bias in trust in AI. She provided examples from her experiments using robots and how human participants interacted with them. In one of her experiments, she found that humans can overly trust AI decision (a robot’s decision in the experiment). She mentioned that understanding cognitive bias is crucial when designing an AI system. Benkler’s talk was on the role of technology in political economy. He discussed how technology has been contributing to the increase of productivity but also aggravating the concentration of wealth, which led to more severe economic inequality. Finally, Reventlow discussed how we can sometimes use litigation strategically to make industry and government more accountable. She mentioned that the best way to build a strategic litigation case is to make the litigation itself embedded in a broader case and to bring various stakeholders such as activists and policymakers together.</p>
+</section>
+<section id="accountability" class="level3">
+<h3 class="anchored" data-anchor-id="accountability">Accountability</h3>
+<p>The first paper<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> criticizes that the term “algorithmic accountability” is inherently vague and thus it needs specification in terms of “the actor, forum and forum, the relationship between the two, the content and criteria of the account, and finally the consequences which may result from the account.” Raji et al.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> also mentioned that due to this vagueness, there is a gap in algorithmic accountability. The authors showed ways to overcome this by illustrating how other industries such as aerospace, medical devices, and finance conduct audit and carry out governance. Finally, Katell et al.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> gave an actual example where researchers co-developed algorithmic accountability interventions (“Algorithmic Equity Toolkit”) by adopting participatory action research methods in collaboration with American Civil Liberties Union of Washington (ACLU-Washington).</p>
+</section>
+<section id="explainability" class="level3">
+<h3 class="anchored" data-anchor-id="explainability">Explainability</h3>
+<p>There were many interesting papers in this section. Sokol and Flach<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> provided convenient yet exhaustive explainability fact sheets for project assessment. Malgieri and Kaminski<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> criticized that even though explainability is addressed in GDPR, there is no consensus on what it entails. They also made an excellent point that explanation does not necessarily provide justification on fairness. Barocas et al.<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> criticized the faulty assumptions often made when models provide explainability or actionability. For instance, to change the model prediction of an individual, the model may make suggestion to the person to make more money, which is not exactly easily actionable. They suggest that there should be fiduciary obligations on explainability, and we should study how people actually respond to the explanations. Lucic et al<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> created Monte Carlo Bounds for Reasonable Predictions (MC-BRP), which generates feature values that would result in a reasonable prediction (i.e.&nbsp;a range of predicted values), based on the n most important features, and general trends between each feature and the target variable, such as whether the target value increase with a certain feature. Bhatt et al.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> conducted a survey on how industry handles explainability in deployment. Their results showed that explainability is mostly used for debugging and the goals of explainability are not clearly defined. Some ML engineers they talked to also addressed that there is technical challenge in real-time deployment for explainability. Hancox-Li<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> discussed so-called “Rashomon effect” where multiple models of similar performance provide different explanations, which makes difficult for stakeholders to choose which explanation to believe.</p>
+</section>
+<section id="auditingassessment" class="level3">
+<h3 class="anchored" data-anchor-id="auditingassessment">Auditing/Assessment</h3>
+<p>Black et al.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> presented a model-agnostic tool that can be used in the exploration stage to identify discriminatory behavior in ML systems. Their concept is roughly based on counterfactuals but they addressed that coming up with a right causal diagram is often challenging. Instead, they used a technique called an optimal transport map, which transforms one probability distribution into another, while minimizing a given cost defined over their respective supports. For example, we might use an optimal transport map from the distribution of men to women in order to obtain a (female, male) pair of inputs with which to query the model. If the model’s output differs for these two people, then it may be evidence that the model discriminates on the basis of gender. Rodolfa et al.<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> did a case study in collaboration with a local government to show how to balance equity and model performance depending on which fairness metric to choose and how it affects certain demographics. Lum<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> audited a pre-trial risk assessment tool from San Francisco, CA, and found that overbooking (i.e., booking charges that are dropped or end in an acquittal) increased the recommended level of pre-trial supervision. Sánchez-Monedero et al.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> criticized that some automated hiring systems developed in the US were used in the UK and other European countries where the transparency and data protection law background is quite different from the US. Borradaile et al.<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> investigated how the Corvallis (Oregon) Police Department has used social media to monitor certain users and found that they have outsourced the task and racial bias existed among those who were monitored.</p>
+</section>
+<section id="fairness" class="level3">
+<h3 class="anchored" data-anchor-id="fairness">Fairness</h3>
+<p>Slack et al.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a> developed Fair-MAML, which demonstrates K shot learning for cases where the number of training samples is extremely small. Barabas et al.<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a> introduced a concept of “studying up” commonly used in the field of anthropology, which refers to studying “the relative upper hand” in terms of the amount of agency and authority they have in a given context such as established legal systems or law enforcement. Pujol et al.<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> showed a study of conflict between differential privacy and fairness, and suggested to customize privacy implementation for each assignment instead of using differential privacy for all tasks. Liu et al.<a href="#fn19" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>19</sup></a> looked at the complicated interplay between the deployed model for automated decision making in hiring, and individuals who are affected by the model. Because the model’s decision rewards people disproportionately, people tend to change their behavior in response to how these decisions are made. The authors showed that subsidizing the cost of investment create better equilibria for the disadvantaged group. Yang et al.<a href="#fn20" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a> examined the ImageNet dataset and found problematic behavior in how “person” category was constructed, for instance, due to lack of diversity in images and bias in annotation. Binns<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> investigated the notion of individual and group fairness being in conflict and clarified it being based on a misconception, which requires resolution from a broader context and by focusing on the sources of unfairness.</p>
+</section>
+<section id="ethics-and-policy" class="level3">
+<h3 class="anchored" data-anchor-id="ethics-and-policy">Ethics and Policy</h3>
+<p>Washington and Kuo<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a> found that AI ethics codes from corporations conflated consumers with society and were largely silent on agency. They introduced the concept of digital differential vulnerability to explain disproportionate exposures to harm within data technology and suggest recommendations for future ethics codes. Bietti<a href="#fn23" class="footnote-ref" id="fnref23" role="doc-noteref"><sup>23</sup></a> discussed a current trend in tech industry where self-regulation or hands-off governance prevails and “ethics” is increasingly identified with technology companies’ self-regulatory efforts with shallow appearances of ethical behavior, so-called “ethics washing.” Abebe et al.<a href="#fn24" class="footnote-ref" id="fnref24" role="doc-noteref"><sup>24</sup></a> states that computational research has valuable roles to play in addressing social problems.</p>
+</section>
+<section id="values" class="level3">
+<h3 class="anchored" data-anchor-id="values">Values</h3>
+<p>Dotan and Milli<a href="#fn25" class="footnote-ref" id="fnref25" role="doc-noteref"><sup>25</sup></a> the rise and fall of certain model types. They argue that the rise of a model- type is self-reinforcing and the way model-types are evaluated encodes loaded social and political values such as centralization of power, privacy, and environmental concerns. Venkatasubramanian and Alfano<a href="#fn26" class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a> criticizes the current conceptualization of algorithmic recourse, the systematic process of reversing unfavorable decisions by algorithms and bureaucracies across a range of counterfactual scenarios, and suggests both stakeholder and expert panels should establish acceptable action sets (i.e., not one-way), make a role for fiduciaries who are charged to act on behalf of those they represent, and handle the changes over time (i.e., ongoing engagement).</p>
+</section>
+<section id="data-collection" class="level3">
+<h3 class="anchored" data-anchor-id="data-collection">Data collection</h3>
+<p>In this section, various authors criticized that the current data collection practices in industry and governments lack transparency and standardized approach. Geiger et al.<a href="#fn27" class="footnote-ref" id="fnref27" role="doc-noteref"><sup>27</sup></a> investigated human- annotated datasets widely used in the ML community and found that the so-called benchmark datasets have questionable reliability in the first place. Marda and Narayan<a href="#fn28" class="footnote-ref" id="fnref28" role="doc-noteref"><sup>28</sup></a> investigated predictive policing system in New Delhi to discover the lack of public accountability mechanisms, biases that are present within Delhi Police’s data collection practices and how these translate into predictive policing.</p>
+</section>
+<section id="cognition-and-education" class="level3">
+<h3 class="anchored" data-anchor-id="cognition-and-education">Cognition and education</h3>
+<p>Bates et al.<a href="#fn29" class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a> collected data from MSc Data Science teaching team based at University of Sheffield to reflect on their experiences of working at the intersection of disciplines such as FATE (i.e., FAT + ethics). Based on their findings, they suggest to create empathetic learning spaces for interdisciplinary teaching teams and collaborate with decolonization experts to avoid Eurocentrism with data science competency in mind.</p>
+</section>
+<section id="sensitive-attributes" class="level3">
+<h3 class="anchored" data-anchor-id="sensitive-attributes">Sensitive attributes</h3>
+<p>Bogen et al.<a href="#fn30" class="footnote-ref" id="fnref30" role="doc-noteref"><sup>30</sup></a> brings up the topic of data collection on sensitive attributes such as race and gender specifically for interventions for antidiscrimination. They illustrated case studies from several industry domains such as credit, employment, and healthcare, and found that the practices widely varies across the domains and also within in certain cases, such as whether the companies are bound by legal restrictions or they can collect self-reported identification as data. The paper encourages various stakeholders to actively help chart a path forward that takes both policy goals and technical needs into account.</p>
+</section>
+</section>
+<section id="craft-sessions" class="level2">
+<h2 class="anchored" data-anchor-id="craft-sessions">CRAFT sessions</h2>
+<p>CRAFT stands for Critiquing and Rethinking Accountability, Fairness and Transparency (CRAFT) session. These are designed to bring more diverse voices on FAT* topics. I attended the following sessions.</p>
+<section id="when-not-to-design-build-or-deploy" class="level3">
+<h3 class="anchored" data-anchor-id="when-not-to-design-build-or-deploy">When Not to Design, Build, or Deploy</h3>
+<p>Given the recent push for moratoria on facial recognition, protests around the sale of digital technologies, and the ongoing harms to marginalized groups from automated systems such as risk prediction, a broader discussion around how, when, and why to say no as academics, practitioners, activists, and society, seems both relevant and urgent.</p>
+<p>Some of the notable topics the panel discussed include more case studies on the unnecessary surveillance driven by AI systems, raising tech workers’ agency (accompanied with ethics training for engineers), and making interventions at various points in a production pipeline, and so on. When it comes to how we would formalize the effort in terms of policy, some mentioned that engineers can potentially make released models more difficult to replicate, societies can apply similar regulations to AI as they do to any weapons, and governments can bring legal enforcement on the issue.</p>
+</section>
+<section id="centering-disability-perspectives-in-algorithmic-fairness-accountability-transparency" class="level3">
+<h3 class="anchored" data-anchor-id="centering-disability-perspectives-in-algorithmic-fairness-accountability-transparency">Centering Disability Perspectives in Algorithmic Fairness, Accountability &amp; Transparency</h3>
+<p>It is vital to consider the unique risks and impacts of algorithmic decision-making for people with disabilities. The diverse nature of potential disabilities poses unique challenges. Many disabled people choose not to disclose their disabilities, making auditing and accountability tools particularly hard to design and operate. Further, the variety inherent in disability poses challenges for collecting representative training data in any quantity sufficient to better train more inclusive and accountable algorithms.</p>
+<p>Speakers mentioned that disability perspectives combine AI systems design and accessibility issues. This is similar to the lack of diversity issue in training data in face recognition. If deployed AI systems cannot recognize disabled people. This requires ML engineers to consider whom their models might fail for and consider inclusive and viable solutions in advance. The disabled community also has intersectionality because how disabled are represented in the media and society do not reflect the diverse spectrum of the disabled community. This is also related to that various demographic groups have different socioeconomic and genetic backgrounds that might affect the probability of them to become disabled.</p>
+</section>
+</section>
+<section id="reflection-and-suggestions" class="level2">
+<h2 class="anchored" data-anchor-id="reflection-and-suggestions">Reflection and suggestions</h2>
+<p>Overall, it was nice to see the conference growing rapidly every year. I appreciated the organizers’ move to create separate tracks for social science and law, to encourage more holistic views in research. I enjoyed the CRAFT sessions very much. Due to the interdisciplinary nature of the FAT* topics, sometimes I sensed that the one-way communication of the talk format has severe limitations on how we move further from here. The CRAFT sessions were the attempts to mitigate this issue and also bring the ground workers such as activists, lawyers, policy makers, industry data scientists together.</p>
+<p>I also see there are room for improvements. First of all, every talk was strictly limited to 8 minutes, which was too short. Especially when it comes to computer-science papers, some speakers showed many math equations on their slides, which is probably not the best strategy for the 8-min talk. Some speakers did a great job of laying out the background knowledge but not all of them. If we are truly interested in multidisciplinary effort, improving the communication is crucial.</p>
+<p>Speaking of communication, at the very end of the conference, there was a townhall meeting and the Q&amp;A was extremely short. I think this should be more focused because we are a group of various backgrounds and to make impactful changes from our research, it is important to open the floor for more discussions. This can be potentially mitigated by organizing birds-of- feather (BOF) sessions or group-lunch for certain topics. The conference is growing fast, which means we will have a lot of newcomers every year. It would be better for them to have easy-to- network venues.</p>
+<p>The conference this year used an anonymous board to submit questions online and did not use their Slack channel much. I understand the need for anonymity but the Slack channel was extremely useful in terms of establishing networks between researchers from different domain and socializing. Tutorial preparation could have also been announced on the Slack channel as well like last year. There were some tutorials where the attendees didn’t get enough information about the preparation and it was a missed opportunity.</p>
+<p>This issue was brought up last year but the conference may want to attempt to create a shared knowledge base to educate the attendees to have everyone on the same page. There are many definitions of key terms such as fairness, and there are important historic case studies researchers talk about all the time. It would be nice to have standardized material that is open to all attendees before the conference so that we can all well-informed and follow the conference material more easily.</p>
+<p>This might be a radical and debatable idea, but if the conference is truly interested in tackling practical and more current issues related to the FAT* topics, they might consider bringing more industry people, especially the ones who are often criticized by various researchers to make them more accountable and help them create a better solution, instead of ostracizing them. Not all companies may participate but considering the urgency of the issue, it wouldn’t do any harm for us to reach out to industry and bring them to the table. This will also provide opportunities for researchers as well if the industry stakeholders share their difficulties of implementing good AI governance in practice, and the researchers can help tackling them.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>M. Sundararajan, A. Taly, and Q. Yan, “Axiomatic Attribution for Deep Networks,” ArXiv170301365 Cs, Jun.&nbsp;2017.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>M. Wieringa, “What to account for when accounting for algorithms: a systematic literature review on algorithmic accountability,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;1–18, doi: 10.1145/3351095.3372833.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>I. D. Raji et al., “Closing the AI Accountability Gap: Defining an End-to-End Framework for Internal Algorithmic Auditing,” p.&nbsp;12, 2020.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>M. Katell et al., “Toward situated interventions for algorithmic equity: lessons from the field,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;45–55, doi: 10.1145/3351095.3372874.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>K. Sokol and P. Flach, “Explainability fact sheets: a framework for systematic assessment of explainable approaches,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;56–67, doi: 10.1145/3351095.3372870.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>M. E. Kaminski and G. Malgieri, “Multi-layered explanations from algorithmic impact assessments in the GDPR,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;68–79, doi: 10.1145/3351095.3372875.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>S. Barocas, A. D. Selbst, and M. Raghavan, “The hidden assumptions behind counterfactual explanations and principal reasons,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;80–89, doi: 10.1145/3351095.3372830.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>A. Lucic, H. Haned, and M. de Rijke, “Why does my model fail?: contrastive local explanations for retail forecasting,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;90–98, doi: 10.1145/3351095.3372824.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>U. Bhatt et al., “Explainable Machine Learning in Deployment,” p.&nbsp;10, 2020.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p>L. Hancox-Li, “Robustness in Machine Learning Explanations: Does It Matter?,” p.&nbsp;8, 2020.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p>E. Black, S. Yeom, and M. Fredrikson, “FlipTest: fairness testing via optimal transport,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;111–121, doi: 10.1145/3351095.3372845.<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p>K. T. Rodolfa, E. Salomon, L. Haynes, I. H. Mendieta, J. Larson, and R. Ghani, “Case study: predictive fairness to reduce misdemeanor recidivism through social service interventions,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;142–153, doi: 10.1145/3351095.3372863.<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p>K. Lum, C. Boudin, and M. Price, “The impact of overbooking on a pre-trial risk assessment tool,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;482–491, doi: 10.1145/3351095.3372846.<a href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p>J. Sánchez-Monedero, L. Dencik, and L. Edwards, “What does it mean to ‘solve’ the problem of discrimination in hiring?: social, technical and legal perspectives from the UK on automated hiring systems,” in Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency, Barcelona Spain, 2020, pp.&nbsp;458–468, doi: 10.1145/3351095.3372849.<a href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p>G. Borradaile, B. Burkhardt, and A. LeClerc, “Whose Tweets are Surveilled for the Police: An Audit of a Social-Media Monitoring Tool via Log Files,” p.&nbsp;11, 2020.<a href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p>D. Slack, S. A. Friedler, and E. Givental, “Fairness Warnings and Fair-MAML: Learning Fairly with Minimal Data,” p.&nbsp;10, 2020.<a href="#fnref16" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p>C. Barabas, C. Doyle, J. Rubinovitz, and K. Dinakar, “Studying Up: Reorienting the study of algorithmic fairness around issues of power,” p.&nbsp;10, 2020.<a href="#fnref17" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p>D. Pujol, R. McKenna, S. Kuppam, M. Hay, A. Machanavajjhala, and G. Miklau, “Fair Decision Making Using Privacy-Protected Data,” p.&nbsp;11, 2020.<a href="#fnref18" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p>L. T. Liu, A. Wilson, N. Haghtalab, A. T. Kalai, C. Borgs, and J. Chayes, “The Disparate Equilibria of Algorithmic Decision Making when Individuals Invest Rationally,” p.&nbsp;11, 2020.<a href="#fnref19" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p>K. Yang, K. Qinami, L. Fei-Fei, J. Deng, and O. Russakovsky, “Towards Fairer Datasets: Filtering and Balancing the Distribution of the People Subtree in the ImageNet Hierarchy,” p.&nbsp;12, 2020.<a href="#fnref20" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p>R. Binns, “On the apparent conflict between individual and group fairness,” Proc. 2020 Conf. Fairness Account. Transpar., pp.&nbsp;514–524, Jan.&nbsp;2020, doi: 10.1145/3351095.3372864.<a href="#fnref21" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p>A. L. Washington and R. Kuo, “Whose side are ethics codes on?: power, responsibility and the social good,” Proc. 2020 Conf. Fairness Account. Transpar., pp.&nbsp;230–240, Jan.&nbsp;2020, doi: 10.1145/3351095.3372844.<a href="#fnref22" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p>E. Bietti, “From Ethics Washing to Ethics Bashing,” p.&nbsp;10, 2020.<a href="#fnref23" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn24"><p>R. Abebe, S. Barocas, J. Kleinberg, K. Levy, M. Raghavan, and D. G. Robinson, “Roles for Computing in Social Change,” p.&nbsp;9, 2020.<a href="#fnref24" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn25"><p>R. Dotan and S. Milli, “Value-laden Disciplinary Shifts in Machine Learning,” ArXiv191201172 Cs Stat, Dec.&nbsp;2019.<a href="#fnref25" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn26"><p>S. Venkatasubramanian and M. Alfano, “The philosophical basis of algorithmic recourse,” p.&nbsp;10, 2020.<a href="#fnref26" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn27"><p>R. S. Geiger et al., “Garbage In, Garbage Out? Do Machine Learning Application Papers in Social Computing Report Where Human-Labeled Training Data Comes From?,” p.&nbsp;12, 2020.<a href="#fnref27" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn28"><p>V. Marda and S. Narayan, “Data in New Delhi’s predictive policing system,” Proc. 2020 Conf. Fairness Account. Transpar., pp.&nbsp;317–324, Jan.&nbsp;2020, doi: 10.1145/3351095.3372865.<a href="#fnref28" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn29"><p>J. Bates et al., “Integrating FATE/Critical Data Studies into Data Science Curricula: Where are we going and how do we get there?,” p.&nbsp;11, 2020.<a href="#fnref29" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn30"><p>M. Bogen, A. Rieke, and S. Ahmed, “Awareness in Practice: Tensions in Access to Sensitive Attribute Data for Antidiscrimination,” p.&nbsp;9, 2020.<a href="#fnref30" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

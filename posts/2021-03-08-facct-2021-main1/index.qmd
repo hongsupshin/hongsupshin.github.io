@@ -1,0 +1,56 @@
+---
+title: FAccT 2021. AI audit, governance, and trustworthiness
+date: "2021-03-08"
+description: Summary of Day 1 at FAccT 2021. Algorithm audit, impact assessment, data governance, trust in AI, and explainable AI
+image: "data dev cycle.png"
+categories: 
+    - conference
+    - governance
+    - explainability
+    - responsible AI
+    - ML
+---
+
+This year, for the first time, the FAccT conference has more than one track and there are 27 sessions (+80 talks) happening in 3 days. This is a summary of the first day of the main conference. My summary is based on the talks I attended based on my interest.
+
+## Keynote: Health, Technology and Race
+
+As a person who's been attending FAccT every year, I've been familiar with the criticism to the FAccT academic community; many studies appeared here are often too abstract or disconnected from the real world and the impacted communities. The organizers are aware of this and they have been making efforts such as organizing CRAFT (Critiquing and Rethinking Accountability, Fairness and Transparency) sessions where they bring more multidisciplinary stakeholders. I considered the first keynote from today, given by Yeshimabeit "Yeshi" Milner, the executive director and co-founder of [*Data for Black Lives (D4BL)*](https://d4bl.org/), as a signal from the conference saying that they are actively working on this criticism. In this regard, it was an excellent keynote speech to kick off the conference.
+
+At the very beginning of the talk, Yeshi said, "we will never achieve fairness, accountability, and transparency **without first demanding justice, power, and self-determination**." Again, this directly points out that without a holistic approach where we bring all the stakeholders, achieving justice and making changes isn't going to happen. Yeshi then talked about racial disparity examples where Black people were discriminated and disproportionately affected in a negative way, especially in healthcare.
+
+She introduced the [*COVID-19 Data Tracker Project*](https://d4bl.org/covid19-data) where organizers in the D4BL members compiled a dataset by themselves to highlight the stark disparities in health outcomes related to COVID-19. She mentioned that the larger goal here is to "build the political power of Black communities" as well, which is a critical point. She also emphasized that **any intervention that does not build political power or agency of the marginalized community is liable to harm** rather than to help. Considering that even some tech-for-good projects with good intentions often sideline those who are affected by the system, her remark was poignant.
+
+"We need to think 'who do we need to be'" At the end of the talk, she mentioned the importance of reflection, and said we need to resist the urge to feel compelled to keep moving forward, but to pause and reflect on ourselves. This involves identifying what we should unlearn and how we need to create new spaces to bring people who are directly impacted. I think this passionate and moving speech from Yeshi sent out this important message to all attendees, especially to academics and tech workers, like myself.
+
+## Algorithm Audit and Impact Assessment
+
+For tech workers who are interested robust and responsible AI like myself, case studies are like gems. We are always curious about how others do things and want to learn from each other. That's why I was very happy to see a case study about algorithm audit from Wilson et al., [*Building and Auditing Fair Algorithms: A Case Study in Candidate Screening*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445928).
+
+Researchers from Northeastern University worked with [Pymetrics](https://www.pymetrics.ai/), a company that uses gamification and AI to assist hiring in other companies. This collaboration itself was a unique instance because most audits happen internally or in a permission-less form where the companies being audited do not cooperate with the auditors. The academic researchers seemed to be quite transparent about the process (e.g., they revealed they were paid but the audit was done independently) and disclosed some problems in Pymetric's system based on the criteria they used. I don't know the full details yet but it was nice to hear that Pymetrics started working on solutions to fix these.
+
+Speaking of the audit, there was another interesting paper about Amazon's questionable practice in product recommendation. It's been known that Amazon created their own private brand and started competing against other brands. The paper, [*When the Umpire is also a Player: Bias in Private Label Product Recommendations on E-commerce Marketplaces*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445944) investigates this issue by conducting a systematic audit on Amazon's recommendation system. They found that Amazon's private brand has greater exposure in the sponsored ads by comparing related item network (RIN) models between the private brand's and others' networks.
+
+Finally, there was a paper dedicated to algorithmic impact assessment. The authors in the paper, [*Algorithmic Impact Assessments (AIA) and Accountability: The Co-construction of Impacts*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445935), pointed out that often poor impact assessment practices neither mitigate harm nor bring effective algorithm governance. They emphasized that impact assessment should be closely related to accountability, especially for both institutions and people who are affected. The paper showcases impact assessment examples from different domains, which will be useful to design an effective and accountable algorithmic impact assessment procedure.
+
+## Trust in AI
+
+Speaking of impact assessment, if we have incredibly thoughtful (which is probably very detailed) impact assessment and documentation of deployed algorithms, does it bring more trust? The paper, [*The Sanction of Authority: Promoting Public Trust in AI*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445890), says, perhaps not. The authors bring up the example of aviation industry. When we board on a plane, do we want to see the maintenance log, history of pilot performance to reassure ourselves? Or, do we normally trust that aviation is **"highly regulated, comparatively safe, and any breach of safety will be sanctioned"**? The authors suggest that the latter is how public trust is formed. This is an excellent point. Documentation of deployed AI systems can be as bad as terms of service statements, which usually have extremely poor readability and can be easily manipulated. I liked that the authors emphasized both the importance of regulatory system but also of **externally auditable AI documentation**, which would facilitate the development of AI regulations.
+
+## Explainable AI
+
+[*How Can I Choose an Explainer? An Application-Grounded Evaluation of Post-hoc Explanations*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445941) was a case study of comparing various XAI methods (LIME, SHAP, and [TreeInterpreter](https://github.com/andosa/treeinterpreter)) and how human participants use explanations to perform fraud detection task. I was hoping to see a discussion of comparison and evaluation of various XAI methods in a standardized way but it was more about evaluating the suitability of these methods using case-specific real-human tasks. I'd like to take a deeper look at the paper to see whether the authors mentioned any suggestions on cases where it is challenging to run those tasks.
+
+## Data Governance
+
+My favorite talk of the day was [*Towards Accountability for Machine Learning Datasets: Practices from Software Engineering and Infrastructure*](https://arxiv.org/pdf/2010.13561.pdf) by Hutchinson et al.
+
+It's not too difficult to meet ML practitioners who are obsessed with state-of-the-art deep learning models and conveniently ignore training data and how their data is preprocessed. These people often have a tendency of even looking down upon data preprocessing process and consider it demeaning. This paper takes a jab at this phenomenon.
+
+The authors first talk about data scapegoating. Even though everyone is well aware of "garbage in, garbage out" relationship between data and ML models, often data is overlooked and undervalued. Many ML practitioners depend on benchmark datasets, which **"reinforce the notion of data as fixed resources."** In my experience, this tendency intensifies the fanaticism on ML algorithms even though they are just a tiny part of a much bigger picture. With many good off-the-shelf models readily available, frankly speaking, models are rather becoming commodities.
+
+They also point out the lack of good governance practice in data maintenance. Understanding ML model performance often requires good and detailed understanding of training data. However, validation and verification of training data is rarely conducted in ML engineering pipelines.
+
+Finally, the authors didn't forget to mention the power imbalanced between ML practitioners and data providers. I often feel extremely fortunate that I have experienced the entire end-to-end process of an academic research. I started from scratch and designed a process to collect the data by myself, which required great care and intense labor. In the current ML trend, this step is often conveniently removed and thus creates a bad habit of ignoring labor and responsibility in the data collection and development process.
+
+I really appreciated the simplicity of the authors' suggestion on this problem; **"acknowledge that datasets are technical infrastructures."** Since many ML practitioners are familiar with tech infrastructures such as software programs, the authors suggest that we simply apply existing practices to datasets; create **requirements, design, and tests**. Once this formally becomes a part of infrastructure, it also becomes easy to get all the existing stakeholders in the pipeline involved.

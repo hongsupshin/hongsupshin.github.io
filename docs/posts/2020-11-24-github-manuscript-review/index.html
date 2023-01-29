@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2020-11-24">
+<meta name="description" content="How to use GitHub to publish and review academic manuscripts for better tracking, communication, and transparency">
+
+<title>Hongsup Shin - Markdown and GitHub for scientific writing</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Markdown and GitHub for scientific writing</h1>
+                  <div>
+        <div class="description">
+          How to use GitHub to publish and review academic manuscripts for better tracking, communication, and transparency
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">collaboration</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">November 24, 2020</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>Last year, I was fortunate to have an opportunity to do a poster presentation at the <a href="https://www.scipy2019.scipy.org/">Scientific Computing in Python (SciPy) conference</a>. Every presenter has an option to submit a written proceedings and I decided to participate. I’ve never had a chance to present my ML work as a paper in industry, and so I thought it would be a good experience.</p>
+<p>I was a bit intimated when the conference committees said authors should submit their manuscripts as <strong>pull requests</strong> in their proceedings repository in GitHub. They also said manuscripts should be written in <a href="https://en.wikipedia.org/wiki/ReStructuredText">reStructuredText</a>. I have used git for many years but I have limited experience in collaborating with others on GitHub. Plus, I’ve never used reStructuredText (I’ve only used Markdown) and also have never written an academic manuscript in markup languages.</p>
+<p>In short, I eventually became to really enjoy the process of using markup languages for writing manuscripts and using GitHub for review. I will briefly talk about my experience at the SciPy and talk about why I think you should give it a try.</p>
+<section id="scientific-writing-in-markup-languages" class="level2">
+<h2 class="anchored" data-anchor-id="scientific-writing-in-markup-languages">Scientific writing in markup languages</h2>
+<p>There was a bit of learning curve but it wasn’t too difficult to get used to the reStructuredText syntax because there were some similarities between Markdown and reStructuredText (<code>rst</code>). The conference committee also provided <a href="https://raw.githubusercontent.com/hongsups/scipy_proceedings/2019/papers/00_bibderwalt/00_bibderwalt.rst">examples</a>. They also provided me with <a href="https://github.com/hongsups/scipy_proceedings/tree/2019/publisher">a PDF builder</a> that I could run locally. This helped me preview the final version of the PDF when it’s fully rendered. This was useful especially to decide the location of figures. There was a custom LaTeX builder in their repository too, which was invaluable.</p>
+<p>Compared with existing word processor softwares such as MS Word or Google Docs, using markup languages pose some challenges to the first-time users. First, you need to learn the syntax. There are some limitations on styling because not everything is rendered automatically (e.g., LaTeX) and sometimes you need to play with html and css files to get a more complex page layout.</p>
+<p>However, there are many benefits as well:</p>
+<ul>
+<li>Every styling is written explicitly (e.g., <code>**</code> for bold in Markdown) and thus it is easily discoverable.</li>
+<li>Code snippets can be automatically rendered in a standardized way.</li>
+<li>It’s easy and fast to publish the manuscript online, which makes it easy to share.</li>
+<li>Finally, with a right document builder, the above-mentioned pain points can be mitigated.</li>
+<li>It is much easier and convenient to review the manuscript (see below).</li>
+</ul>
+</section>
+<section id="using-github-for-submission-and-review" class="level2">
+<h2 class="anchored" data-anchor-id="using-github-for-submission-and-review">Using GitHub for submission and review</h2>
+<p><img src="2020-11-24-HS_scipy_example_author_screenshot.png" title="Screenshot of my pull request at the SciPy 2019" class="img-fluid"></p>
+<p><img src="2020-11-24-HS_scipy_example_reviewer_screenshot.png" title="Screenshot of the review conversation of a pull request I reviewed at the SciPy 2020" class="img-fluid"></p>
+<p>Once I finished writing the manuscript, I submitted the main document and image files as a pull request. It was pretty straightforward because I was working alone in my own branch (you can find my pull request <a href="https://github.com/scipy-conference/scipy_proceedings/pull/468">here</a>). A few weeks later, two reviewers started commenting on my pull request. The whole process was quite simple and very similar to a typical review process in academia: reviewers left comments on certain parts of the manuscript and I responded. It also reminded me of a code review process. This year, I volunteered at the SciPy 2020 as a reviewer. I <a href="https://github.com/scipy-conference/scipy_proceedings/pull/550">reviewed a paper that was submitted as a pull request</a>.</p>
+</section>
+<section id="benefits-of-github-for-reviewing-manuscripts" class="level2">
+<h2 class="anchored" data-anchor-id="benefits-of-github-for-reviewing-manuscripts">Benefits of GitHub for reviewing manuscripts</h2>
+<p>With these experiences, I learned that markup language with GitHub review process provides many benefits for scientific writing, compared with MS Word or Google Docs which are used in typical (academic) review process:</p>
+<table class="table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 16%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Markup + GitHub review</th>
+<th>MS Word or Google Docs + Academic review</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Discover exact changes</strong></td>
+<td>Yes</td>
+<td>Possible but can be confusing when many changes occur in one place</td>
+</tr>
+<tr class="even">
+<td><strong>Change versions easily</strong></td>
+<td>Yes</td>
+<td>May need multiple versions (separate files)</td>
+</tr>
+<tr class="odd">
+<td><strong>Track communications</strong></td>
+<td>Yes</td>
+<td>Challenging because comments happen in the margin, which has a very limited space. Otherwise, they are addressed in a separate space (like a letter).</td>
+</tr>
+<tr class="even">
+<td><strong>Text override or unauthorized edits</strong></td>
+<td>No (permission needed)</td>
+<td>Can happen if tracking option is off or multiple files exist</td>
+</tr>
+<tr class="odd">
+<td><strong>Group communication</strong></td>
+<td>Yes</td>
+<td>No.&nbsp;Normally reviewers don’t talk to each other. Reviewers communicate individually with authors.</td>
+</tr>
+<tr class="even">
+<td><strong>Immediate responsiveness</strong></td>
+<td>High (online comments)</td>
+<td>Low. Letters or emails need to be exchanged, which can take months.</td>
+</tr>
+<tr class="odd">
+<td><strong>Communication transparency</strong></td>
+<td>High</td>
+<td>Almost none (academic review). Normally double-blind. A reviewer can’t normally read other reviews during the review process.</td>
+</tr>
+<tr class="even">
+<td><strong>Public transparency</strong></td>
+<td>Yes (public repositories)</td>
+<td>Almost none. Very rare to publish the whole conversation between reviewers and authors.</td>
+</tr>
+<tr class="odd">
+<td><strong>One place for everything</strong></td>
+<td>Yes</td>
+<td>No.&nbsp;Normally non-document type files exist in a different place.</td>
+</tr>
+</tbody>
+</table>
+<p>In short, the main benefit of using GitHub for reviewing manuscript comes from that <strong>GitHub is an excellent version control tool</strong>. It prevents reviews (new changes) and the manuscript (original file) from getting mixed up and allows us to track changes meticulously.</p>
+<p>Another huge benefit is <strong>transparency</strong>. If our repository and pull requests are public, the entire review process can be seen by anyone. This way, every decision making process is tracked and stays public, which minimizes potential dispute or abuse between authors and reviewers. Given that academia is not capable of perfect self-governance and some academic disciplines have reproducibility problems, transparent review process like this can become a solution.</p>
+</section>
+<section id="final-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
+<p>It is true that markup languages may not always be perfect for writing a manuscript. Some people are more familiar with traditional word processing softwares where styles are immediately rendered and more style options are available. However, based on my experience with the SciPy conference, especially, being at the both ends of the review process, I can say the benefits of using markup language for scientific writing and using GitHub for review outweighs its caveats. Manuscripts written in markup languages can be easily reviewed in GitHub where we can utilize its excellent built-in tools to achieve <strong>better tracking, communication, and transparency.</strong></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

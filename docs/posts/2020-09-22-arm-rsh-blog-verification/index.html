@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2020-09-22">
+<meta name="description" content="My Arm Research blog post about using ML in hardware engineering to make verification more compute-efficient">
+
+<title>Hongsup Shin - Efficient bug discovery with ML for hardware verification</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/hongsupshin"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Efficient bug discovery with ML for hardware verification</h1>
+                  <div>
+        <div class="description">
+          My Arm Research blog post about using ML in hardware engineering to make verification more compute-efficient
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">ML</div>
+                <div class="quarto-category">verification</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">September 22, 2020</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>Imagine designing a highly complex machine. In order to be certain that it functions as its design specifies and does not have any bugs, you would need to test every aspect of the design exhaustively. If the machine is controlled by a set of knobs that can be turned on and off, this verification process can get exponentially complex. For instance, with a machine that has 100 binary on-off knobs, then 2<sup>100</sup> tests need to be run to cover all possible combinations. If we assume that a single test takes one second to run, this equates to 1022 years of testing. For present-day microprocessors, it is even more challenging. There can be thousands or tens of thousands of two-state flip-flops in a single microprocessor. Therefore, it is <strong>impossible to verify microprocessor designs exhaustively</strong>.</p>
+<p>To work around this problem, hardware verification engineers use a method called <strong>random-constraint testing</strong>. This is more sophisticated than simple random adjustment of knobs – it is <strong>a hybrid approach of manual control and randomization</strong>. Engineers can direct the test behavior to a degree by setting constraints for the tests using adjustable knobs. Once constraints are set, the rest of the verification process depends on randomization; the knobs start subsequent processes that are stochastic, which stimulates various parts of the design. This way, engineers can explore the design randomly under the constraints they have set.</p>
+<p>This method works well when engineers have not explored the design much. As engineers start exploring a design, they find and fix bugs, and the more they explore, the fewer bugs are left to be fixed. <strong>Eventually, it becomes very difficult to detect these rare bugs by random probing</strong>. Most of the hardware verification effort goes into finding the few remaining bugs in the design. In fact, this process is so time-consuming that <strong>60-70% of the compute time spent on hardware development goes into verification</strong>.</p>
+<p>If the random-constraint testing is not good at specifically targeting bugs in the design, what are the alternatives? My team in <a href="https://www.arm.com/resources/research">Arm Research</a> has been working on this problem since last year. We have analyzed our CPU verification data and successfully trained machine learning (ML) models to solve this problem. We deployed an ML application with these models in collaboration with production engineers at Arm, <a href="https://www.linkedin.com/in/markkoob/">Mark Koob</a> and <a href="https://www.linkedin.com/in/ramachandranswati/">Swati Ramachandran</a>. Our application <strong>uses ML to flag tests that are likely to find bugs</strong>. Verification engineers can feed a large group of prospective tests to our application, and then the application returns a subset of them that are likely to find bugs. This way, <strong>engineers can focus on these tests only, and reduce the number of tests to run, which eventually saves compute costs.</strong></p>
+<p>Currently, our application is being <strong>used consistently by Arm verification engineers as a complementary tool to their existing workflow</strong>. On average, it has been shown to be <strong>25% more efficient</strong> than the default verification workflow in terms of finding bugs, and <strong>1.33x more efficient</strong> at finding unique bugs. Through our application, engineers were able to find more unique bugs per test run when compared to their existing verification workflow.</p>
+<section id="filtering-prospective-tests-using-ml" class="level2">
+<h2 class="anchored" data-anchor-id="filtering-prospective-tests-using-ml">Filtering prospective tests using ML</h2>
+<p><img src="2020-09-22-random-constraint-testing-diagram.png" title="Schematic of random-constraint testing in hardware verification" class="img-fluid"></p>
+<p>Now let us take a deeper look at how our application works. The main challenge of using ML for hardware verification is that everything revolves around random-constraint testing. Not only is the data collected by this method, but also the testing infrastructure is built to optimize this process. The problem is that random-constraint testing consists of two very different parts:</p>
+<ul>
+<li><strong>Deterministic knob-control</strong> by verification engineers, and;</li>
+<li><strong>Non-deterministic subsequent processes</strong> that are random and intractable.</li>
+</ul>
+<p>This means two things. Firstly, the only source of the usable data is the knobs. Secondly, we cannot guide tests directly to explore new design space because the whole process is non-deterministic.</p>
+<p>Let’s first look at the knob data. Here, each sample is a test that was run in the past. It has <strong>several hundred knob values (input) and a binary output; bug or bug-free</strong>. In our data, bugs were extremely rare (less than 1%). To address this <strong>severe class imbalance</strong>, we adopt two approaches. Firstly, we train a <strong>supervised learning</strong> model that computes a probability of having a bug based on a set of knob values. This model detects tests that may expose bugs similar to the previous ones. Secondly, we train an <strong>unsupervised learning</strong> model that estimates similarity between a new test and the previous tests. If the similarity is low, the test is likely to be novel. Novel knob combinations can probe unexplored design areas and are more likely to expose bugs. In our <a href="http://conference.scipy.org/proceedings/scipy2019/pdfs/Hongsup_Shin.pdf">preliminary results</a>, we found that these models can detect different types of bugs. Since our main goal is to capture as many bugs as possible, we flag a test as a bug provided one of the two models predicts it will be.</p>
+<p>To avoid the difficulty in guiding test behavior, we choose a <strong>filtering approach</strong>. We leave the knob values to be generated randomly from the testing infrastructure and filter them afterwards based on ML prediction scores. To do so, we need to provide the ML models with a large group of knob values (test candidates) first. Luckily, this process is computationally cheap. Then, the ML models compute prediction scores (the probability of having a bug) of the candidates. Based on the scores, we select a subset of the candidates that are more likely to find bugs than others.</p>
+</section>
+<section id="deploying-ml-within-existing-random-constraint-testing-infrastructure" class="level2">
+<h2 class="anchored" data-anchor-id="deploying-ml-within-existing-random-constraint-testing-infrastructure">Deploying ML within existing random-constraint testing infrastructure</h2>
+<p>Now that we have trained ML models ready, can we completely replace our existing random-constraint testing flow with our application? The answer is no. <strong>The filtering approach, even with the unsupervised learning model, does not completely solve the exploration problem</strong>. That is why the existing flow (random-constraint testing) should remain. The random probing can still be useful for exploration to a degree, and can provide new training data for model update. Thus, we propose two parallel pathways; one with the default randomized testing and the other with ML models, where an additional set of test candidates are provided and then only the tests flagged by the models are filtered and run. This way, it is possible to continue collecting novel data from the default flow for exploration while exploiting the data from previous tests via the ML application.</p>
+<p>Some may think that our job is done when the models are delivered, and deployment finally happens. This is not true. For the models, a new journey begins when they are deployed in the production environment, because it is likely that unexpected events are waiting for them. For instance, we have learned that design and testing infrastructure go through daily changes, so test behavior and data generation process may change frequently. This means the models deployed in the beginning do not guarantee good performance as time goes by.</p>
+<p>To address this, we have <strong>conducted research into the optimization of model retraining</strong>. We identified how often models need to be retrained and how much data should be used for training. Using this information, we’ve built a retraining module that is automatically invoked periodically or upon verification engineers’ request. During the retraining process, we compare a variety of different models and tune their hyperparameters. This allows for flexibility across changes in data generation processes and various microprocessor designs.</p>
+</section>
+<section id="towards-end-to-end-ml" class="level2">
+<h2 class="anchored" data-anchor-id="towards-end-to-end-ml">Towards end-to-end ML</h2>
+<p>When we talk about ML, the focus is often on algorithms. As I mentioned, however, <strong>when it comes to building ML products, the algorithms are only a small part of a much larger pipeline</strong>. Especially with scalable deployment in consideration. Starting from data acquisition all the way to deployment and assessment, every step requires attention of data scientists and ML researchers. It is because developing ML products is different from typical software development. A lot of processes are interconnected and data-dependent, which makes them more challenging to test and evaluate.</p>
+<p>Admittedly, we initially approached the development of this ML application as a “throw it over the wall” type of engagement. After developing the core ML modules (data preprocessing and models), we delivered them to production engineers without much engagement afterwards. After the application was deployed in several projects, we occasionally needed to intervene to deal with unexpected model behavior. We soon realized that not engaging in the deployment process makes it very difficult to solve any issues that happen after model deployment.</p>
+<p>Recently, in collaboration with our colleagues, it has been made easier to make direct contributions to packages. They have developed a Python package for data science and ML, which has become a core part of our ML application. This allowed us to directly contribute to the ML application easily, and also enabled scalable Python in Arm’s internal compute platform. Our new team member, <a href="https://www.linkedin.com/in/kate-behrman/">Kathrine (Kate) Behrman</a> has already built a new module to fix an existing problem in model validation. With this momentum, we are more engaged in deployment to make our ML application perform better and more reliable, while exploring new research ideas.</p>
+<p>Through this process, we learned that <strong>getting more involved in ML product development provides many benefits to researchers</strong>. First, it makes <strong>tech transfer much easier</strong> because making direct contributions to deployed products is more frictionless. This also means that we can <strong>test our new research ideas easily</strong> and measure the effect quickly. In addition, it helps us <strong>fix problems efficiently</strong> because we have better understanding of how the models are served in deployment. <strong>ML products benefit from an evolutionary approach</strong> because there is no absolute guarantee that the data or surrounding infrastructure stays the same. Finally, this process naturally <strong>brings automation and scalability</strong>, which makes our work easily applicable and more impactful.</p>
+</section>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
+<p>We are currently working on launching a new version of our ML application to accommodate a new CPU project that has launched recently. We expect that the new version can be used in the early stage of verification, which is new territory to us. At the same time, we are exploring various research areas. For example, explainable AI for feature assessment and counterfactuals, various unsupervised learning techniques to target novel bugs more effectively, methods to design ML-friendly test benches, and other verification-related problems such as assessing coverage. We are also putting efforts into standardizing our workflow and automating existing features. We anticipate that our work will bring more consistent and reliable model performance over time. We also expect that it will showcase a successful tech transfer example for ML deployment that can be applied to solving other engineering problems inside Arm with ML.</p>
+<p>Learn more about our research in our paper presented at <a href="https://www.dac.com/">DAC (Design Automation Conference) 2020</a>, and please do reach out to me if you have any questions!</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
