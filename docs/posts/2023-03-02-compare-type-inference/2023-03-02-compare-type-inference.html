@@ -667,8 +667,8 @@ empty &lt;class 'str'&gt;</code></pre>
 </div>
 <p>This shows that <code>pandas.DataFrame.infer_objects</code> returns a readily usable python types as inference results but <code>pandas.api.types.infer_dtype</code> returns string values, that need to be further processed or mapped if we want to cast data types.</p>
 </section>
-<section id="conlusions" class="level2">
-<h2 class="anchored" data-anchor-id="conlusions">Conlusions</h2>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
 <p>Pandas has two type inference methods: <code>pandas.DataFrame.infer_objects</code>, <code>pandas.api.types.infer_dtype</code>.</p>
 <p><code>pandas.DataFrame.infer_objects</code> is designed to return practical data types that can be easily cast on arrays, and thus its type inference tends to adopt a blanket approach where type inference should just work to handle the data immediately.</p>
 <p>On the other hand, <code>pandas.api.types.infer_dtype</code> does a more granular type inference job where it can also ignore na values. However, it returns string values as results, not python types, and thus we need a further process to use this information for type casting.</p>
