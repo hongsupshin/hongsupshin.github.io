@@ -10,7 +10,49 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.2.242</generator>
-<lastBuildDate>Tue, 25 May 2021 05:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 24 Jan 2023 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Post With Code</title>
+  <dc:creator>Harlow Malloc</dc:creator>
+  <link>https://hongsupshin.github.io/posts/post-with-code/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This is a post with executable code.</p>
+
+
+
+ ]]></description>
+  <category>news</category>
+  <category>code</category>
+  <category>analysis</category>
+  <guid>https://hongsupshin.github.io/posts/post-with-code/index.html</guid>
+  <pubDate>Tue, 24 Jan 2023 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Welcome To My Blog</title>
+  <dc:creator>Tristan O&#39;Malley</dc:creator>
+  <link>https://hongsupshin.github.io/posts/welcome/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This is the first post in a Quarto blog. Welcome!</p>
+<p><img src="https://hongsupshin.github.io/posts/welcome/thumbnail.jpg" class="img-fluid"></p>
+<p>Since this post doesn’t specify an explicit <code>image</code>, the first image in the post will be used in the listing page of posts.</p>
+
+
+
+ ]]></description>
+  <category>news</category>
+  <guid>https://hongsupshin.github.io/posts/welcome/index.html</guid>
+  <pubDate>Sat, 21 Jan 2023 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/welcome/thumbnail.jpg" medium="image" type="image/jpeg"/>
+</item>
 <item>
   <title>Tech volunteering tips for nonprofits</title>
   <link>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/index.html</link>
@@ -669,7 +711,6 @@ sys       : 3.7.10 | packaged by conda-forge | (default, Feb 19 2021, 15:59:12)
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/index.html</guid>
   <pubDate>Wed, 10 Mar 2021 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/parrots.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
   <title>FAccT 2021. Automated decision-making, causal accountability, and robustness</title>
