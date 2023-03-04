@@ -19,16 +19,18 @@
 
 
 
-<p>When a data array has mixed data types such as <code>[True, 0.0]</code>, pandas infer the array as <code>object</code> dtype. To do so, pandas use <code>pandas.DataFrame.infer_objects</code>. However, a lot of different types of mixed arrays can be inferred as <code>object</code> dtype. This “blancket” approach might be useful for practical data handling but it is not suitable for more accurate and granular type inference.</p>
-<p>Unlike this, <code>pandas.api.types.infer_dtype</code> provides a much more granular type inference and it can ignore null values (<code>skipna=True</code>). The method returns a name of inferred type as a string. For the comprehensive list of the type names, see the <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html">pandas documentation</a></p>
-<p>This notebook compares the two type inference methods of pandas (<code>pandas.DataFrame.infer_objects</code> and <code>pandas.api.types.infer_dtype</code>) when they are faced with various cases of mixed arrays. Here, I use <code>None, array(list), str, bool, float, int</code>, data types to generate various combinations of mixed arrays, and we use both inference methods to compare the results.</p>
+<p>Some people work with data where the meaning of features (columns) is very clear because only common sense is required. For instance, even without a schema, in a housing price dataset, a column called “number of rooms” would be the number of rooms in a housing unit, and it’s very likely that the values of this column will be integers.</p>
+<p>In hardware (microprocessor) verification, it’s often impossible to understand the meaning of the columns. If you are an ML practitioner without hardware engineering background, you can nag verification engineers to explain it but it’s very likely that you wouldn’t completely understand, and there are hundreds and thousands of columns that need explanation. Even if you do have the background, depending on the product type, it’s likely that you can’t have full understanding of all columns.</p>
+<p>Besides, sometimes you need to work with so called “mixed data type” arrays. An example would be an array of boolean and float such as <code>[True, 0.0]</code>. If you use pandas to read this type of data, you should know that it infers the data type of an array like this as <code>object</code> quite often. This inference is done by the <code>pandas.DataFrame.infer_objects</code> method. However, a lot of different types of mixed arrays can be inferred as <code>object</code> dtype. This “blanket” approach might be useful for practical data handling but it is not suitable for more accurate and granular type inference. If the goal is to <em>understand the actual content</em> of the arrays.</p>
+<p>You may not have known that pandas has another type inference method in their api: <code>pandas.api.types.infer_dtype</code>, which provides granular type inference and allows to ignore null values (<code>skipna=True</code>). This method returns a name of inferred type as a string such as <code>"boolean"</code> or <code>"floating"</code>. For the comprehensive list of the type names, see the <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html">pandas documentation</a>.</p>
+<p>This notebook compares the two type inference methods of pandas (<code>pandas.DataFrame.infer_objects</code> and <code>pandas.api.types.infer_dtype</code>) when they are faced with various cases of mixed data type arrays. For the comparison, I used exhaustive combination of <code>None, array(list), str, bool, float, int</code> data to generate various mixed arrays, and then applied the two inference methods to compare the results.</p>
 <div class="cell" data-tags="[]" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;">import</span> pandas <span class="im" style="color: #00769E;">as</span> pd</span>
 <span id="cb1-2"><span class="im" style="color: #00769E;">import</span> numpy <span class="im" style="color: #00769E;">as</span> np</span></code></pre></div>
 </div>
-<section id="generating-toy-example-of-mixed-arrays" class="level2">
-<h2 class="anchored" data-anchor-id="generating-toy-example-of-mixed-arrays">Generating toy example of mixed arrays</h2>
-<p>Here I generate a dataframe with various mixed types. I use “nan”(<code>np.nan</code>), “none”, “array” (<code>list</code>), “str”, “bool”, “float”, “int” types to generate exhaustive combinations for a 2-element array. To emphasize the inference method comparison, I assign <code>object</code> dtype to all columns.</p>
+<section id="testing-data-generating-arrays-of-mixed-data-types" class="level2">
+<h2 class="anchored" data-anchor-id="testing-data-generating-arrays-of-mixed-data-types">Testing data: generating arrays of mixed data types</h2>
+<p>Here I generated a dataframe with various mixed types: <code>"nan"(</code>np.nan<code>), "none", "array" (</code>list<code>), "str", "bool", "float", "int"</code>. Using their exhaustive combinations (<img src="https://latex.codecogs.com/png.latex?N_%7Btype%7D=2">), I created a 2-element array for each combination. For fair comparison, I assigned <code>object</code> dtypes to all columns.</p>
 <div class="cell" data-tags="[]" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">example <span class="op" style="color: #5E5E5E;">=</span> pd.DataFrame(</span>
 <span id="cb2-2">    {</span>
@@ -163,7 +165,7 @@ dtype: int64</code></pre>
 <div class="cell" data-tags="[]" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">example_results <span class="op" style="color: #5E5E5E;">=</span> example.T</span>
 <span id="cb5-2">example_results[<span class="st" style="color: #20794D;">'pd_infer_objects'</span>] <span class="op" style="color: #5E5E5E;">=</span> example.infer_objects().dtypes</span>
-<span id="cb5-3">example_results.head()</span></code></pre></div>
+<span id="cb5-3">example_results</span></code></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 
 <div>
@@ -208,20 +210,161 @@ dtype: int64</code></pre>
       <td>True</td>
       <td>object</td>
     </tr>
+    <tr>
+      <th>nan_float</th>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>nan_int</th>
+      <td>NaN</td>
+      <td>1</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>none</th>
+      <td>None</td>
+      <td>None</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>none_array</th>
+      <td>None</td>
+      <td>[]</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>none_str</th>
+      <td>None</td>
+      <td>a</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>none_bool</th>
+      <td>None</td>
+      <td>True</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>none_float</th>
+      <td>None</td>
+      <td>0.0</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>none_int</th>
+      <td>None</td>
+      <td>1</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>array</th>
+      <td>[]</td>
+      <td>[]</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>array_str</th>
+      <td>[]</td>
+      <td>a</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>array_bool</th>
+      <td>[]</td>
+      <td>True</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>array_float</th>
+      <td>[]</td>
+      <td>1.0</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>array_int</th>
+      <td>[]</td>
+      <td>1</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>str</th>
+      <td>a</td>
+      <td>b</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>str_bool</th>
+      <td>a</td>
+      <td>True</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>str_float</th>
+      <td>a</td>
+      <td>1.0</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>str_int</th>
+      <td>a</td>
+      <td>1</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>bool</th>
+      <td>True</td>
+      <td>False</td>
+      <td>bool</td>
+    </tr>
+    <tr>
+      <th>bool_float</th>
+      <td>True</td>
+      <td>0.0</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>bool_int</th>
+      <td>True</td>
+      <td>1</td>
+      <td>object</td>
+    </tr>
+    <tr>
+      <th>float</th>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>float_int</th>
+      <td>1.0</td>
+      <td>0</td>
+      <td>float64</td>
+    </tr>
+    <tr>
+      <th>int</th>
+      <td>1</td>
+      <td>0</td>
+      <td>int64</td>
+    </tr>
   </tbody>
 </table>
 </div>
 </div>
 </div>
+<p>At a glance, this method infers most of these mixed arrays as <code>object</code>, which naturally doesn’t deliver much information about what exact mixture of types the arrays have. Plus, some <code>object</code> arrays can receive <code>int</code> or <code>float</code> casting (e.g., <code>[True, 1]</code>), but some can’t (e.g., <code>['a', 1]</code>).</p>
 </section>
 <section id="type-inference-with-pandas.api.types.infer_dtype" class="level2">
 <h2 class="anchored" data-anchor-id="type-inference-with-pandas.api.types.infer_dtype">Type inference with <code>pandas.api.types.infer_dtype</code></h2>
-<p>Here type inference is done with and without na values.</p>
+<p>This method allows two variants: with skipping na values and without. Let’s get inference results from the both.</p>
 <div class="cell" data-tags="[]" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">example_results[<span class="st" style="color: #20794D;">'pd_infer_dtype'</span>] <span class="op" style="color: #5E5E5E;">=</span> example.<span class="bu" style="color: null;">apply</span>(<span class="kw" style="color: #003B4F;">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>))</span>
-<span id="cb6-2">example_results[<span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>] <span class="op" style="color: #5E5E5E;">=</span> example.<span class="bu" style="color: null;">apply</span>(<span class="kw" style="color: #003B4F;">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>))</span>
-<span id="cb6-3">example_results.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
+<span id="cb6-2">example_results[<span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>] <span class="op" style="color: #5E5E5E;">=</span> example.<span class="bu" style="color: null;">apply</span>(<span class="kw" style="color: #003B4F;">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>))</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">example_results</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
 
 <div>
 
@@ -277,6 +420,190 @@ dtype: int64</code></pre>
       <td>mixed</td>
       <td>boolean</td>
     </tr>
+    <tr>
+      <th>nan_float</th>
+      <td>NaN</td>
+      <td>1.0</td>
+      <td>float64</td>
+      <td>floating</td>
+      <td>floating</td>
+    </tr>
+    <tr>
+      <th>nan_int</th>
+      <td>NaN</td>
+      <td>1</td>
+      <td>float64</td>
+      <td>integer-na</td>
+      <td>integer</td>
+    </tr>
+    <tr>
+      <th>none</th>
+      <td>None</td>
+      <td>None</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>empty</td>
+    </tr>
+    <tr>
+      <th>none_array</th>
+      <td>None</td>
+      <td>[]</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>none_str</th>
+      <td>None</td>
+      <td>a</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>string</td>
+    </tr>
+    <tr>
+      <th>none_bool</th>
+      <td>None</td>
+      <td>True</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>boolean</td>
+    </tr>
+    <tr>
+      <th>none_float</th>
+      <td>None</td>
+      <td>0.0</td>
+      <td>float64</td>
+      <td>mixed</td>
+      <td>mixed-integer-float</td>
+    </tr>
+    <tr>
+      <th>none_int</th>
+      <td>None</td>
+      <td>1</td>
+      <td>float64</td>
+      <td>mixed-integer</td>
+      <td>integer</td>
+    </tr>
+    <tr>
+      <th>array</th>
+      <td>[]</td>
+      <td>[]</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>array_str</th>
+      <td>[]</td>
+      <td>a</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>array_bool</th>
+      <td>[]</td>
+      <td>True</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>array_float</th>
+      <td>[]</td>
+      <td>1.0</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>array_int</th>
+      <td>[]</td>
+      <td>1</td>
+      <td>object</td>
+      <td>mixed-integer</td>
+      <td>mixed-integer</td>
+    </tr>
+    <tr>
+      <th>str</th>
+      <td>a</td>
+      <td>b</td>
+      <td>object</td>
+      <td>string</td>
+      <td>string</td>
+    </tr>
+    <tr>
+      <th>str_bool</th>
+      <td>a</td>
+      <td>True</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>str_float</th>
+      <td>a</td>
+      <td>1.0</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>str_int</th>
+      <td>a</td>
+      <td>1</td>
+      <td>object</td>
+      <td>mixed-integer</td>
+      <td>mixed-integer</td>
+    </tr>
+    <tr>
+      <th>bool</th>
+      <td>True</td>
+      <td>False</td>
+      <td>bool</td>
+      <td>boolean</td>
+      <td>boolean</td>
+    </tr>
+    <tr>
+      <th>bool_float</th>
+      <td>True</td>
+      <td>0.0</td>
+      <td>object</td>
+      <td>mixed</td>
+      <td>mixed</td>
+    </tr>
+    <tr>
+      <th>bool_int</th>
+      <td>True</td>
+      <td>1</td>
+      <td>object</td>
+      <td>mixed-integer</td>
+      <td>mixed-integer</td>
+    </tr>
+    <tr>
+      <th>float</th>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>float64</td>
+      <td>floating</td>
+      <td>floating</td>
+    </tr>
+    <tr>
+      <th>float_int</th>
+      <td>1.0</td>
+      <td>0</td>
+      <td>float64</td>
+      <td>mixed-integer-float</td>
+      <td>mixed-integer-float</td>
+    </tr>
+    <tr>
+      <th>int</th>
+      <td>1</td>
+      <td>0</td>
+      <td>int64</td>
+      <td>integer</td>
+      <td>integer</td>
+    </tr>
   </tbody>
 </table>
 </div>
@@ -285,15 +612,33 @@ dtype: int64</code></pre>
 </section>
 <section id="comparison-with-vs.-without-na-values-in-pandas.api.types.infer_dtype" class="level2">
 <h2 class="anchored" data-anchor-id="comparison-with-vs.-without-na-values-in-pandas.api.types.infer_dtype">Comparison: with vs.&nbsp;without na values in <code>pandas.api.types.infer_dtype</code></h2>
-<p>When we don’t ignore na values, we often get <code>"mixed"</code> results from <code>pandas.api.types.infer_dtype</code> for arrays that are essentially quite different. For instance, in the table above, the last 3 rows (<code>"nan_array", "nan_str", "nan_bool"</code>) all are identified as <code>"mixed"</code> when we don’t ignore nan.</p>
-<p>However, when we ignore na values, <code>"nan_array"</code> is identified as <code>"mixed"</code>, <code>"nan_str"</code> as <code>"string"</code>, <code>"nan_bool"</code> as <code>"boolean"</code>, which means the correct data types are identified.</p>
+<p>When we don’t skip na values (<code>skipna=False</code>), we often get <code>"mixed"</code> results from <code>pandas.api.types.infer_dtype</code> for arrays that are inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code>. This means, the inference results are not granular, like we just saw from <code>pandas.DataFrame.infer_objects</code>. For instance, in the table above, <code>"nan_array", "nan_str", "nan_bool"</code> are all identified as <code>"mixed"</code> when we don’t ignore nan.</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">example_results.loc[[<span class="st" style="color: #20794D;">"nan_array"</span>, <span class="st" style="color: #20794D;">"nan_str"</span>, <span class="st" style="color: #20794D;">"nan_bool"</span>], <span class="st" style="color: #20794D;">"pd_infer_dtype"</span>]</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>nan_array    mixed
+nan_str      mixed
+nan_bool     mixed
+Name: pd_infer_dtype, dtype: object</code></pre>
+</div>
+</div>
+<p>However, when we ignore na values, we get more granular results, which identify the correct data types (without missing).</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">example_results.loc[[<span class="st" style="color: #20794D;">"nan_array"</span>, <span class="st" style="color: #20794D;">"nan_str"</span>, <span class="st" style="color: #20794D;">"nan_bool"</span>], <span class="st" style="color: #20794D;">"pd_infer_dtype_skipna"</span>]</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>nan_array      mixed
+nan_str       string
+nan_bool     boolean
+Name: pd_infer_dtype_skipna, dtype: object</code></pre>
+</div>
+</div>
 </section>
 <section id="comparison-pandas.dataframe.infer_objects-vs.-pandas.api.types.infer_dtypeskipnatrue" class="level2">
 <h2 class="anchored" data-anchor-id="comparison-pandas.dataframe.infer_objects-vs.-pandas.api.types.infer_dtypeskipnatrue">Comparison: <code>pandas.DataFrame.infer_objects</code> vs.&nbsp;<code>pandas.api.types.infer_dtype(skipna=True)</code></h2>
-<p>As I mentioned before, <code>pandas.DataFrame.infer_objects</code> has a blanket approach to mixed data arrays. We can select specific columns in the toy example where <code>pandas.DataFrame.infer_objects</code> identified them as <code>object</code> and examine the type inference result from <code>pandas.api.types.infer_dtype(skipna=True)</code> to compare the two type inference methods.</p>
-<div class="cell" data-tags="[]" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">example_results[example_results[<span class="st" style="color: #20794D;">'pd_infer_objects'</span>] <span class="op" style="color: #5E5E5E;">==</span> <span class="bu" style="color: null;">object</span>].drop(<span class="st" style="color: #20794D;">'pd_infer_dtype'</span>, axis<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>).sort_values(by<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
+<p>Because <code>pandas.DataFrame.infer_objects</code> has a blanket approach to mixed data arrays, using this method to various mixed arrays, we get a lot of <code>object</code> columns. Let’s take a deeper look at the columns inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code>, and examine the inference result from <code>pandas.api.types.infer_dtype(skipna=True)</code>.</p>
+<div class="cell" data-tags="[]" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">example_results[example_results[<span class="st" style="color: #20794D;">'pd_infer_objects'</span>] <span class="op" style="color: #5E5E5E;">==</span> <span class="bu" style="color: null;">object</span>].drop(<span class="st" style="color: #20794D;">'pd_infer_dtype'</span>, axis<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>).sort_values(by<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>)</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
 
 <div>
 
@@ -439,12 +784,12 @@ dtype: int64</code></pre>
 </div>
 </div>
 </div>
-<p>This shows that a variety of mixed arrays is inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code> but <code>pandas.api.types.infer_dtype(skipna=True)</code> can often identify true types. It’s true that the latter returns a lot of different arrays as <code>"mixed"</code> but most of them are those which have non-numerical values such as string or array.</p>
-<p>One interesting observation is that <code>[True, 0.0]</code> is inferred as <code>"mixed"</code> but <code>[True, 1]</code> as <code>"mixed-integer"</code>, which implies that <code>pandas.api.types.infer_dtype</code> method is designed to show presence of integer in inferred type information.</p>
+<p>This shows that a variety of mixed arrays is inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code> but <code>pandas.api.types.infer_dtype(skipna=True)</code> can often identify true types. It’s true that the latter returns a lot of different arrays as <code>"mixed"</code> but most of them have non-numerical values such as string or array.</p>
+<p>One interesting observation is that <code>[True, 0.0]</code> is inferred as <code>"mixed"</code> but <code>[True, 1]</code> as <code>"mixed-integer"</code>, which implies that <code>pandas.api.types.infer_dtype</code> method is designed to highlight the presence of integers in inferred type information.</p>
 <p>Finally, we can compare the returned values of two methods:</p>
 <div class="cell" data-tags="[]" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="cf" style="color: #003B4F;">for</span> val <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">set</span>(example_results[<span class="st" style="color: #20794D;">'pd_infer_objects'</span>]):</span>
-<span id="cb8-2">    <span class="bu" style="color: null;">print</span>(val, <span class="bu" style="color: null;">type</span>(val))</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="cf" style="color: #003B4F;">for</span> val <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">set</span>(example_results[<span class="st" style="color: #20794D;">'pd_infer_objects'</span>]):</span>
+<span id="cb13-2">    <span class="bu" style="color: null;">print</span>(val, <span class="bu" style="color: null;">type</span>(val))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>int64 &lt;class 'numpy.dtype[int64]'&gt;
 float64 &lt;class 'numpy.dtype[float64]'&gt;
@@ -453,8 +798,8 @@ object &lt;class 'numpy.dtype[object_]'&gt;</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="cf" style="color: #003B4F;">for</span> val <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">set</span>(example_results[<span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>]):</span>
-<span id="cb10-2">    <span class="bu" style="color: null;">print</span>(val, <span class="bu" style="color: null;">type</span>(val))</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><span class="cf" style="color: #003B4F;">for</span> val <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">set</span>(example_results[<span class="st" style="color: #20794D;">'pd_infer_dtype_skipna'</span>]):</span>
+<span id="cb15-2">    <span class="bu" style="color: null;">print</span>(val, <span class="bu" style="color: null;">type</span>(val))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>mixed &lt;class 'str'&gt;
 floating &lt;class 'str'&gt;
@@ -466,13 +811,13 @@ mixed-integer-float &lt;class 'str'&gt;
 empty &lt;class 'str'&gt;</code></pre>
 </div>
 </div>
-<p>This shows that <code>pandas.DataFrame.infer_objects</code> returns a readily usable python types as inference results but <code>pandas.api.types.infer_dtype</code> returns string values, that need to be further processed or mapped if we want to cast data types.</p>
+<p>This shows that <code>pandas.DataFrame.infer_objects</code> returns a readily usable python types as inference results but <code>pandas.api.types.infer_dtype</code> returns string values, that need to be further processed or mapped if we want to cast more granular data types to these mixed arrays.</p>
 </section>
 <section id="conclusions" class="level2">
 <h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
-<p>Pandas has two type inference methods: <code>pandas.DataFrame.infer_objects</code>, <code>pandas.api.types.infer_dtype</code>.</p>
-<p><code>pandas.DataFrame.infer_objects</code> is designed to return practical data types that can be easily cast on arrays, and thus its type inference tends to adopt a blanket approach where type inference should just work to handle the data immediately.</p>
-<p>On the other hand, <code>pandas.api.types.infer_dtype</code> does a more granular type inference job where it can also ignore na values. However, it returns string values as results, not python types, and thus we need a further process to use this information for type casting.</p>
+<p>Hardware verification datasets often do not have schema and the feature meanings cannot be understood without extremely specialized domain knowledge. The fact that the datasets often have mixed data type arrays makes it difficult for ML practitioners to understand the content of the datasets. Therefore, type inference becomes an important step in the data digestion stage.</p>
+<p>We can use pandas for type inference. But it has two methods: <code>pandas.DataFrame.infer_objects</code>, <code>pandas.api.types.infer_dtype</code>. The former (<code>pandas.DataFrame.infer_objects</code>) is designed to return practical python data types that can be easily cast on arrays. Thus its type inference tends to adopt a blanket approach where inferred type should work without any further steps to handle the data immediately.</p>
+<p>On the other hand, <code>pandas.api.types.infer_dtype</code> does a more granular type inference job where it can also ignore na values. However, it returns string values as a result, not python types. Therefore, we need a further process to use this information for type casting such as <code>"boolean" -&gt; bool</code>.</p>
 
 
 </section>
