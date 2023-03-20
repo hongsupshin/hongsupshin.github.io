@@ -10,7 +10,567 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.2.242</generator>
-<lastBuildDate>Thu, 02 Mar 2023 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 17 Mar 2023 05:00:00 GMT</lastBuildDate>
+<item>
+  <title>Interoperability testing for hyperparameter tuning: MLflow, LightGBM, sklearn, and dask-ml</title>
+  <link>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>There are numerous open source ML packages in python ecosystem. Developers do their best to maximize interoperability in relation to other main ML packages but it’s not possible to check every possible combination. That’s why I think some of the responsibility of interoperability lies on users. MLflow’s autologging method is quite handy because with a single line of code (<code>mlflow.autologging</code>), we obtain useful metrics of model behavior such as confusion matrix, feature importance, or training loss over epochs. However, this is not always guaranteed when we apply model tuning on top by using scikit-learn and dask.</p>
+<p>In this notebook, I first demonstrated what MLflow autologging method did particularly for LightGBM models. Then, I tried the same autologging in model tuning frameworks of scikit-learn and Dask-ML backend, and how the autologging method behaves. Check <code>environment.yml</code> to run the notebook.</p>
+<div class="cell" data-tags="[]" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;">import</span> numpy <span class="im" style="color: #00769E;">as</span> np</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;">import</span> lightgbm <span class="im" style="color: #00769E;">as</span> lgb</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="im" style="color: #00769E;">import</span> mlflow</span>
+<span id="cb1-5"><span class="im" style="color: #00769E;">from</span> mlflow.client <span class="im" style="color: #00769E;">import</span> MlflowClient</span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="im" style="color: #00769E;">from</span> sklearn <span class="im" style="color: #00769E;">import</span> datasets</span>
+<span id="cb1-8"><span class="im" style="color: #00769E;">from</span> sklearn.model_selection <span class="im" style="color: #00769E;">import</span> train_test_split, RandomizedSearchCV, PredefinedSplit</span>
+<span id="cb1-9"><span class="im" style="color: #00769E;">from</span> sklearn.pipeline <span class="im" style="color: #00769E;">import</span> Pipeline</span>
+<span id="cb1-10"><span class="im" style="color: #00769E;">from</span> sklearn.metrics <span class="im" style="color: #00769E;">import</span> log_loss, roc_auc_score</span>
+<span id="cb1-11"></span>
+<span id="cb1-12"><span class="im" style="color: #00769E;">from</span> dask_ml.model_selection <span class="im" style="color: #00769E;">import</span> RandomizedSearchCV <span class="im" style="color: #00769E;">as</span> dask_RandomizedSearchCV</span>
+<span id="cb1-13"><span class="im" style="color: #00769E;">from</span> distributed <span class="im" style="color: #00769E;">import</span> Client</span>
+<span id="cb1-14"></span>
+<span id="cb1-15">seed <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">97531</span></span>
+<span id="cb1-16"></span>
+<span id="cb1-17"><span class="op" style="color: #5E5E5E;">%</span>load_ext autoreload</span>
+<span id="cb1-18"><span class="op" style="color: #5E5E5E;">%</span>autoreload <span class="dv" style="color: #AD0000;">2</span></span>
+<span id="cb1-19"></span>
+<span id="cb1-20"><span class="op" style="color: #5E5E5E;">%</span>load_ext watermark</span>
+<span id="cb1-21"><span class="op" style="color: #5E5E5E;">%</span>watermark <span class="op" style="color: #5E5E5E;">-</span>d <span class="op" style="color: #5E5E5E;">-</span>t <span class="op" style="color: #5E5E5E;">-</span>u <span class="op" style="color: #5E5E5E;">-</span>v <span class="op" style="color: #5E5E5E;">-</span>g <span class="op" style="color: #5E5E5E;">-</span>r <span class="op" style="color: #5E5E5E;">-</span>b <span class="op" style="color: #5E5E5E;">-</span>iv <span class="op" style="color: #5E5E5E;">-</span>a <span class="st" style="color: #20794D;">"Hongsup Shin"</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Author: Hongsup Shin
+
+Last updated: 2023-03-19 23:00:45
+
+Python implementation: CPython
+Python version       : 3.9.16
+IPython version      : 8.10.0
+
+Git hash: 0eaf0c3c88c3e909b76c36af9b13fea1f04d7c08
+
+Git repo: https://github.com/hongsupshin/hongsupshin.github.io.git
+
+Git branch: 1-mlflow
+
+lightgbm: 3.3.2
+sklearn : 1.2.0
+numpy   : 1.24.0
+mlflow  : 2.1.1
+</code></pre>
+</div>
+</div>
+<center>
+<img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" width="600">
+</center>
+<section id="set-up" class="level2">
+<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
+<section id="mlflow" class="level3">
+<h3 class="anchored" data-anchor-id="mlflow">MLflow</h3>
+<p>MLflow comes with a tracking UI, which you can launch by running <code>mlflow ui</code>. By default, you can see the UI http://localhost:5000. Here, I assumed that you ran <code>mlflow ui</code> before the following cell where experiment location was defined.</p>
+<div class="cell" data-tags="[]" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">mlflow.set_tracking_uri(<span class="st" style="color: #20794D;">"http://127.0.0.1:5000"</span>)</span>
+<span id="cb3-2">mlflow.set_experiment(<span class="st" style="color: #20794D;">"mlflow_tune_demo"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>&lt;Experiment: artifact_location='mlflow-artifacts:/618881380489654419', creation_time=1679103932467, experiment_id='618881380489654419', last_update_time=1679103932467, lifecycle_stage='active', name='mlflow_tune_demo', tags={}&gt;</code></pre>
+</div>
+</div>
+<p><code>mlflow.autolog()</code> should be called before running training but this enables all supported libraries that are imported. Thus, specific autologging is recommened:</p>
+<div class="cell" data-tags="[]" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">mlflow.lightgbm.autolog()</span></code></pre></div>
+</div>
+</section>
+<section id="data-and-model" class="level3">
+<h3 class="anchored" data-anchor-id="data-and-model">Data and model</h3>
+<p>For this walkthrough, I used the breast cancer dataset from scikit-learn (<code>sklearn.datasets.load_breast_cancer()</code>), which is a binary classificaiton problem. For training, I split the dataset into train (50%), validation (25%) and test sets (25%). The validation set was used for model tuning.</p>
+<div class="cell" data-tags="[]" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">breast_cancer <span class="op" style="color: #5E5E5E;">=</span> datasets.load_breast_cancer()</span>
+<span id="cb6-2">X <span class="op" style="color: #5E5E5E;">=</span> breast_cancer.data</span>
+<span id="cb6-3">y <span class="op" style="color: #5E5E5E;">=</span> breast_cancer.target</span>
+<span id="cb6-4"></span>
+<span id="cb6-5">X_train_val, X_test, y_train_val, y_test <span class="op" style="color: #5E5E5E;">=</span> train_test_split(X, y, test_size<span class="op" style="color: #5E5E5E;">=</span><span class="fl" style="color: #AD0000;">0.25</span>, random_state<span class="op" style="color: #5E5E5E;">=</span>seed)</span>
+<span id="cb6-6">X_train, X_val, y_train, y_val <span class="op" style="color: #5E5E5E;">=</span> train_test_split(X_train_val, y_train_val, test_size<span class="op" style="color: #5E5E5E;">=</span><span class="fl" style="color: #AD0000;">0.33</span>, random_state<span class="op" style="color: #5E5E5E;">=</span>seed)</span>
+<span id="cb6-7"></span>
+<span id="cb6-8">train_set <span class="op" style="color: #5E5E5E;">=</span> lgb.Dataset(X_train, label<span class="op" style="color: #5E5E5E;">=</span>y_train)</span>
+<span id="cb6-9">valid_set <span class="op" style="color: #5E5E5E;">=</span> lgb.Dataset(X_val, label<span class="op" style="color: #5E5E5E;">=</span>y_val)</span></code></pre></div>
+</div>
+<p>Instead of <code>lightgbm.LGBMClassifier</code>, the scikit-learn API, we use the native LightGBM (<code>lightgbm.train</code>).</p>
+</section>
+</section>
+<section id="lightgbm-autologging-for-a-single-training-run-no-tuning" class="level2">
+<h2 class="anchored" data-anchor-id="lightgbm-autologging-for-a-single-training-run-no-tuning">LightGBM autologging for a single training run (no tuning)</h2>
+<p>To test the limits of autologging and make things more interesting, I set up the following: - Apply an early-stopping callback - Track two types of metrics: log-loss (<code>"binary_logloss"</code>) and AUROC (<code>"auc"</code>) - Track two types of datasets: training and validation - Log test metrics in addition to the autologged metrics using <code>mlflow.log_metrics</code></p>
+<p>and passed artbitrary hyperparameter values.</p>
+<div class="cell" data-tags="[]" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">params <span class="op" style="color: #5E5E5E;">=</span> {</span>
+<span id="cb7-2">    <span class="st" style="color: #20794D;">"objective"</span>: <span class="st" style="color: #20794D;">"binary"</span>,</span>
+<span id="cb7-3">    <span class="st" style="color: #20794D;">"metric"</span>: [<span class="st" style="color: #20794D;">"binary_logloss"</span>, <span class="st" style="color: #20794D;">"auc"</span>],</span>
+<span id="cb7-4">    <span class="st" style="color: #20794D;">"learning_rate"</span>: <span class="fl" style="color: #AD0000;">0.1</span>,</span>
+<span id="cb7-5">    <span class="st" style="color: #20794D;">"subsample"</span>: <span class="fl" style="color: #AD0000;">1.0</span>,</span>
+<span id="cb7-6">    <span class="st" style="color: #20794D;">"seed"</span>: seed,</span>
+<span id="cb7-7">    <span class="st" style="color: #20794D;">"num_iterations"</span>: <span class="dv" style="color: #AD0000;">10</span>,</span>
+<span id="cb7-8">    <span class="st" style="color: #20794D;">"early_stopping_round"</span>: <span class="dv" style="color: #AD0000;">5</span>,</span>
+<span id="cb7-9">    <span class="st" style="color: #20794D;">"first_metric_only"</span>: <span class="va" style="color: #111111;">True</span>,</span>
+<span id="cb7-10">    <span class="st" style="color: #20794D;">"force_col_wise"</span>:<span class="va" style="color: #111111;">True</span>,</span>
+<span id="cb7-11">    <span class="st" style="color: #20794D;">"verbosity"</span>: <span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,    </span>
+<span id="cb7-12">}</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="cf" style="color: #003B4F;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"lgb_single"</span>) <span class="im" style="color: #00769E;">as</span> run:</span>
+<span id="cb8-2">    </span>
+<span id="cb8-3">    model <span class="op" style="color: #5E5E5E;">=</span> lgb.train(</span>
+<span id="cb8-4">        params<span class="op" style="color: #5E5E5E;">=</span>params,</span>
+<span id="cb8-5">        train_set<span class="op" style="color: #5E5E5E;">=</span>train_set,</span>
+<span id="cb8-6">        callbacks<span class="op" style="color: #5E5E5E;">=</span>[lgb.early_stopping(stopping_rounds<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">5</span>), lgb.log_evaluation()],</span>
+<span id="cb8-7">        valid_sets<span class="op" style="color: #5E5E5E;">=</span>[train_set, valid_set],</span>
+<span id="cb8-8">        valid_names<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"train"</span>, <span class="st" style="color: #20794D;">"val"</span>],</span>
+<span id="cb8-9">    )</span>
+<span id="cb8-10">    </span>
+<span id="cb8-11">    y_pred_proba <span class="op" style="color: #5E5E5E;">=</span> model.predict(X_test)</span>
+<span id="cb8-12">    loss <span class="op" style="color: #5E5E5E;">=</span> log_loss(y_test, y_pred_proba)</span>
+<span id="cb8-13">    roc_auc <span class="op" style="color: #5E5E5E;">=</span> roc_auc_score(y_test, y_pred_proba)</span>
+<span id="cb8-14">    </span>
+<span id="cb8-15">    mlflow.log_metrics(</span>
+<span id="cb8-16">        {</span>
+<span id="cb8-17">            <span class="st" style="color: #20794D;">"test-logloss"</span>:loss,</span>
+<span id="cb8-18">            <span class="st" style="color: #20794D;">"test-auc"</span>: roc_auc,</span>
+<span id="cb8-19">        }</span>
+<span id="cb8-20">    )</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/opt/anaconda3/envs/mlflow_tune/lib/python3.9/site-packages/lightgbm/engine.py:177: UserWarning: Found `num_iterations` in params. Will use it instead of argument
+  _log_warning(f"Found `{alias}` in params. Will use it instead of argument")</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] train's binary_logloss: 0.587637    train's auc: 0.986343   val's binary_logloss: 0.577365  val's auc: 0.942092
+Training until validation scores don't improve for 5 rounds
+[2] train's binary_logloss: 0.525352    train's auc: 0.989106   val's binary_logloss: 0.52163   val's auc: 0.963598
+[3] train's binary_logloss: 0.473652    train's auc: 0.990591   val's binary_logloss: 0.47546   val's auc: 0.978383
+[4] train's binary_logloss: 0.427402    train's auc: 0.992129   val's binary_logloss: 0.428912  val's auc: 0.983647
+[5] train's binary_logloss: 0.388029    train's auc: 0.994553   val's binary_logloss: 0.392357  val's auc: 0.985551
+[6] train's binary_logloss: 0.355106    train's auc: 0.995543   val's binary_logloss: 0.361549  val's auc: 0.986335
+[7] train's binary_logloss: 0.323011    train's auc: 0.996247   val's binary_logloss: 0.330934  val's auc: 0.990031
+[8] train's binary_logloss: 0.297144    train's auc: 0.996247   val's binary_logloss: 0.309573  val's auc: 0.990255
+[9] train's binary_logloss: 0.272297    train's auc: 0.996508   val's binary_logloss: 0.286207  val's auc: 0.990927
+[10]    train's binary_logloss: 0.250728    train's auc: 0.996455   val's binary_logloss: 0.265777  val's auc: 0.991823
+Did not meet early stopping. Best iteration is:
+[10]    train's binary_logloss: 0.250728    train's auc: 0.996455   val's binary_logloss: 0.265777  val's auc: 0.991823</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023/03/19 23:00:57 WARNING mlflow.utils.autologging_utils: MLflow autologging encountered a warning: "/opt/anaconda3/envs/mlflow_tune/lib/python3.9/site-packages/_distutils_hack/__init__.py:33: UserWarning: Setuptools is replacing distutils."</code></pre>
+</div>
+</div>
+<p>When training was done, the UI showed the autologged metrics such as feature importance scores and plots:</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/lightgbm_autologging.png" class="img-fluid"></p>
+<p>The UI also shoed other metrics I defined when setting up the training. This information is under “Metrics” section in the run. When I selected <code>train-binary_logloss</code>, it showed a log-loss vs.&nbsp;iteration curve. I could overlay <code>val-binary_logloss</code> on top of it, which would be useful to identify model overfitting.</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/train-val-binary_logloss.png" class="img-fluid"></p>
+<p>I could fetch all logged metrics via <code>mlflow.client.MlflowClient</code>.</p>
+<div class="cell" data-tags="[]" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">mlflow_client <span class="op" style="color: #5E5E5E;">=</span> MlflowClient()</span>
+<span id="cb12-2">run_id <span class="op" style="color: #5E5E5E;">=</span> run.info.run_id</span>
+<span id="cb12-3">mlflow_run <span class="op" style="color: #5E5E5E;">=</span> mlflow_client.get_run(run_id)</span>
+<span id="cb12-4"><span class="bu" style="color: null;">print</span>(mlflow_run.data.metrics)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>{'train-auc': 0.9964553794829024, 'train-binary_logloss': 0.2507277280941103, 'val-binary_logloss': 0.2657767821072834, 'test-auc': 0.9735537190082645, 'stopped_iteration': 10.0, 'val-auc': 0.9918234767025089, 'best_iteration': 10.0, 'test-logloss': 0.30723647532041254}</code></pre>
+</div>
+</div>
+<p>This confirms that with <code>mlflow.lightgbm.autolog</code>, the following metrics were logged in the UI: - Optimization loss over iterations - Metrics from train and validation datasets - Feature importance scores and plots - Additional metrics logged by <code>mlflow.log_metrics</code></p>
+</section>
+<section id="hyperparameter-tuning-and-mlflow-autologging" class="level2">
+<h2 class="anchored" data-anchor-id="hyperparameter-tuning-and-mlflow-autologging">Hyperparameter tuning and MLflow autologging</h2>
+<p>After some testing, I learned that the autologging behavior changed depending on tuner and autologging types. I tested scikit-learn and LightGBM autologging, and scikit-learn and Dask-ML tuners. This resulted in the following four combinations to test:</p>
+<table class="table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Test #</th>
+<th>LightGBM autologging</th>
+<th>scikit-learn autologging</th>
+<th>Tuner backend</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>No</td>
+<td>Yes</td>
+<td>scikit-learn</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>No</td>
+<td>Yes</td>
+<td>dask-ml</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>scikit-learn</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>dask-ml</td>
+</tr>
+</tbody>
+</table>
+<section id="test-1.-sklearn-autolog-and-sklearn-tuner" class="level3">
+<h3 class="anchored" data-anchor-id="test-1.-sklearn-autolog-and-sklearn-tuner">Test 1. sklearn autolog and sklearn tuner</h3>
+<p>To reduce the interaction btw <code>mlflow.lightgbm.autolog</code> and <code>mlflow.sklearn.autolog</code>, I turned the former first.</p>
+<div class="cell" data-tags="[]" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1">mlflow.lightgbm.autolog(disable<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>)</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">mlflow.sklearn.autolog(max_tuning_runs<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">None</span>) <span class="co" style="color: #5E5E5E;"># log all runs</span></span></code></pre></div>
+</div>
+<p>Here, I also used <code>PredefinedSplit</code> instead of k-fold to match the datasets for a hyperparameter search and evaluation parameters in LightGBM.</p>
+<div class="cell" data-tags="[]" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1">X_train_val, X_test, y_train_val, y_test <span class="op" style="color: #5E5E5E;">=</span> train_test_split(X, y, random_state<span class="op" style="color: #5E5E5E;">=</span>seed)</span>
+<span id="cb16-2"></span>
+<span id="cb16-3">n_val_size <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">100</span></span>
+<span id="cb16-4">n_train_size <span class="op" style="color: #5E5E5E;">=</span> X_train_val.shape[<span class="dv" style="color: #AD0000;">0</span>] <span class="op" style="color: #5E5E5E;">-</span> n_val_size</span>
+<span id="cb16-5">ps <span class="op" style="color: #5E5E5E;">=</span> PredefinedSplit(test_fold<span class="op" style="color: #5E5E5E;">=</span>[<span class="dv" style="color: #AD0000;">0</span>]<span class="op" style="color: #5E5E5E;">*</span>n_val_size <span class="op" style="color: #5E5E5E;">+</span> [<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>]<span class="op" style="color: #5E5E5E;">*</span>n_train_size)</span>
+<span id="cb16-6"></span>
+<span id="cb16-7"><span class="cf" style="color: #003B4F;">for</span> train_index, val_index <span class="kw" style="color: #003B4F;">in</span> ps.split():</span>
+<span id="cb16-8">    X_train <span class="op" style="color: #5E5E5E;">=</span> X_train_val[train_index, :]</span>
+<span id="cb16-9">    X_val <span class="op" style="color: #5E5E5E;">=</span> X_train_val[val_index, :]</span>
+<span id="cb16-10">    y_train <span class="op" style="color: #5E5E5E;">=</span> y_train_val[train_index]</span>
+<span id="cb16-11">    y_val <span class="op" style="color: #5E5E5E;">=</span> y_train_val[val_index]</span></code></pre></div>
+</div>
+<p>Additionally, to be consistent with the autologging and tuner types, I used the scikit-learn API version of LightGBM (<code>LGBMClassifier</code>). For this tuning example, I chose <code>learning_rate</code> and <code>subsample</code> hyperparameters.</p>
+<div class="cell" data-tags="[]" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1">n_search <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">3</span></span>
+<span id="cb17-2"></span>
+<span id="cb17-3"><span class="cf" style="color: #003B4F;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"test_1"</span>) <span class="im" style="color: #00769E;">as</span> run:</span>
+<span id="cb17-4">    </span>
+<span id="cb17-5">    clf <span class="op" style="color: #5E5E5E;">=</span> lgb.LGBMClassifier(</span>
+<span id="cb17-6">        objective<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"binary"</span>,</span>
+<span id="cb17-7">        metric<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"binary_logloss"</span>,</span>
+<span id="cb17-8">        seed<span class="op" style="color: #5E5E5E;">=</span>seed,</span>
+<span id="cb17-9">        class_weight<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"balanced"</span>,</span>
+<span id="cb17-10">        n_estimators<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">10</span>,</span>
+<span id="cb17-11">    )</span>
+<span id="cb17-12">    </span>
+<span id="cb17-13">    pipe <span class="op" style="color: #5E5E5E;">=</span> Pipeline([(<span class="st" style="color: #20794D;">"clf"</span>, clf)])</span>
+<span id="cb17-14">    param_space <span class="op" style="color: #5E5E5E;">=</span> {</span>
+<span id="cb17-15">        <span class="st" style="color: #20794D;">"clf__learning_rate"</span>: np.linspace(<span class="fl" style="color: #AD0000;">0.05</span>, <span class="fl" style="color: #AD0000;">0.1</span>, <span class="dv" style="color: #AD0000;">10</span>),</span>
+<span id="cb17-16">        <span class="st" style="color: #20794D;">"clf__subsample"</span>: np.linspace(<span class="fl" style="color: #AD0000;">0.1</span>, <span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">10</span>),</span>
+<span id="cb17-17">    }</span>
+<span id="cb17-18">    </span>
+<span id="cb17-19">    search_cv <span class="op" style="color: #5E5E5E;">=</span> RandomizedSearchCV(pipe, param_space, cv<span class="op" style="color: #5E5E5E;">=</span>ps, n_iter<span class="op" style="color: #5E5E5E;">=</span>n_search)</span>
+<span id="cb17-20">    search_cv.fit(</span>
+<span id="cb17-21">        X_train_val,</span>
+<span id="cb17-22">        y_train_val,</span>
+<span id="cb17-23">        clf__eval_set<span class="op" style="color: #5E5E5E;">=</span>[(X_val, y_val)],</span>
+<span id="cb17-24">        clf__eval_names<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">'val'</span>],</span>
+<span id="cb17-25">        clf__eval_metric<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">'binary_logloss'</span>],</span>
+<span id="cb17-26">    )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] val's binary_logloss: 0.624749
+[2] val's binary_logloss: 0.568357
+[3] val's binary_logloss: 0.520761
+[4] val's binary_logloss: 0.480421
+[5] val's binary_logloss: 0.442099
+[6] val's binary_logloss: 0.410214
+[7] val's binary_logloss: 0.382292
+[8] val's binary_logloss: 0.357785
+[9] val's binary_logloss: 0.335433
+[10]    val's binary_logloss: 0.31392
+[1] val's binary_logloss: 0.637054
+[2] val's binary_logloss: 0.589451
+[3] val's binary_logloss: 0.547508
+[4] val's binary_logloss: 0.511241
+[5] val's binary_logloss: 0.478765
+[6] val's binary_logloss: 0.448812
+[7] val's binary_logloss: 0.423736
+[8] val's binary_logloss: 0.398193
+[9] val's binary_logloss: 0.377066
+[10]    val's binary_logloss: 0.356542
+[1] val's binary_logloss: 0.653833
+[2] val's binary_logloss: 0.618878
+[3] val's binary_logloss: 0.586995
+[4] val's binary_logloss: 0.558061
+[5] val's binary_logloss: 0.531579
+[6] val's binary_logloss: 0.507355
+[7] val's binary_logloss: 0.485109
+[8] val's binary_logloss: 0.463636
+[9] val's binary_logloss: 0.444977
+[10]    val's binary_logloss: 0.427695
+[1] val's binary_logloss: 0.620853
+[2] val's binary_logloss: 0.56225
+[3] val's binary_logloss: 0.512275
+[4] val's binary_logloss: 0.464753
+[5] val's binary_logloss: 0.426894
+[6] val's binary_logloss: 0.390463
+[7] val's binary_logloss: 0.358157
+[8] val's binary_logloss: 0.330555
+[9] val's binary_logloss: 0.305165
+[10]    val's binary_logloss: 0.282671</code></pre>
+</div>
+</div>
+<p>The UI showed that 1 parent run and <code>n_search</code> (3) child runs were created, where the parent run had the autologged metrics such as confusion matrix, ROC curve, and PR curve:</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/test1.png" class="img-fluid"></p>
+<p><code>cv_results</code> was also returned and the logged metrics from all child runs were similar to <code>cv_results</code>.</p>
+</section>
+<section id="test-2.-sklearn-autolog-and-dask-ml-tuner" class="level3">
+<h3 class="anchored" data-anchor-id="test-2.-sklearn-autolog-and-dask-ml-tuner">Test 2. sklearn autolog and dask-ml tuner</h3>
+<div class="cell" data-tags="[]" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1">client <span class="op" style="color: #5E5E5E;">=</span> Client(processes<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>, threads_per_worker<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">4</span>, n_workers<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>)</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><span class="cf" style="color: #003B4F;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"test_2"</span>) <span class="im" style="color: #00769E;">as</span> run:</span>
+<span id="cb20-2">    </span>
+<span id="cb20-3">    search_cv <span class="op" style="color: #5E5E5E;">=</span> dask_RandomizedSearchCV(pipe, param_space, cv<span class="op" style="color: #5E5E5E;">=</span>ps, n_iter<span class="op" style="color: #5E5E5E;">=</span>n_search)</span>
+<span id="cb20-4">    search_cv.fit(</span>
+<span id="cb20-5">        X_train_val,</span>
+<span id="cb20-6">        y_train_val,</span>
+<span id="cb20-7">        clf__eval_set<span class="op" style="color: #5E5E5E;">=</span>[(X_val, y_val)],</span>
+<span id="cb20-8">        clf__eval_names<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"val"</span>],</span>
+<span id="cb20-9">        clf__eval_metric<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"binary_logloss"</span>],</span>
+<span id="cb20-10">    )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] val's binary_logloss: 0.6207[1] val's binary_logloss: 0.6207
+[1] val's binary_logloss: 0.64539
+
+[2] val's binary_logloss: 0.603905
+[2] val's binary_logloss: 0.561648
+[2] val's binary_logloss: 0.561648
+[3] val's binary_logloss: 0.566663
+[3] val's binary_logloss: 0.51229
+[3] val's binary_logloss: 0.51229
+[4] val's binary_logloss: 0.533792
+[4] val's binary_logloss: 0.470843
+[4] val's binary_logloss: 0.470843
+[5] val's binary_logloss: 0.504106
+[5] val's binary_logloss: 0.43163
+[5] val's binary_logloss: 0.43163
+[6] val's binary_logloss: 0.476199
+[6] val's binary_logloss: 0.399279
+[6] val's binary_logloss: 0.399279
+[7] val's binary_logloss: 0.452345
+[7] val's binary_logloss: 0.371128
+[7] val's binary_logloss: 0.371128
+[8] val's binary_logloss: 0.430183
+[8] val's binary_logloss: 0.345312
+[8] val's binary_logloss: 0.345312
+[9] val's binary_logloss: 0.409486
+[9] val's binary_logloss: 0.323905
+[9] val's binary_logloss: 0.323905
+[10]    val's binary_logloss: 0.388993
+[10]    val's binary_logloss: 0.303382
+[10]    val's binary_logloss: 0.303382
+[1] val's binary_logloss: 0.642694
+[2] val's binary_logloss: 0.599408
+[3] val's binary_logloss: 0.5599
+[4] val's binary_logloss: 0.525228
+[5] val's binary_logloss: 0.490788
+[6] val's binary_logloss: 0.461964
+[7] val's binary_logloss: 0.433798
+[8] val's binary_logloss: 0.409936
+[9] val's binary_logloss: 0.385757
+[10]    val's binary_logloss: 0.365051</code></pre>
+</div>
+</div>
+<p><code>mlflow.sklearn.autolog</code> still created confusion matrix, ROC curve, and PR curve but <strong>only a single run is returned,</strong> and all child runs are now missing. Besides, the UI also didn’t log <code>cv_results</code>.</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/test2.png" width="400"></p>
+<section id="is-the-only-logged-run-the-best-run" class="level4">
+<h4 class="anchored" data-anchor-id="is-the-only-logged-run-the-best-run">Is the only logged run the best run?</h4>
+<p>Here was where the behavior of <code>mlflow.sklearn.autolog</code> changed. It was supposed to return a single parent run and multiple child runs but when <code>dask-ml</code> was used as tuner, it only logged a single run. I didn’t know whether thi was the best run or not, so I decided to compare the MLflow logged result with the actual search result.</p>
+<div class="cell" data-tags="[]" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1">mlflow_run <span class="op" style="color: #5E5E5E;">=</span> mlflow_client.get_run(run.info.run_id)</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><span class="cf" style="color: #003B4F;">assert</span> <span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__learning_rate'</span>]) <span class="op" style="color: #5E5E5E;">==</span> <span class="op" style="color: #5E5E5E;">\</span></span>
+<span id="cb23-2">mlflow_run.data.params[<span class="st" style="color: #20794D;">'clf__learning_rate'</span>]</span>
+<span id="cb23-3"><span class="cf" style="color: #003B4F;">assert</span> <span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__subsample'</span>]) <span class="op" style="color: #5E5E5E;">==</span> <span class="op" style="color: #5E5E5E;">\</span></span>
+<span id="cb23-4">mlflow_run.data.params[<span class="st" style="color: #20794D;">'clf__subsample'</span>]</span></code></pre></div>
+</div>
+<p>Luckily, the assertions have passed, meaning that the single recorded run by MLflow was the best run. Except that users can’t see the child runs in the UI, this behavior seems acceptable.</p>
+</section>
+</section>
+<section id="test-3.-lightgbmsklearn-autolog-and-sklearn-tuner" class="level3">
+<h3 class="anchored" data-anchor-id="test-3.-lightgbmsklearn-autolog-and-sklearn-tuner">Test 3. lightgbm+sklearn autolog and sklearn tuner</h3>
+<p>This test idea came to my mind becasue I imagined it would be very convenient if one could use autologging on top of a sklearn tuner. Thus, I decided to turn on lightgbm autologging in addition to the sklearn autologging.</p>
+<div class="cell" data-tags="[]" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1">mlflow.lightgbm.autolog()</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><span class="cf" style="color: #003B4F;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'test_3'</span>) <span class="im" style="color: #00769E;">as</span> run:</span>
+<span id="cb25-2">    </span>
+<span id="cb25-3">    search_cv <span class="op" style="color: #5E5E5E;">=</span> RandomizedSearchCV(pipe, param_space, cv<span class="op" style="color: #5E5E5E;">=</span>ps, n_iter<span class="op" style="color: #5E5E5E;">=</span>n_search)</span>
+<span id="cb25-4">    search_cv.fit(</span>
+<span id="cb25-5">        X_train_val,</span>
+<span id="cb25-6">        y_train_val,</span>
+<span id="cb25-7">        clf__eval_set<span class="op" style="color: #5E5E5E;">=</span>[(X_val, y_val)],</span>
+<span id="cb25-8">        clf__eval_names<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"val"</span>],</span>
+<span id="cb25-9">        clf__eval_metric<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"binary_logloss"</span>],</span>
+<span id="cb25-10">    )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] val's binary_logloss: 0.64539
+[2] val's binary_logloss: 0.603905
+[3] val's binary_logloss: 0.566663
+[4] val's binary_logloss: 0.533792
+[5] val's binary_logloss: 0.504106
+[6] val's binary_logloss: 0.476199
+[7] val's binary_logloss: 0.452345
+[8] val's binary_logloss: 0.430183
+[9] val's binary_logloss: 0.409486
+[10]    val's binary_logloss: 0.388993
+[1] val's binary_logloss: 0.6207
+[2] val's binary_logloss: 0.561648
+[3] val's binary_logloss: 0.51229
+[4] val's binary_logloss: 0.470843
+[5] val's binary_logloss: 0.43163
+[6] val's binary_logloss: 0.399279
+[7] val's binary_logloss: 0.371128
+[8] val's binary_logloss: 0.345312
+[9] val's binary_logloss: 0.323905
+[10]    val's binary_logloss: 0.303382
+[1] val's binary_logloss: 0.632926
+[2] val's binary_logloss: 0.582412
+[3] val's binary_logloss: 0.538314
+[4] val's binary_logloss: 0.500565
+[5] val's binary_logloss: 0.467006
+[6] val's binary_logloss: 0.436234
+[7] val's binary_logloss: 0.410759
+[8] val's binary_logloss: 0.384813
+[9] val's binary_logloss: 0.361938
+[10]    val's binary_logloss: 0.342656
+[1] val's binary_logloss: 0.642694
+[2] val's binary_logloss: 0.599408
+[3] val's binary_logloss: 0.5599
+[4] val's binary_logloss: 0.525228
+[5] val's binary_logloss: 0.490788
+[6] val's binary_logloss: 0.461964
+[7] val's binary_logloss: 0.433798
+[8] val's binary_logloss: 0.409936
+[9] val's binary_logloss: 0.385757
+[10]    val's binary_logloss: 0.365051</code></pre>
+</div>
+</div>
+<p>This time, I found that sklearn autologging behaved normally but lightgbm autologging didn’t work at all. First, lightgbm autologging metrics such as feature importance scores were missing:</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/test3.png" width="400"></p>
+<p>Second, <code>training-log_loss</code> wasn’t logged for every iteration but it was logged as a single numeric value, and thus was visualized as a bar graph:</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/test3_1.png" class="img-fluid"></p>
+</section>
+<section id="test-4.-lightgbmsklearn-autolog-and-dask-ml-tuner" class="level3">
+<h3 class="anchored" data-anchor-id="test-4.-lightgbmsklearn-autolog-and-dask-ml-tuner">Test 4. lightgbm+sklearn autolog and dask-ml tuner</h3>
+<p>Finally, I used the dask-ml tuner, lightgbm and sklearn autologging altogether.</p>
+<div class="cell" data-tags="[]" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><span class="cf" style="color: #003B4F;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'test_4'</span>) <span class="im" style="color: #00769E;">as</span> run:</span>
+<span id="cb27-2">    </span>
+<span id="cb27-3">    search_cv <span class="op" style="color: #5E5E5E;">=</span> dask_RandomizedSearchCV(pipe, param_space, cv<span class="op" style="color: #5E5E5E;">=</span>ps, n_iter<span class="op" style="color: #5E5E5E;">=</span>n_search)</span>
+<span id="cb27-4">    search_cv.fit(</span>
+<span id="cb27-5">        X_train_val,</span>
+<span id="cb27-6">        y_train_val,</span>
+<span id="cb27-7">        clf__eval_set<span class="op" style="color: #5E5E5E;">=</span>[(X_val, y_val)],</span>
+<span id="cb27-8">        clf__eval_names<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"val"</span>],</span>
+<span id="cb27-9">        clf__eval_metric<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"binary_logloss"</span>],</span>
+<span id="cb27-10">    )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] val's binary_logloss: 0.632926[1]   val's binary_logloss: 0.653833
+
+[1] val's binary_logloss: 0.632926
+[2] val's binary_logloss: 0.582412
+[2] val's binary_logloss: 0.618878
+[2] val's binary_logloss: 0.582412
+[3] val's binary_logloss: 0.586995
+[3] val's binary_logloss: 0.538314
+[3] val's binary_logloss: 0.538314
+[4] val's binary_logloss: 0.558061
+[4] val's binary_logloss: 0.500565
+[4] val's binary_logloss: 0.500565
+[5] val's binary_logloss: 0.531579
+[5] val's binary_logloss: 0.467006
+[5] val's binary_logloss: 0.467006
+[6] val's binary_logloss: 0.507355
+[6] val's binary_logloss: 0.436234
+[6] val's binary_logloss: 0.436234
+[7] val's binary_logloss: 0.485109
+[7] val's binary_logloss: 0.410759
+[7] val's binary_logloss: 0.410759
+[8] val's binary_logloss: 0.463636
+[8] val's binary_logloss: 0.384813
+[8] val's binary_logloss: 0.384813
+[9] val's binary_logloss: 0.444977
+[9] val's binary_logloss: 0.361938
+[9] val's binary_logloss: 0.361938
+[10]    val's binary_logloss: 0.427695
+[10]    val's binary_logloss: 0.342656
+[10]    val's binary_logloss: 0.342656
+[1] val's binary_logloss: 0.651621
+[2] val's binary_logloss: 0.615177
+[3] val's binary_logloss: 0.581242
+[4] val's binary_logloss: 0.550942
+[5] val's binary_logloss: 0.522853
+[6] val's binary_logloss: 0.494685
+[7] val's binary_logloss: 0.470868
+[8] val's binary_logloss: 0.447008
+[9] val's binary_logloss: 0.42506
+[10]    val's binary_logloss: 0.406164</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023/03/19 23:02:26 WARNING mlflow.utils.autologging_utils: Encountered unexpected error during sklearn autologging: The following failures occurred while performing one or more logging operations: [MlflowException('Failed to perform one or more operations on the run with ID 4f0ea51beb0748139aa4364c5d332279. Failed operations: [MlflowException("API request to http://127.0.0.1:5000/api/2.0/mlflow/runs/log-batch failed with exception HTTPConnectionPool(host=\'127.0.0.1\', port=5000): Max retries exceeded with url: /api/2.0/mlflow/runs/log-batch (Caused by ResponseError(\'too many 500 error responses\'))")]')]</code></pre>
+</div>
+</div>
+<p>This time, similar to Test 2, a single run was returned but it seemed that lightgbm autologging actually worked because the UI generated images from both sklearn and lightgbm autologging methods:</p>
+<p><img src="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/test4.png" width="400"></p>
+<p>However, only single run was returned, again like in Test 2. Unfortunately, this time, this single run didn’t pass the assertion test.</p>
+<div class="cell" data-tags="[]" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1">mlflow_run <span class="op" style="color: #5E5E5E;">=</span> mlflow_client.get_run(run.info.run_id)</span></code></pre></div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><span class="cf" style="color: #003B4F;">assert</span> <span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__learning_rate'</span>]) <span class="op" style="color: #5E5E5E;">==</span> <span class="op" style="color: #5E5E5E;">\</span></span>
+<span id="cb31-2">mlflow_run.data.params[<span class="st" style="color: #20794D;">'learning_rate'</span>]</span>
+<span id="cb31-3"><span class="cf" style="color: #003B4F;">assert</span> <span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__subsample'</span>]) <span class="op" style="color: #5E5E5E;">==</span> <span class="op" style="color: #5E5E5E;">\</span></span>
+<span id="cb31-4">mlflow_run.data.params[<span class="st" style="color: #20794D;">'subsample'</span>]</span></code></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>AssertionError: </code></pre>
+</div>
+</div>
+<div class="cell" data-tags="[]" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><span class="bu" style="color: null;">print</span>(<span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__learning_rate'</span>]),</span>
+<span id="cb33-2">      mlflow_run.data.params[<span class="st" style="color: #20794D;">'learning_rate'</span>])</span>
+<span id="cb33-3"><span class="bu" style="color: null;">print</span>(<span class="bu" style="color: null;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;">'clf__subsample'</span>]),</span>
+<span id="cb33-4">      mlflow_run.data.params[<span class="st" style="color: #20794D;">'subsample'</span>])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.05 0.07777777777777778
+0.5 0.7000000000000001</code></pre>
+</div>
+</div>
+<p>This means that when dask-ml, sklearn autolog, and lightgbm autologgin are used at once, we cannot trust the MLflow tracking UI becasue the single set of represented hyperparameters in the UI are not the best estimator’s hyperparameters. This means this combination gives unreliable results, which we should avoid at all costs.</p>
+<div class="cell" data-tags="[]" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1">client.close()</span></code></pre></div>
+</div>
+</section>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>In this notebook, I demonstrated how different combinations of autologging and tuners could produce different results. Some of these changed behaviors were simple omissions but I found a more troubling combination as well where the results were just simply wrong. This suggests that when it comes to testing interoperability, we should not only check whether they work together but also whether the returned results are accurate.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>MLOps</category>
+  <category>MLflow</category>
+  <category>Interoperability</category>
+  <guid>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</guid>
+  <pubDate>Fri, 17 Mar 2023 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" medium="image" type="image/png" height="109" width="144"/>
+</item>
 <item>
   <title>Comparing type inference methods for mixed data arrays</title>
   <link>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</link>
