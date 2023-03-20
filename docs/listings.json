@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html",
       "/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html",
       "/posts/2021-05-25-ds-volunteering-part2/index.html",
       "/posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html",
