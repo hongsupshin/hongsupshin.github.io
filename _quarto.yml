@@ -12,8 +12,6 @@ website:
         file: publications.qmd
       - icon: github
         href: https://github.com/hongsupshin
-      - icon: twitter
-        href: https://twitter.com/hongsupshin
       - icon: linkedin
         href: https://www.linkedin.com/in/hongsupshin/
   site-url: "https://hongsupshin.github.io/"
