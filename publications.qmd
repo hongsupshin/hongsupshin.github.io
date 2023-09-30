@@ -2,8 +2,15 @@
 title: Publications and Talks
 ---
 
+## 2023
+- [Visualization in Bayesian workflow](https://austinmljournalclub.github.io/posts/20230329/) (paper presentation). Austin ML Journal Club.
+- [Data-centric ML pipeline for data drift and data preprocessing](https://zenodo.org/record/8136049). The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).
+- [Constitutional AI: Harmlessness from AI Feedback](https://austinmljournalclub.github.io/posts/20230831/) (paper presentation). Austin ML Journal Club.
+
 ## 2022
 - [Data-Centric Machine Learning Pipeline for Hardware Verification](https://ieeexplore.ieee.org/document/9908095/). The 35th IEEE International System-on-Chip.
+- [“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI](https://austinmljournalclub.github.io/posts/20221027/) (paper presentation). Austin ML Journal Club.
+- [Zero-Shot Text-to-Image Generation](https://austinmljournalclub.github.io/posts/20221215/) (paper presentation). Austin ML Journal Club.
 
 ## 2021
 - [Data science volunteering for criminal justice](https://www.youtube.com/watch?v=gfqKaplRTsk&ab_channel=AustinPythonMeetup). Austin Python Meetup.
