@@ -1,0 +1,58 @@
+---
+title: "Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)"
+date: "2023-10-04"
+description: I started taking "Ethics, Technology + Public Policy for Practitioners", a Stanford online course. In Week 1, we read Ursula K. Le Guin's "The Ones Who Walk Away from Omelas", and discussed moral complicity. This post is my reflection on the story, the cohort, and my thoughts on moral complicity and moral disengagement.
+image: https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg
+categories: 
+    - ethics
+---
+
+## The course: [Ethics, Technology + Public Policy for Practitioners](https://online.stanford.edu/courses/soe-xetech0001-ethics-technology-public-policy-practitioners)
+It's been several years since I got interested in AI ethics. I have been to conferences and workshops about the topic but it wasn't easy to find a course with a well-structured curriculum. It's probably because AI ethics covers so many different disciplines: social/political science, ethics and philosophy, and computer science. And of course, the policy aspect requires real-world knowledge from public sector, which is hard to find in academia anyway.
+
+A few months ago, I learned about [Ethics, Technology + Public Policy for Practitioners](https://online.stanford.edu/courses/soe-xetech0001-ethics-technology-public-policy-practitioners) from 
+[Geneviève](https://www.linkedin.com/in/smithgk/XQ%3D%3D), an Insight Data Science fellow whom I met at the Grace Hopper conference before the pandemic. I've been following [Stanford HAI](https://hai.stanford.edu/) already and I was aware of their endeavor for human-centered AI and AI ethics, so in a way, this course made sense. At a glance, its outline seemed to be quite comprehensive because it covered various topics such as fairness, algorithmic bias, and generative AI. I also liked that it invited many guest speakers from academia, industry, and public sectors. Luckily, my application got accepted and I was able to join the course this fall.
+
+Each week, we get reading assignments for the coming week's discussion. For Week 1, we got to read the famous sci-fi and fantasy writer, Ursula K. Le Guin's [The Ones Who Walk Away from Omelas](https://shsdavisapes.pbworks.com/f/Omelas.pdf). As an optional reading, [Selective Moral Disengagement in the Exercise of Moral Agency](https://drive.google.com/file/d/1VvicB1c1MMZpkq2CcYfkxSqqFuGGN_jO/view) by [Albert Bandura](https://en.wikipedia.org/wiki/Albert_Bandura) was assigned although we didn't discuss the paper during the lecture.
+
+## The Ones Who Walk Away from Omelas
+The story is about a place called Omelas, described as a utopian place. The author later reveals that there is a poor child locked up in a dungeon in Omelas, and this child's poor condition is what makes Omelas a utopia. Interestingly, all people in Omelas are aware of this. But they just accept this fact and enjoy their life. At the end of the story, we find that sometimes some folks decide to walk away from Omelas to settle somewhere else.
+
+In the course, the discussion was moderated by [Rob Reich](https://robreich.stanford.edu/), a philosopher and a political science professor at Stanford (he is also one of the main faculty of this course). He asked the cohort several questions about the story.
+
+### Heroes or cowards? What would you do?
+We were first asked about those who left Omelas: are they heroes or cowards? The majority of the cohort said they were neither, which was also my answer. They were definitely not heroes because they didn't do anything to improve the condition of the victim (the child) but simply walked away. But I also didn't think that they were cowards because in a way, their decision of not wanting to be a part of Omelas, which included walking away from the comfortable life, should be weighed in.
+
+As a follow up, we were now asked what *we* would do in this situation. This change of viewpoint already made me uncomfortable (later, we learned that this feeling can be called *moral caffeination*). I decided to poke a hole of the concept of utopia and thought a non-utopia would not mean a hellish place, meaning the cost of rescuing the child would be tolerable, which all have to think about. And if the people of Omelas share the cost together, it would be acceptable. Thus, I would first raise this question to other like-minded folks to investigate the situation and find a solution. (This definitely shows my researcher background!)
+
+Some cohort members shared their thoughts. It was only a handful but I was surprised to know that some seemed to have a very strong conviction of righteousness by confidently saying that they would rescue the child for sure. Prof. Reich challenged their answers by asking them what gives them the moral superiority, how they think about this unilateral decision-making and the cost other people in Omelas would pay due to their actions. I don't think I heard a satisfying answer but that's probably because these are all very tough questions that we have to wrestle with.
+
+### Adulthood and complicity
+Prof. Reich provided more explanations. He said, those who walk away may often have desire of keeping their hands very clean, which could be seen as a bit delusional because their walking away doesn't make that the injustice just disappears. He said, the more important thing we need to think about is how we sit with *complicity* if we realize that we are complicit and in this together.
+
+Regarding this, several cohort members mentioned the TV show, The Good Place. In one of the episodes, the show reveals that it's been almost impossible to get into the good place these days because everybody is complicit (e.g., unknowingly buying a t-shirt made by a company who runs a sweatshop). Some of us also pointed out that it might not be possible to "leave" Omelas in our world.
+
+We only briefly mentioned this but one thing I found interesting in the story was the young people who were upset about the child's condition in the beginning, but later got used to the fact and accepted the situation. In a way, as they grow up, they become to accept the injustice as a background noise and move on with their lives. To be honest, I think we all have a similar experience like this. But I was particularly curious about how one becomes conditioned, dull, and feeling comfortable living with moral complicity.
+
+## Selective Moral Disengagement in the Exercise of Moral Agency
+This ethics paper, written by Albert Bandura, provided some answers to this question. Overall, this paper provides a good summary of how and when moral disengagement happens in various social situations. We all have our moral standards that promote certain actions and prevent us from behaving immorally. When moral disengagement occurs, this regulatory checks can be skipped, which often leads to social harm. In a way, moral disengagement sets people free from feeling guilty and tortured about their immoral behavior.
+
+The author goes through various mechanisms of moral disengagement and provides examples from human history. For instance, *moral justification* can be deployed by politicized religion such as holy terror. *Sanitizing language* is often seen by corporations and governments who want to minimize their moral and ethical responsibilities in sticky situations to make themselves look innocent. *Advantageous comparison* could be applied to the Omelas situation because we can always apply the utilitarianism argument to justify the child's suffering. 
+
+### Moral disengagement in tech
+
+I found *displacement* and *diffusion* of *responsibility* more prominent in ethical problems in tech. The *displacement* means that the farther we are from witnessing harms directly, the easier moral disengagement can happen. This often happens in machine learning and data science where a human being can be reduced to a single data point in a dataset with a million rows. Popularity of a black-box algorithm like deep learning also accelerates this because we can't even explain what is done to each individual data points. The *diffusion* of responsibility is an inevitable outcome of a complex modern society because division of labor means diffusion of moral responsibility. This is also a crucial point when we talk about algorithmic accountability because ML products are often complicated and multiple parties are involved, which makes it challenging to ask accountability.
+
+### Dual nature and hope
+
+I found a hopeful and insightful message from the *Dual Nature of Moral Agency* section. Here, the author told a story of a soldier who directly witnessed civilian killing in a war. This experience later spiked courage in him and he ended up rescuing other remaining civilians. The author said the following about this story:
+
+>Social psychology emphasises the power of the situation over the individual. In the case of proactive moral courage, the individual triumphs as a moral agent over compelling situational forces.
+
+The dual nature here means as a moral agent, we can inhibit immoral behaviors but also be proactive and courageous to behave humanely. I think probably most of the cohort members who signed up for this course were interested in the latter. And as the author said, if individual triumphs matter in moral courage, as I have often thought, educating individual engineers, who are often just treated as a cog in the wheel, would be a significant step towards building ethical tech, especially when building a machine learning product where a single line of code change can create a butterfly effect.
+
+## Final thoughts on Week 1
+
+All in all, I very much enjoyed the reading material and the discussion during the course. Prof. Reich's guiding words were also crucial to understand the bigger picture and idea of moral complicity. When we were talking about how we identify this uncomfortable feeling about the Omelas story, I confessed that it often felt like walking on the fine line between hope and despair. Moral complicity can have a profound emotional impact on one's psyche and potentially put us in depression because the overwhelming complexity and the amount of complicity and injustice in the world makes us feel helpless and hopeless. 
+
+But I think that's why we want to call this exercise as moral caffeination. Once we recognize this situation, we don't want to just stay feeling uncomfortable, disoriented, and depressed. We want to alert ourselves and think about "now what?" as Prof. Reich said. Personally, I think learning about the complicity and thinking about it in depth with others is a first step towards solving ethics problems in tech.
