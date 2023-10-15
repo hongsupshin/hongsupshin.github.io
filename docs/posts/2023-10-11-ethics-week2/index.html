@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2023-10-11">
+<meta name="description" content="This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness. We used the COMPAS case as an example to explore the challenges and problems in automated decision-making system driven by algorithms.">
+
+<title>Hongsup Shin - Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Hongsup Shin - Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)">
+<meta property="og:description" content="This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness.">
+<meta property="og:image" content="https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg">
+<meta property="og:site-name" content="Hongsup Shin">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html">
+ <span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</h1>
+                  <div>
+        <div class="description">
+          This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness. We used the COMPAS case as an example to explore the challenges and problems in automated decision-making system driven by algorithms.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">ethics, fairness, criminal justice</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 11, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="reading-assignments" class="level2">
+<h2 class="anchored" data-anchor-id="reading-assignments">Reading assignments</h2>
+<section id="weapons-of-math-destruction-introduction-and-chapter-1" class="level3">
+<h3 class="anchored" data-anchor-id="weapons-of-math-destruction-introduction-and-chapter-1"><a href="https://archive.org/details/weapons-of-math-destruction_202209">Weapons of Math Destruction</a>, Introduction and Chapter 1</h3>
+<p>This book by Cathy O’Neil is always a nice introduction to learning about algorithmic harms. I sometimes gift the book to friends and colleagues who just start their career in the field. The first two chapters of the book is especially enough to understand the general idea.</p>
+<p>I was most interested in the D.C.’s Teacher Evaluation System, <a href="https://dcps.dc.gov/page/impact-dcps-evaluation-and-feedback-system-school-based-personnel">IMPACT</a> and its problems. The system uses student performance score to assess teacher performance. This extremely simple assumption itself seems to be highly problematic, in my opinion. My assumption is that the city considered that this would be one of the easiest solutions to act on (i.e., hiring and firing of teachers). After the system is implemented, highly praised teachers sometimes get fired and for them it was really difficult to understand why the decision was made. It also turned out that teachers sometimes cheat and correct students’ scores.</p>
+<p>At the end of the first chapter, the author summarized a pattern of algorithimc harms in three ways. First, the models are usually opaque, which reduce accountability and make them inscrutable. Second, often these models can harm the people who are targeted because training data’s bias is simply reproduced. Third, these models are easily scalable and thus generate harms in a much larger scale.</p>
+</section>
+<section id="case-study-algorithmic-decision-making-and-accountability" class="level3">
+<h3 class="anchored" data-anchor-id="case-study-algorithmic-decision-making-and-accountability"><a href="https://drive.google.com/file/d/12R_CKlk1T8GgvSfUXixWlYWPzyhMooAQ/view?usp=sharing">Case Study: Algorithmic Decision-Making and Accountability</a></h3>
+<p>This cast study is about an algorithmic transparency bill introduced by a New York City Council, James Vacca back in 2017. The original version of the bill would require city agencies “that use algorithms or other automated processing methods that target services, impose penalties, or police persons to <strong>publish the source code</strong> used for such processing.” Given that this is still something very difficult to practice in 2023, I find this proposal quite radical and refreshing. His motivation made sense though: complete transparency on any public automated decision-making.</p>
+<p>Unfortunately the bill has met many criticisms such as privacy concerns, exposure of proprietary information, and effectiveness in public understanding of the source code. The bill was modified several times and the final <em>watered-down</em> version was to create a task force that is comprised of experts in diverse fields that would examine algorithmic decision-making (ADS) tools that the city uses, and make recommendations. The catch though was that various city departments who use these tools are not required to participate in the collaboration with the task force, meaning the participation was voluntary. Also the fact that the task force would simply make recommendations means there is zero enforceability.</p>
+<p>I did some digging because I got curious about what happened to the task force. Their website (<a href="https://www.nyc.gov/site/adstaskforce/index.page">New York City Automated Decision Systems Task Force</a>) shows the members of the task force, which actually have active members/researchers in the field of AI ethics. They published <a href="https://www.nyc.gov/assets/adstaskforce/downloads/pdf/ADS-Report-11192019.pdf">a report</a> back in 2019 and at a glance, they do make concrete recommendations on each type of algorithmic decision-making systems in NYC. In Nov 2019, the city seemed to decide to establish an Algorithms Management and Policy Officer (AMPO). But some news articles say this position doesn’t exist any more. Regardless, AMPO did release <a href="https://www.nyc.gov/assets/oti/downloads/pdf/reports/ampo-agency-compliance-cy-2020.pdf">a report</a> in 2020, which has “algorithmic tool directory” that shows how the city’s ADS tools work, which I find pretty useful. Here’s an example:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="ampo_2020_example.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">NYC Algorithmic Management and Policy Officer, Summary of Agency Compliance Reporting. Algorithmic Tool Directory example: Department of Correction</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="a-guide-to-solving-social-problems-with-machine-learning" class="level3">
+<h3 class="anchored" data-anchor-id="a-guide-to-solving-social-problems-with-machine-learning"><a href="https://hbr.org/2016/12/a-guide-to-solving-social-problems-with-machine-learning">A Guide to Solving Social Problems with Machine Learning</a></h3>
+<p>This short 2016 guide was written by Jon Kleinberg, Jens Ludwig, and Sendhil Mullainathan. I’ve been to Kleinberg’s talks several times at FAccT and so I was aware of his previous work.</p>
+<p>This guide stood out compared to other reading assignments this week because there was mention of the “enthusiasm” about solving social problems with machine learning (ML). <em>If</em> we can implement a ML system to solve these issues, we can provide greater transparency and potentially better and more desirable outcome especially because sometimes human decision-making process is opaque. This guide was also more technical than other reading materials. The authors mention the following tips:</p>
+<section id="look-for-policy-problems-that-hinge-on-prediction" class="level4">
+<h4 class="anchored" data-anchor-id="look-for-policy-problems-that-hinge-on-prediction">1. Look for policy problems that hinge on prediction</h4>
+<p>The authors emphasize that many social-sector decisions do not require a prediction and the practitioners should be careful when formulating the problem. This is mostly related to assessing the predictive algorithm’s social impact.</p>
+<blockquote class="blockquote">
+<p>“just because something is predictable, that doesn’t mean we are comfortable having our decision depend on that prediction.”</p>
+</blockquote>
+</section>
+<section id="make-sure-you-are-comfortable-with-the-outcome-youre-predicting" class="level4">
+<h4 class="anchored" data-anchor-id="make-sure-you-are-comfortable-with-the-outcome-youre-predicting">2. Make sure you are comfortable with the outcome you’re predicting</h4>
+<p>Since ML is rooted in statistics, there are cases where one has to deal with higher level of uncertainty in a system. This alone makes the system less reliable and more challenging to work with, but if the risk is also high, it is better to reconsider whether ML is well-suited here. The authors also mention that ML is often good at optimizing a defined metric only <em>at the expense of everything else</em>.</p>
+</section>
+<section id="check-for-bias" class="level4">
+<h4 class="anchored" data-anchor-id="check-for-bias">3. Check for bias</h4>
+<p>In this section, the author mentions racial bias in criminal justice system and how the bias can be easily replicated in ML when the training data simply consist of historic incidents. Another important thing they mentioned was that ML is not good for measuring hard-to-define combination of outcomes such as sentencing where society’s sense of retribution, mercy, and redemption should be factored in (and they are all hard to measure).</p>
+</section>
+<section id="verify-your-algorithm-in-an-experiment-on-data-it-hasnt-seen" class="level4">
+<h4 class="anchored" data-anchor-id="verify-your-algorithm-in-an-experiment-on-data-it-hasnt-seen">4. Verify your algorithm in an experiment on data it hasn’t seen</h4>
+<p>This section was about evaluating the model with the right validation data. They specifically talk about cases where there are inherent sampling bias in collecting labeled data. For instance, in a ML-based filter system, you end up collecting positively-labeled cases because the negative predictions never come through. They also warn about scalability:</p>
+<blockquote class="blockquote">
+<p>“It can be misguided, and sometimes outright harmful, to adopt and scale up new predictive tools when they’ve only been evaluated on cases from historical data with labels, rather than evaluated based on their effect on the key policy decision of interest.”</p>
+</blockquote>
+</section>
+<section id="remember-there-is-still-a-lot-we-dont-know" class="level4">
+<h4 class="anchored" data-anchor-id="remember-there-is-still-a-lot-we-dont-know">5. Remember there is still a lot we don’t know</h4>
+<p>This part was more about how to build a human-in-the-loop system and how human decision-makers can coexist with ADS, which is an active area of human-centered AI (HAI). An example would be how judges use the model prediction from risk assessment tools in decision-making.</p>
+</section>
+</section>
+<section id="algorithmic-accountability-a-primer" class="level3">
+<h3 class="anchored" data-anchor-id="algorithmic-accountability-a-primer"><a href="https://datasociety.net/library/algorithmic-accountability-a-primer/">Algorithmic Accountability: A Primer</a></h3>
+<p>This primer was written by <a href="https://datasociety.net/">Data &amp; Society</a>, an independent nonprofit research organization about tech ethics and governance. This was an excellent overview of ADS and algorithmic accountability.</p>
+<p>It gives a summary of <a href="https://www.propublica.org/article/bias-in-criminal-risk-scores-is-mathematically-inevitable-researchers-say">ProPublica’s COMPAS investigation</a>. It says the two issues of this incident are 1) lack of standard definition of algorithmic bias (related to the debate between Northpointe and Propublica’s conflicting opinions about what is fair) and 2) lack of mechanism for algorithmic accountability (wasn’t mentioned here but probably related to <a href="https://en.wikipedia.org/wiki/Loomis_v._Wisconsin">Loomis v. Wisconsin</a>).</p>
+<p>Then it lists several key issues related to ADS. Regarding fairness and bias, it pointed out that algorithms can be quickly outdated unless they are consistently monitored and adjusted. About opacity and transparency, it mentioned that transparency can be exploited by bad actors gaming the system. Importantly, it mentioned the <em>repurposing</em> of algorithms and data meaning algorithms built for a problem can be repurposed and applied to a completely different problem (PredPol using an algorithm built for earthquake modeling). Finally it mentioned the lack of standards for auditing.</p>
+<p>Regarding algorithmic accountability, which the primer defines as <strong>“the assignment of responsibility for how an algorithm is created ans its impact on society”</strong>, the lack of this makes me think the moral disengagement paper we read last week. In terms of the enforcement and regulation, it did mention a possibility of self-regulation by corporations but as I expected (and agreed), it said this approach is often ad hoc and out of control of citizens and governments, which is unreliable.</p>
+</section>
+</section>
+<section id="the-lecture-and-talk-with-rumman-chowdhury" class="level2">
+<h2 class="anchored" data-anchor-id="the-lecture-and-talk-with-rumman-chowdhury">The lecture and talk with Rumman Chowdhury</h2>
+<p>This week’s lecture was led by Professor Mehran Sahami, who talked about algorithmic decision-making, different definitions of fairness, and their relationship to the COMPAS incident. Among many definitions of fairness, we covered anti-classification, classification parity, calibration, and lack of disparate impact. The first three are mathematically well-defined and the last one focuses on empirical evidence. Regarding the COMPAS case, he mentioned that Northpointe’s argument was that their model is fair because from the perspective of the <em>calibration</em> definition of fairness, their model had similar predictive probability between white and black based on their risk factors. But as our guest speaker for the week, Rumman Chowdhury pointed out, Nortpointe’s survey questions included irrelevant and bias-reproducing questions such as whether a person grew up in a poor neighborhood or knew people who went to jail, etc.</p>
+<p>During Rumman Chowdhury’s session, she mentioned several interesting points. First, she summarized the problem of ADS as “models are good at generalization but bad at specificity.” Second, regarding her experience in Twitter, she mentioned that working on a product team by implementing research ideas was very helpful to produce power and momentum. Regarding generative AI, she mentioned that the error space by AI is now much wider than before, which creates bigger concerns, and where often the key question is “who gets to be the arbitor of the truth?” Regarding algorithmic auditing, on one hand she promoted red-teaming (especially as a community-driven approach), but also at the same time she said it’s important to have community consensus on auditing.</p>
+</section>
+<section id="overall-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="overall-thoughts">Overall thoughts</h2>
+<p>The reading assignments were excellent and interesting. However, the course felt quite rushed. We had to cover 4 definitions of fairness and COMPAS case study within 15 minutes. I was already quite familiar with everything but I wonder how many attendees were able to process all of it in that short amount of time.</p>
+<p>During the breakout session, instead of talking about fairness, ADS, and algorithmic accountability, we were asked to think about when we were denied to talk about tech ethics at work or work-adjacent settings, and why we thought that was the case. Then we did an exercise where we listed various values we care about and see whether any values are diametrical.</p>
+<p>To begin with, the breakout session (group discussion) was short, but I was quite unhappy that the discussion was not much related to the topics or the readings. Yes, when building an ADS system, one needs to think about how to handle the trade-offs between different values but especially since this course was advertised as “for practitioners,” I was looking for something more concrete. The post-it exercise was in a way useful but I also thought it prevented us from having an actual conversational discussion.</p>
+<p>Overall, this week has been a review of the stuff that I was mostly familiar with (thank you FAccT conferences!). I hope there are more active and practical engagements in the coming weeks.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

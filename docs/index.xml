@@ -10,7 +10,95 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.2.242</generator>
-<lastBuildDate>Wed, 04 Oct 2023 05:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 11 Oct 2023 05:00:00 GMT</lastBuildDate>
+<item>
+  <title>Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
+  <link>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="reading-assignments" class="level2">
+<h2 class="anchored" data-anchor-id="reading-assignments">Reading assignments</h2>
+<section id="weapons-of-math-destruction-introduction-and-chapter-1" class="level3">
+<h3 class="anchored" data-anchor-id="weapons-of-math-destruction-introduction-and-chapter-1"><a href="https://archive.org/details/weapons-of-math-destruction_202209">Weapons of Math Destruction</a>, Introduction and Chapter 1</h3>
+<p>This book by Cathy O’Neil is always a nice introduction to learning about algorithmic harms. I sometimes gift the book to friends and colleagues who just start their career in the field. The first two chapters of the book is especially enough to understand the general idea.</p>
+<p>I was most interested in the D.C.’s Teacher Evaluation System, <a href="https://dcps.dc.gov/page/impact-dcps-evaluation-and-feedback-system-school-based-personnel">IMPACT</a> and its problems. The system uses student performance score to assess teacher performance. This extremely simple assumption itself seems to be highly problematic, in my opinion. My assumption is that the city considered that this would be one of the easiest solutions to act on (i.e., hiring and firing of teachers). After the system is implemented, highly praised teachers sometimes get fired and for them it was really difficult to understand why the decision was made. It also turned out that teachers sometimes cheat and correct students’ scores.</p>
+<p>At the end of the first chapter, the author summarized a pattern of algorithimc harms in three ways. First, the models are usually opaque, which reduce accountability and make them inscrutable. Second, often these models can harm the people who are targeted because training data’s bias is simply reproduced. Third, these models are easily scalable and thus generate harms in a much larger scale.</p>
+</section>
+<section id="case-study-algorithmic-decision-making-and-accountability" class="level3">
+<h3 class="anchored" data-anchor-id="case-study-algorithmic-decision-making-and-accountability"><a href="https://drive.google.com/file/d/12R_CKlk1T8GgvSfUXixWlYWPzyhMooAQ/view?usp=sharing">Case Study: Algorithmic Decision-Making and Accountability</a></h3>
+<p>This cast study is about an algorithmic transparency bill introduced by a New York City Council, James Vacca back in 2017. The original version of the bill would require city agencies “that use algorithms or other automated processing methods that target services, impose penalties, or police persons to <strong>publish the source code</strong> used for such processing.” Given that this is still something very difficult to practice in 2023, I find this proposal quite radical and refreshing. His motivation made sense though: complete transparency on any public automated decision-making.</p>
+<p>Unfortunately the bill has met many criticisms such as privacy concerns, exposure of proprietary information, and effectiveness in public understanding of the source code. The bill was modified several times and the final <em>watered-down</em> version was to create a task force that is comprised of experts in diverse fields that would examine algorithmic decision-making (ADS) tools that the city uses, and make recommendations. The catch though was that various city departments who use these tools are not required to participate in the collaboration with the task force, meaning the participation was voluntary. Also the fact that the task force would simply make recommendations means there is zero enforceability.</p>
+<p>I did some digging because I got curious about what happened to the task force. Their website (<a href="https://www.nyc.gov/site/adstaskforce/index.page">New York City Automated Decision Systems Task Force</a>) shows the members of the task force, which actually have active members/researchers in the field of AI ethics. They published <a href="https://www.nyc.gov/assets/adstaskforce/downloads/pdf/ADS-Report-11192019.pdf">a report</a> back in 2019 and at a glance, they do make concrete recommendations on each type of algorithmic decision-making systems in NYC. In Nov 2019, the city seemed to decide to establish an Algorithms Management and Policy Officer (AMPO). But some news articles say this position doesn’t exist any more. Regardless, AMPO did release <a href="https://www.nyc.gov/assets/oti/downloads/pdf/reports/ampo-agency-compliance-cy-2020.pdf">a report</a> in 2020, which has “algorithmic tool directory” that shows how the city’s ADS tools work, which I find pretty useful. Here’s an example:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/ampo_2020_example.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">NYC Algorithmic Management and Policy Officer, Summary of Agency Compliance Reporting. Algorithmic Tool Directory example: Department of Correction</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="a-guide-to-solving-social-problems-with-machine-learning" class="level3">
+<h3 class="anchored" data-anchor-id="a-guide-to-solving-social-problems-with-machine-learning"><a href="https://hbr.org/2016/12/a-guide-to-solving-social-problems-with-machine-learning">A Guide to Solving Social Problems with Machine Learning</a></h3>
+<p>This short 2016 guide was written by Jon Kleinberg, Jens Ludwig, and Sendhil Mullainathan. I’ve been to Kleinberg’s talks several times at FAccT and so I was aware of his previous work.</p>
+<p>This guide stood out compared to other reading assignments this week because there was mention of the “enthusiasm” about solving social problems with machine learning (ML). <em>If</em> we can implement a ML system to solve these issues, we can provide greater transparency and potentially better and more desirable outcome especially because sometimes human decision-making process is opaque. This guide was also more technical than other reading materials. The authors mention the following tips:</p>
+<section id="look-for-policy-problems-that-hinge-on-prediction" class="level4">
+<h4 class="anchored" data-anchor-id="look-for-policy-problems-that-hinge-on-prediction">1. Look for policy problems that hinge on prediction</h4>
+<p>The authors emphasize that many social-sector decisions do not require a prediction and the practitioners should be careful when formulating the problem. This is mostly related to assessing the predictive algorithm’s social impact.</p>
+<blockquote class="blockquote">
+<p>“just because something is predictable, that doesn’t mean we are comfortable having our decision depend on that prediction.”</p>
+</blockquote>
+</section>
+<section id="make-sure-you-are-comfortable-with-the-outcome-youre-predicting" class="level4">
+<h4 class="anchored" data-anchor-id="make-sure-you-are-comfortable-with-the-outcome-youre-predicting">2. Make sure you are comfortable with the outcome you’re predicting</h4>
+<p>Since ML is rooted in statistics, there are cases where one has to deal with higher level of uncertainty in a system. This alone makes the system less reliable and more challenging to work with, but if the risk is also high, it is better to reconsider whether ML is well-suited here. The authors also mention that ML is often good at optimizing a defined metric only <em>at the expense of everything else</em>.</p>
+</section>
+<section id="check-for-bias" class="level4">
+<h4 class="anchored" data-anchor-id="check-for-bias">3. Check for bias</h4>
+<p>In this section, the author mentions racial bias in criminal justice system and how the bias can be easily replicated in ML when the training data simply consist of historic incidents. Another important thing they mentioned was that ML is not good for measuring hard-to-define combination of outcomes such as sentencing where society’s sense of retribution, mercy, and redemption should be factored in (and they are all hard to measure).</p>
+</section>
+<section id="verify-your-algorithm-in-an-experiment-on-data-it-hasnt-seen" class="level4">
+<h4 class="anchored" data-anchor-id="verify-your-algorithm-in-an-experiment-on-data-it-hasnt-seen">4. Verify your algorithm in an experiment on data it hasn’t seen</h4>
+<p>This section was about evaluating the model with the right validation data. They specifically talk about cases where there are inherent sampling bias in collecting labeled data. For instance, in a ML-based filter system, you end up collecting positively-labeled cases because the negative predictions never come through. They also warn about scalability:</p>
+<blockquote class="blockquote">
+<p>“It can be misguided, and sometimes outright harmful, to adopt and scale up new predictive tools when they’ve only been evaluated on cases from historical data with labels, rather than evaluated based on their effect on the key policy decision of interest.”</p>
+</blockquote>
+</section>
+<section id="remember-there-is-still-a-lot-we-dont-know" class="level4">
+<h4 class="anchored" data-anchor-id="remember-there-is-still-a-lot-we-dont-know">5. Remember there is still a lot we don’t know</h4>
+<p>This part was more about how to build a human-in-the-loop system and how human decision-makers can coexist with ADS, which is an active area of human-centered AI (HAI). An example would be how judges use the model prediction from risk assessment tools in decision-making.</p>
+</section>
+</section>
+<section id="algorithmic-accountability-a-primer" class="level3">
+<h3 class="anchored" data-anchor-id="algorithmic-accountability-a-primer"><a href="https://datasociety.net/library/algorithmic-accountability-a-primer/">Algorithmic Accountability: A Primer</a></h3>
+<p>This primer was written by <a href="https://datasociety.net/">Data &amp; Society</a>, an independent nonprofit research organization about tech ethics and governance. This was an excellent overview of ADS and algorithmic accountability.</p>
+<p>It gives a summary of <a href="https://www.propublica.org/article/bias-in-criminal-risk-scores-is-mathematically-inevitable-researchers-say">ProPublica’s COMPAS investigation</a>. It says the two issues of this incident are 1) lack of standard definition of algorithmic bias (related to the debate between Northpointe and Propublica’s conflicting opinions about what is fair) and 2) lack of mechanism for algorithmic accountability (wasn’t mentioned here but probably related to <a href="https://en.wikipedia.org/wiki/Loomis_v._Wisconsin">Loomis v. Wisconsin</a>).</p>
+<p>Then it lists several key issues related to ADS. Regarding fairness and bias, it pointed out that algorithms can be quickly outdated unless they are consistently monitored and adjusted. About opacity and transparency, it mentioned that transparency can be exploited by bad actors gaming the system. Importantly, it mentioned the <em>repurposing</em> of algorithms and data meaning algorithms built for a problem can be repurposed and applied to a completely different problem (PredPol using an algorithm built for earthquake modeling). Finally it mentioned the lack of standards for auditing.</p>
+<p>Regarding algorithmic accountability, which the primer defines as <strong>“the assignment of responsibility for how an algorithm is created ans its impact on society”</strong>, the lack of this makes me think the moral disengagement paper we read last week. In terms of the enforcement and regulation, it did mention a possibility of self-regulation by corporations but as I expected (and agreed), it said this approach is often ad hoc and out of control of citizens and governments, which is unreliable.</p>
+</section>
+</section>
+<section id="the-lecture-and-talk-with-rumman-chowdhury" class="level2">
+<h2 class="anchored" data-anchor-id="the-lecture-and-talk-with-rumman-chowdhury">The lecture and talk with Rumman Chowdhury</h2>
+<p>This week’s lecture was led by Professor Mehran Sahami, who talked about algorithmic decision-making, different definitions of fairness, and their relationship to the COMPAS incident. Among many definitions of fairness, we covered anti-classification, classification parity, calibration, and lack of disparate impact. The first three are mathematically well-defined and the last one focuses on empirical evidence. Regarding the COMPAS case, he mentioned that Northpointe’s argument was that their model is fair because from the perspective of the <em>calibration</em> definition of fairness, their model had similar predictive probability between white and black based on their risk factors. But as our guest speaker for the week, Rumman Chowdhury pointed out, Nortpointe’s survey questions included irrelevant and bias-reproducing questions such as whether a person grew up in a poor neighborhood or knew people who went to jail, etc.</p>
+<p>During Rumman Chowdhury’s session, she mentioned several interesting points. First, she summarized the problem of ADS as “models are good at generalization but bad at specificity.” Second, regarding her experience in Twitter, she mentioned that working on a product team by implementing research ideas was very helpful to produce power and momentum. Regarding generative AI, she mentioned that the error space by AI is now much wider than before, which creates bigger concerns, and where often the key question is “who gets to be the arbitor of the truth?” Regarding algorithmic auditing, on one hand she promoted red-teaming (especially as a community-driven approach), but also at the same time she said it’s important to have community consensus on auditing.</p>
+</section>
+<section id="overall-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="overall-thoughts">Overall thoughts</h2>
+<p>The reading assignments were excellent and interesting. However, the course felt quite rushed. We had to cover 4 definitions of fairness and COMPAS case study within 15 minutes. I was already quite familiar with everything but I wonder how many attendees were able to process all of it in that short amount of time.</p>
+<p>During the breakout session, instead of talking about fairness, ADS, and algorithmic accountability, we were asked to think about when we were denied to talk about tech ethics at work or work-adjacent settings, and why we thought that was the case. Then we did an exercise where we listed various values we care about and see whether any values are diametrical.</p>
+<p>To begin with, the breakout session (group discussion) was short, but I was quite unhappy that the discussion was not much related to the topics or the readings. Yes, when building an ADS system, one needs to think about how to handle the trade-offs between different values but especially since this course was advertised as “for practitioners,” I was looking for something more concrete. The post-it exercise was in a way useful but I also thought it prevented us from having an actual conversational discussion.</p>
+<p>Overall, this week has been a review of the stuff that I was mostly familiar with (thank you FAccT conferences!). I hope there are more active and practical engagements in the coming weeks.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ethics, fairness, criminal justice</category>
+  <guid>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/index.html</guid>
+  <pubDate>Wed, 11 Oct 2023 05:00:00 GMT</pubDate>
+  <media:content url="https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg" medium="image" type="image/jpeg"/>
+</item>
 <item>
   <title>Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)</title>
   <link>https://hongsupshin.github.io/posts/2023-10-04-ethics-week1/index.html</link>
