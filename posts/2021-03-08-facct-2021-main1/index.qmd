@@ -3,6 +3,7 @@ title: FAccT 2021. AI audit, governance, and trustworthiness
 date: "2021-03-08"
 description: Summary of Day 1 at FAccT 2021. Algorithm audit, impact assessment, data governance, trust in AI, and explainable AI
 image: "data dev cycle.png"
+author: Hongsup Shin
 categories: 
     - conference
     - governance

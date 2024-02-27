@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.242">
+<meta name="generator" content="quarto-1.4.549">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -17,7 +17,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
 </style>
@@ -47,7 +47,13 @@ ul.task-list li input[type="checkbox"] {
   "collapse-after": 3,
   "panel-placement": "end",
   "type": "overlay",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -56,8 +62,10 @@ ul.task-list li input[type="checkbox"] {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 <script>
@@ -90,50 +98,80 @@ ul.task-list li input[type="checkbox"] {
   })
   </script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
 <link rel="stylesheet" href="styles.css">
-<link rel="alternate" type="application/rss+xml" title="Hongsup Shin" href="index.xml"><meta property="og:title" content="">
-<meta property="og:site-name" content="Hongsup Shin">
+<link rel="alternate" type="application/rss+xml" title="Hongsup Shin" href="index.xml" data-external="1"><meta property="og:title" content="Hongsup Shin">
+<meta property="og:site_name" content="Hongsup Shin">
 </head>
 
 <body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg navbar-dark ">
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container">
+      <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">Hongsup Shin</span>
     </a>
   </div>
+            <div id="quarto-search" class="" title="Search"></div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html">
- <span class="menu-text">About</span></a>
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./publications.html">
- <span class="menu-text">Publications</span></a>
+    <a class="nav-link" href="./publications.html"> 
+<span class="menu-text">Publications</span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
 </ul>
-              <div id="quarto-search" class="" title="Search"></div>
           </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
       </div> <!-- /container-fluid -->
     </nav>
 </header>
@@ -153,21 +191,22 @@ ul.task-list li input[type="checkbox"] {
 
 
 
+
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="ethics,fairness,criminal justice" data-listing-date-sort="1697000400000" data-listing-file-modified-sort="1697406369671" data-listing-reading-time-sort="8.935">
+<div class="quarto-post image-right" data-index="0" data-categories="ethics,fairness,criminal justice" data-listing-date-sort="1697000400000" data-listing-file-modified-sort="1709006286222" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1787">
 <div class="thumbnail">
-<p><a href="./posts/2023-10-11-ethics-week2/index.html"> <img src="https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg" class="thumnail-image"> </a></p>
+<p><a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external"></a></p><a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external">
+<p><img src="https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg" class="thumbnail-image"></p>
+</a><p><a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2023-10-11-ethics-week2/index.html">
 <h3 class="no-anchor listing-title">
-Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)
+<a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external">Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ethics'); return false;">
 ethics
@@ -179,65 +218,67 @@ fairness
 criminal justice
 </div>
 </div>
-<a href="./posts/2023-10-11-ethics-week2/index.html">
 <div class="listing-description">
-<p>This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness. We used the COMPAS case as an example to explore the challenges and problems in automated decision-making system driven by algorithms.</p>
+<a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external">This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness. We used the COMPAS case as an example to explore the challenges and problems in automated decision-making system driven by algorithms.</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2023-10-11-ethics-week2/index.html">
+<a href="./posts/2023-10-11-ethics-week2/index.html" class="no-external">
 <div class="listing-date">
 Oct 11, 2023
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="ethics" data-listing-date-sort="1696395600000" data-listing-file-modified-sort="1696650680491" data-listing-reading-time-sort="7.8">
+<div class="quarto-post image-right" data-index="1" data-categories="ethics" data-listing-date-sort="1696395600000" data-listing-file-modified-sort="1709006279255" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1560">
 <div class="thumbnail">
-<p><a href="./posts/2023-10-04-ethics-week1/index.html"> <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg" class="thumnail-image"> </a></p>
+<p><a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external"></a></p><a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external">
+<p><img src="https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg" class="thumbnail-image"></p>
+</a><p><a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2023-10-04-ethics-week1/index.html">
 <h3 class="no-anchor listing-title">
-Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)
+<a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external">Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ethics'); return false;">
 ethics
 </div>
 </div>
-<a href="./posts/2023-10-04-ethics-week1/index.html">
 <div class="listing-description">
-<p>I started taking “Ethics, Technology + Public Policy for Practitioners”, a Stanford online course. In Week 1, we read Ursula K. Le Guin’s “The Ones Who Walk Away from Omelas”, and discussed moral complicity. This post is my reflection on the story, the cohort, and my thoughts on moral complicity and moral disengagement.</p>
+<a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external">I started taking “Ethics, Technology + Public Policy for Practitioners”, a Stanford online course. In Week 1, we read Ursula K. Le Guin’s “The Ones Who Walk Away from Omelas”, and discussed moral complicity. This post is my reflection on the story, the cohort, and my thoughts on moral complicity and moral disengagement.</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2023-10-04-ethics-week1/index.html">
+<a href="./posts/2023-10-04-ethics-week1/index.html" class="no-external">
 <div class="listing-date">
 Oct 4, 2023
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-categories="ML,MLOps,MLflow,Interoperability" data-listing-date-sort="1679029200000" data-listing-file-modified-sort="1696116246494" data-listing-reading-time-sort="5">
+<div class="quarto-post image-right" data-index="2" data-categories="ML,MLOps,MLflow,Interoperability" data-listing-date-sort="1679029200000" data-listing-file-modified-sort="1709006270011" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="1000">
 <div class="thumbnail">
-<p><a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html"> <img src="./posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external"></a></p><a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external">
+<p><img src="./posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html">
 <h3 class="no-anchor listing-title">
-Interoperability testing for hyperparameter tuning: MLflow, LightGBM, sklearn, and dask-ml
+<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external">Interoperability testing for hyperparameter tuning: MLflow, LightGBM, sklearn, and dask-ml</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ML'); return false;">
 ML
@@ -252,37 +293,34 @@ MLflow
 Interoperability
 </div>
 </div>
-<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html">
 <div class="listing-description">
-<p>MLflow autologging allows monitoring LightGBM training loss during model training. This behavior is not always expected when we use scikit-learn and dask to tune LightGBM models. This notebook describes how the unexpected behavior manifests and explains some gotchas when using these tools together.</p>
+<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external">MLflow autologging allows monitoring LightGBM training loss during model training. This behavior is not always expected when we use scikit-learn and dask to tune LightGBM models. This notebook describes how the unexpected behavior manifests and explains some gotchas when using these tools together.</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html">
+<a href="./posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html" class="no-external">
 <div class="listing-date">
 Mar 17, 2023
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="3" data-categories="ML,data preprocessing" data-listing-date-sort="1677736800000" data-listing-file-modified-sort="1696116244463" data-listing-reading-time-sort="4.38">
+<div class="quarto-post image-right" data-index="3" data-categories="ML,data preprocessing" data-listing-date-sort="1677736800000" data-listing-file-modified-sort="1709006258321" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="876">
 <div class="thumbnail">
-<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html">
-<div class="thumbnail-image">
-
-</div>
-</a><p><a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html"></a></p>
+<p><a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external"></a></p><a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external">
+<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
+</a><p><a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html">
 <h3 class="no-anchor listing-title">
-Comparing type inference methods for mixed data arrays
+<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external">Comparing type inference methods for mixed data arrays</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ML'); return false;">
 ML
@@ -291,33 +329,34 @@ ML
 data preprocessing
 </div>
 </div>
-<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html">
 <div class="listing-description">
-<p>Pandas have two type inference methods. Let’s compare the methods by inferring data types for mixed data type arrays.</p>
+<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external">Pandas have two type inference methods. Let’s compare the methods by inferring data types for mixed data type arrays.</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html">
+<a href="./posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html" class="no-external">
 <div class="listing-date">
 Mar 2, 2023
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="4" data-categories="volunteering,journalism,ML" data-listing-date-sort="1621918800000" data-listing-file-modified-sort="1677814344744" data-listing-reading-time-sort="12.565">
+<div class="quarto-post image-right" data-index="4" data-categories="volunteering,journalism,ML" data-listing-date-sort="1621918800000" data-listing-file-modified-sort="1709006249327" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2513">
 <div class="thumbnail">
-<p><a href="./posts/2021-05-25-ds-volunteering-part2/index.html"> <img src="./posts/2021-05-25-ds-volunteering-part2/datakind.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external"></a></p><a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external">
+<p><img src="./posts/2021-05-25-ds-volunteering-part2/datakind.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-05-25-ds-volunteering-part2/index.html">
 <h3 class="no-anchor listing-title">
-Tech volunteering tips for nonprofits
+<a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external">Tech volunteering tips for nonprofits</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('volunteering'); return false;">
 volunteering
@@ -329,33 +368,34 @@ journalism
 ML
 </div>
 </div>
-<a href="./posts/2021-05-25-ds-volunteering-part2/index.html">
 <div class="listing-description">
-<p>Lessons I’ve learned from my own experience by working with various nonprofit organizations such as DataKind and Texas Justice Initiative</p>
+<a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external">Lessons I’ve learned from my own experience by working with various nonprofit organizations such as DataKind and Texas Justice Initiative</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-05-25-ds-volunteering-part2/index.html">
+<a href="./posts/2021-05-25-ds-volunteering-part2/index.html" class="no-external">
 <div class="listing-date">
 May 25, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="5" data-categories="criminal justice,visualization,EDA,volunteering,journalism" data-listing-date-sort="1621832400000" data-listing-file-modified-sort="1677814344743" data-listing-reading-time-sort="12.065">
+<div class="quarto-post image-right" data-index="5" data-categories="criminal justice,visualization,EDA,volunteering,journalism" data-listing-date-sort="1621832400000" data-listing-file-modified-sort="1709006240270" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2413">
 <div class="thumbnail">
-<p><a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html"> <img src="./posts/2021-05-24-ds-volunteering-part1/index.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external"></a></p><a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external">
+<p><img src="./posts/2021-05-24-ds-volunteering-part1/index.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html">
 <h3 class="no-anchor listing-title">
-Police shooting in Texas 2016-2019
+<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external">Police shooting in Texas 2016-2019</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('criminal justice'); return false;">
 criminal justice
@@ -373,37 +413,34 @@ volunteering
 journalism
 </div>
 </div>
-<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html">
 <div class="listing-description">
-<p>Jupyter Notebook on police shooting analysis in Texas from 2016 to 2019 (done in collaboration with Texas Justice Initiative)</p>
+<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external">Jupyter Notebook on police shooting analysis in Texas from 2016 to 2019 (done in collaboration with Texas Justice Initiative)</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html">
+<a href="./posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html" class="no-external">
 <div class="listing-date">
 May 24, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="6" data-categories="conference,journalism,measurement,education,language models,responsible AI,ML" data-listing-date-sort="1615356000000" data-listing-file-modified-sort="1679065243414" data-listing-reading-time-sort="6.045">
+<div class="quarto-post image-right" data-index="6" data-categories="conference,journalism,measurement,education,language models,responsible AI,ML" data-listing-date-sort="1615356000000" data-listing-file-modified-sort="1709006227686" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1209">
 <div class="thumbnail">
-<a href="./posts/2021-03-10-facct-2021-main3/index.html">
-<div class="thumbnail-image">
-
-</div>
-</a><p><a href="./posts/2021-03-10-facct-2021-main3/index.html"></a></p>
+<p><a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external"></a></p><a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external">
+<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
+</a><p><a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-03-10-facct-2021-main3/index.html">
 <h3 class="no-anchor listing-title">
-FAccT 2021. Journalism, data leverage, education, and language models
+<a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external">FAccT 2021. Journalism, data leverage, education, and language models</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -427,33 +464,34 @@ responsible AI
 ML
 </div>
 </div>
-<a href="./posts/2021-03-10-facct-2021-main3/index.html">
 <div class="listing-description">
-<p>Summary of Day 3 at FAccT 2021. Julian Anguin’s Markup, language models, measurements, and data average</p>
+<a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external">Summary of Day 3 at FAccT 2021. Julian Anguin’s Markup, language models, measurements, and data average</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-03-10-facct-2021-main3/index.html">
+<a href="./posts/2021-03-10-facct-2021-main3/index.html" class="no-external">
 <div class="listing-date">
 Mar 10, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="7" data-categories="conference,explainability,causality,robustness,responsible AI,ML" data-listing-date-sort="1615269600000" data-listing-file-modified-sort="1677814344738" data-listing-reading-time-sort="5.795">
+<div class="quarto-post image-right" data-index="7" data-categories="conference,explainability,causality,robustness,responsible AI,ML" data-listing-date-sort="1615269600000" data-listing-file-modified-sort="1709006220883" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1159">
 <div class="thumbnail">
-<p><a href="./posts/2021-03-09-facct-2021-main2/index.html"> <img src="./posts/2021-03-09-facct-2021-main2/toolkit.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external"></a></p><a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external">
+<p><img src="./posts/2021-03-09-facct-2021-main2/toolkit.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-03-09-facct-2021-main2/index.html">
 <h3 class="no-anchor listing-title">
-FAccT 2021. Automated decision-making, causal accountability, and robustness
+<a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external">FAccT 2021. Automated decision-making, causal accountability, and robustness</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -474,33 +512,34 @@ responsible AI
 ML
 </div>
 </div>
-<a href="./posts/2021-03-09-facct-2021-main2/index.html">
 <div class="listing-description">
-<p>Summary of Day 2 at FAccT 2021. Automated decision-making, accountability and recourse, and model robustness</p>
+<a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external">Summary of Day 2 at FAccT 2021. Automated decision-making, accountability and recourse, and model robustness</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-03-09-facct-2021-main2/index.html">
+<a href="./posts/2021-03-09-facct-2021-main2/index.html" class="no-external">
 <div class="listing-date">
 Mar 9, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="8" data-categories="conference,governance,explainability,responsible AI,ML" data-listing-date-sort="1615183200000" data-listing-file-modified-sort="1677814344738" data-listing-reading-time-sort="6.89">
+<div class="quarto-post image-right" data-index="8" data-categories="conference,governance,explainability,responsible AI,ML" data-listing-date-sort="1615183200000" data-listing-file-modified-sort="1709006214389" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1378">
 <div class="thumbnail">
-<p><a href="./posts/2021-03-08-facct-2021-main1/index.html"> <img src="./posts/2021-03-08-facct-2021-main1/data dev cycle.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external"></a></p><a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external">
+<p><img src="./posts/2021-03-08-facct-2021-main1/data dev cycle.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-03-08-facct-2021-main1/index.html">
 <h3 class="no-anchor listing-title">
-FAccT 2021. AI audit, governance, and trustworthiness
+<a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external">FAccT 2021. AI audit, governance, and trustworthiness</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -518,37 +557,34 @@ responsible AI
 ML
 </div>
 </div>
-<a href="./posts/2021-03-08-facct-2021-main1/index.html">
 <div class="listing-description">
-<p>Summary of Day 1 at FAccT 2021. Algorithm audit, impact assessment, data governance, trust in AI, and explainable AI</p>
+<a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external">Summary of Day 1 at FAccT 2021. Algorithm audit, impact assessment, data governance, trust in AI, and explainable AI</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-03-08-facct-2021-main1/index.html">
+<a href="./posts/2021-03-08-facct-2021-main1/index.html" class="no-external">
 <div class="listing-date">
 Mar 8, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="9" data-categories="conference,causality,fairness,explainability,responsible AI,ML" data-listing-date-sort="1614837600000" data-listing-file-modified-sort="1677814344737" data-listing-reading-time-sort="5.89">
+<div class="quarto-post image-right" data-index="9" data-categories="conference,causality,fairness,explainability,responsible AI,ML" data-listing-date-sort="1614837600000" data-listing-file-modified-sort="1709006207978" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1178">
 <div class="thumbnail">
-<a href="./posts/2021-03-04-facct-2021-tutorial/index.html">
-<div class="thumbnail-image">
-
-</div>
-</a><p><a href="./posts/2021-03-04-facct-2021-tutorial/index.html"></a></p>
+<p><a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external"></a></p><a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external">
+<div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
+</a><p><a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2021-03-04-facct-2021-tutorial/index.html">
 <h3 class="no-anchor listing-title">
-Tutorials at FAccT 2021
+<a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external">Tutorials at FAccT 2021</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -569,65 +605,67 @@ responsible AI
 ML
 </div>
 </div>
-<a href="./posts/2021-03-04-facct-2021-tutorial/index.html">
 <div class="listing-description">
-<p>FAccT 2021 (virtual) tutorial summary. Causal analysis, XAI, and algorithmic impact</p>
+<a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external">FAccT 2021 (virtual) tutorial summary. Causal analysis, XAI, and algorithmic impact</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2021-03-04-facct-2021-tutorial/index.html">
+<a href="./posts/2021-03-04-facct-2021-tutorial/index.html" class="no-external">
 <div class="listing-date">
 Mar 4, 2021
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="10" data-categories="collaboration" data-listing-date-sort="1606197600000" data-listing-file-modified-sort="1677814344736" data-listing-reading-time-sort="4.735">
+<div class="quarto-post image-right" data-index="10" data-categories="collaboration" data-listing-date-sort="1606197600000" data-listing-file-modified-sort="1709006198945" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="947">
 <div class="thumbnail">
-<p><a href="./posts/2020-11-24-github-manuscript-review/index.html"> <img src="./posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_reviewer_screenshot.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external"></a></p><a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external">
+<p><img src="./posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_reviewer_screenshot.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2020-11-24-github-manuscript-review/index.html">
 <h3 class="no-anchor listing-title">
-Markdown and GitHub for scientific writing
+<a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external">Markdown and GitHub for scientific writing</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('collaboration'); return false;">
 collaboration
 </div>
 </div>
-<a href="./posts/2020-11-24-github-manuscript-review/index.html">
 <div class="listing-description">
-<p>How to use GitHub to publish and review academic manuscripts for better tracking, communication, and transparency</p>
+<a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external">How to use GitHub to publish and review academic manuscripts for better tracking, communication, and transparency</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2020-11-24-github-manuscript-review/index.html">
+<a href="./posts/2020-11-24-github-manuscript-review/index.html" class="no-external">
 <div class="listing-date">
 Nov 24, 2020
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="11" data-categories="ML,verification" data-listing-date-sort="1600750800000" data-listing-file-modified-sort="1677814344735" data-listing-reading-time-sort="8.795">
+<div class="quarto-post image-right" data-index="11" data-categories="ML,verification" data-listing-date-sort="1600750800000" data-listing-file-modified-sort="1709006190145" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1759">
 <div class="thumbnail">
-<p><a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html"> <img src="./posts/2020-09-22-arm-rsh-blog-verification/2020-09-22-random-constraint-testing-diagram.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external"></a></p><a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external">
+<p><img src="./posts/2020-09-22-arm-rsh-blog-verification/2020-09-22-random-constraint-testing-diagram.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html">
 <h3 class="no-anchor listing-title">
-Efficient bug discovery with ML for hardware verification
+<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external">Efficient bug discovery with ML for hardware verification</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ML'); return false;">
 ML
@@ -636,33 +674,34 @@ ML
 verification
 </div>
 </div>
-<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html">
 <div class="listing-description">
-<p>My Arm Research blog post about using ML in hardware engineering to make verification more compute-efficient</p>
+<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external">My Arm Research blog post about using ML in hardware engineering to make verification more compute-efficient</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html">
+<a href="./posts/2020-09-22-arm-rsh-blog-verification/index.html" class="no-external">
 <div class="listing-date">
 Sep 22, 2020
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="12" data-categories="conference,fairness,ML" data-listing-date-sort="1583042400000" data-listing-file-modified-sort="1677814344734" data-listing-reading-time-sort="20.55">
+<div class="quarto-post image-right" data-index="12" data-categories="conference,fairness,ML" data-listing-date-sort="1583042400000" data-listing-file-modified-sort="1709006179155" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="21" data-listing-word-count-sort="4110">
 <div class="thumbnail">
-<p><a href="./posts/2020-03-01-acm-fat-2020/index.html"> <img src="./posts/2020-03-01-acm-fat-2020/2020-03-01-acm-fat-badge.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external"></a></p><a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external">
+<p><img src="./posts/2020-03-01-acm-fat-2020/2020-03-01-acm-fat-badge.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2020-03-01-acm-fat-2020/index.html">
 <h3 class="no-anchor listing-title">
-Critiquing and rethinking at ACM FAT 2020
+<a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external">Critiquing and rethinking at ACM FAT 2020</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -674,65 +713,67 @@ fairness
 ML
 </div>
 </div>
-<a href="./posts/2020-03-01-acm-fat-2020/index.html">
 <div class="listing-description">
-<p>Summary of FAT 2020 in Barcelona, Spain. “Critiquing and rethinking” was their new attempt to open up a discussion between multidisciplinary stakeholders</p>
+<a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external">Summary of FAT 2020 in Barcelona, Spain. “Critiquing and rethinking” was their new attempt to open up a discussion between multidisciplinary stakeholders</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2020-03-01-acm-fat-2020/index.html">
+<a href="./posts/2020-03-01-acm-fat-2020/index.html" class="no-external">
 <div class="listing-date">
 Mar 1, 2020
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="13" data-categories="ethics" data-listing-date-sort="1580364000000" data-listing-file-modified-sort="1677814344733" data-listing-reading-time-sort="10.055">
+<div class="quarto-post image-right" data-index="13" data-categories="ethics" data-listing-date-sort="1580364000000" data-listing-file-modified-sort="1709006170783" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2011">
 <div class="thumbnail">
-<p><a href="./posts/2020-01-30-cade-workshop-refelection/index.html"> <img src="./posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external"></a></p><a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external">
+<p><img src="./posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" class="thumbnail-image"></p>
+</a><p><a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2020-01-30-cade-workshop-refelection/index.html">
 <h3 class="no-anchor listing-title">
-Reflection on USF tech policy and data ethics workshop
+<a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external">Reflection on USF tech policy and data ethics workshop</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('ethics'); return false;">
 ethics
 </div>
 </div>
-<a href="./posts/2020-01-30-cade-workshop-refelection/index.html">
 <div class="listing-description">
-<p>A reflection piece about the USF tech ethics and policy workshop focusing on data ethics as a tech worker myself</p>
+<a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external">A reflection piece about the USF tech ethics and policy workshop focusing on data ethics as a tech worker myself</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2020-01-30-cade-workshop-refelection/index.html">
+<a href="./posts/2020-01-30-cade-workshop-refelection/index.html" class="no-external">
 <div class="listing-date">
 Jan 30, 2020
 </div>
+<div class="listing-author">
+Hongsup Shin
+</div>
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="14" data-categories="conference,fairness,ML" data-listing-date-sort="1549000800000" data-listing-file-modified-sort="1677814344732" data-listing-reading-time-sort="9.725">
+<div class="quarto-post image-right" data-index="14" data-categories="conference,fairness,ML" data-listing-date-sort="1549000800000" data-listing-file-modified-sort="1709006135329" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="10" data-listing-word-count-sort="1945">
 <div class="thumbnail">
-<p><a href="./posts/2019-02-01-acm-fat-2019/index.html"> <img src="./posts/2019-02-01-acm-fat-2019/2019-02-01-acm-fat.jpeg" class="thumnail-image"> </a></p>
+<p><a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external"></a></p><a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external">
+<p><img src="./posts/2019-02-01-acm-fat-2019/2019-02-01-acm-fat.jpeg" class="thumbnail-image"></p>
+</a><p><a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external"></a></p>
 </div>
 <div class="body">
-<a href="./posts/2019-02-01-acm-fat-2019/index.html">
 <h3 class="no-anchor listing-title">
-Fairness in ML at ACM FAT 2019
+<a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external">Fairness in ML at ACM FAT 2019</a>
 </h3>
 <div class="listing-subtitle">
-
+<a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external"></a>
 </div>
-</a>
 <div class="listing-categories">
 <div class="listing-category" onclick="window.quartoListingCategory('conference'); return false;">
 conference
@@ -744,16 +785,17 @@ fairness
 ML
 </div>
 </div>
-<a href="./posts/2019-02-01-acm-fat-2019/index.html">
 <div class="listing-description">
-<p>Several key moments from the conference and my thoughts at the FAT (Fairness, Accountability, and Transparency in ML) conference</p>
+<a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external">Several key moments from the conference and my thoughts at the FAT (Fairness, Accountability, and Transparency in ML) conference</a>
 </div>
-</a>
 </div>
 <div class="metadata">
-<a href="./posts/2019-02-01-acm-fat-2019/index.html">
+<a href="./posts/2019-02-01-acm-fat-2019/index.html" class="no-external">
 <div class="listing-date">
 Feb 1, 2019
+</div>
+<div class="listing-author">
+Hongsup Shin
 </div>
 </a>
 </div>
@@ -790,9 +832,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -828,10 +884,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -841,8 +896,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -857,6 +921,238 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
@@ -897,6 +1193,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+
 
 
 

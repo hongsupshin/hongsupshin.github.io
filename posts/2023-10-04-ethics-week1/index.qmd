@@ -3,6 +3,7 @@ title: "Moral complicity and moral disengagement (Stanford Tech Ethics course, W
 date: "2023-10-04"
 description: I started taking "Ethics, Technology + Public Policy for Practitioners", a Stanford online course. In Week 1, we read Ursula K. Le Guin's "The Ones Who Walk Away from Omelas", and discussed moral complicity. This post is my reflection on the story, the cohort, and my thoughts on moral complicity and moral disengagement.
 image: https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg
+author: Hongsup Shin
 categories: 
     - ethics
 ---
