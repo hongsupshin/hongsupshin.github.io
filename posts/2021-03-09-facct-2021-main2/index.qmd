@@ -3,6 +3,7 @@ title: FAccT 2021. Automated decision-making, causal accountability, and robustn
 date: "2021-03-09"
 description: Summary of Day 2 at FAccT 2021. Automated decision-making, accountability and recourse, and model robustness
 image: "toolkit.png"
+author: Hongsup Shin
 categories: 
     - conference
     - explainability

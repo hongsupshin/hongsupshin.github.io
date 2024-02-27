@@ -2,10 +2,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.242">
+<meta name="generator" content="quarto-1.4.549">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Hongsup Shin">
 <meta name="dcterms.date" content="2023-03-02">
 <meta name="description" content="Pandas have two type inference methods. Let’s compare the methods by inferring data types for mixed data type arrays.">
 
@@ -19,11 +20,12 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -48,47 +50,17 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -110,7 +82,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   "collapse-after": 3,
   "panel-placement": "end",
   "type": "overlay",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -119,59 +97,91 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Hongsup Shin - Comparing type inference methods for mixed data arrays">
-<meta property="og:description" content="Pandas have two type inference methods. Let's compare the methods by inferring data types for mixed data type arrays.">
-<meta property="og:site-name" content="Hongsup Shin">
+<meta property="og:description" content="Pandas have two type inference methods. Let’s compare the methods by inferring data types for mixed data type arrays.">
+<meta property="og:site_name" content="Hongsup Shin">
 </head>
 
 <body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg navbar-dark ">
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container">
+      <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Hongsup Shin</span>
     </a>
   </div>
+            <div id="quarto-search" class="" title="Search"></div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../../about.html">
- <span class="menu-text">About</span></a>
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../../publications.html">
- <span class="menu-text">Publications</span></a>
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/hongsupshin"><i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"><i class="bi bi-linkedin" role="img">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
 </ul>
-              <div id="quarto-search" class="" title="Search"></div>
           </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
       </div> <!-- /container-fluid -->
     </nav>
 </header>
@@ -195,6 +205,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
       
       <div>
       <div class="quarto-title-meta-heading">Published</div>
@@ -217,19 +233,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
+
 <p>Some people work with data where the meaning of features (columns) is very clear because only common sense is required. For instance, even without a schema, in a housing price dataset, a column called “number of rooms” would be the number of rooms in a housing unit, and it’s very likely that the values of this column will be integers.</p>
 <p>In hardware (microprocessor) verification, it’s often impossible to understand the meaning of the columns. If you are an ML practitioner without hardware engineering background, you can nag verification engineers to explain it but it’s very likely that you wouldn’t completely understand, and there are hundreds and thousands of columns that need explanation. Even if you do have the background, depending on the product type, it’s likely that you can’t have full understanding of all columns.</p>
 <p>Besides, sometimes you need to work with so called “mixed data type” arrays. An example would be an array of boolean and float such as <code>[True, 0.0]</code>. If you use pandas to read this type of data, you should know that it infers the data type of an array like this as <code>object</code> quite often. This inference is done by the <code>pandas.DataFrame.infer_objects</code> method. However, a lot of different types of mixed arrays can be inferred as <code>object</code> dtype. This “blanket” approach might be useful for practical data handling but it is not suitable for more accurate and granular type inference. If the goal is to <em>understand the actual content</em> of the arrays.</p>
 <p>You may not have known that pandas has another type inference method in their api: <code>pandas.api.types.infer_dtype</code>, which provides granular type inference and allows to ignore null values (<code>skipna=True</code>). This method returns a name of inferred type as a string such as <code>"boolean"</code> or <code>"floating"</code>. For the comprehensive list of the type names, see the <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.types.infer_dtype.html">pandas documentation</a>.</p>
 <p>This notebook compares the two type inference methods of pandas (<code>pandas.DataFrame.infer_objects</code> and <code>pandas.api.types.infer_dtype</code>) when they are faced with various cases of mixed data type arrays. For the comparison, I used exhaustive combination of <code>None, array(list), str, bool, float, int</code> data to generate various mixed arrays, and then applied the two inference methods to compare the results.</p>
-<div class="cell" data-tags="[]" data-execution_count="1">
+<div id="3791c520-1a4e-447a-b5c8-3c6c801ec4d8" class="cell" data-tags="[]" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="testing-data-generating-arrays-of-mixed-data-types" class="level2">
 <h2 class="anchored" data-anchor-id="testing-data-generating-arrays-of-mixed-data-types">Testing data: generating arrays of mixed data types</h2>
 <p>Here I generated a dataframe with various mixed types: <code>"nan"(</code>np.nan<code>), "none", "array" (</code>list<code>), "str", "bool", "float", "int"</code>. Using their exhaustive combinations (<span class="math inline">\(N_{type}=2\)</span>), I created a 2-element array for each combination. For fair comparison, I assigned <code>object</code> dtypes to all columns.</p>
-<div class="cell" data-tags="[]" data-execution_count="2">
+<div id="b2a4941e-169a-4482-bcfa-cfd42c6813cc" class="cell" data-tags="[]" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>example <span class="op">=</span> pd.DataFrame(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    {</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">'nan'</span>: [np.nan, np.nan],</span>
@@ -269,90 +286,91 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 dtype: int64</code></pre>
 </div>
 </div>
-<div class="cell" data-tags="[]" data-execution_count="3">
+<div id="992bfe14-39d5-41b9-b4b6-81311e9fdbac" class="cell" data-tags="[]" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>example.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
-
 <div>
 
-<table class="dataframe table table-sm table-striped">
-  <thead>
-    <tr>
-      <th></th>
-      <th>nan</th>
-      <th>nan_none</th>
-      <th>nan_array</th>
-      <th>nan_str</th>
-      <th>nan_bool</th>
-      <th>nan_float</th>
-      <th>nan_int</th>
-      <th>none</th>
-      <th>none_array</th>
-      <th>none_str</th>
-      <th>...</th>
-      <th>str</th>
-      <th>str_bool</th>
-      <th>str_float</th>
-      <th>str_int</th>
-      <th>bool</th>
-      <th>bool_float</th>
-      <th>bool_int</th>
-      <th>float</th>
-      <th>float_int</th>
-      <th>int</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-      <td>...</td>
-      <td>a</td>
-      <td>a</td>
-      <td>a</td>
-      <td>a</td>
-      <td>True</td>
-      <td>True</td>
-      <td>True</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>NaN</td>
-      <td>None</td>
-      <td>[]</td>
-      <td>a</td>
-      <td>True</td>
-      <td>1.0</td>
-      <td>1</td>
-      <td>None</td>
-      <td>[]</td>
-      <td>a</td>
-      <td>...</td>
-      <td>b</td>
-      <td>True</td>
-      <td>1.0</td>
-      <td>1</td>
-      <td>False</td>
-      <td>0.0</td>
-      <td>1</td>
-      <td>0.0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-  </tbody>
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">nan</th>
+<th data-quarto-table-cell-role="th">nan_none</th>
+<th data-quarto-table-cell-role="th">nan_array</th>
+<th data-quarto-table-cell-role="th">nan_str</th>
+<th data-quarto-table-cell-role="th">nan_bool</th>
+<th data-quarto-table-cell-role="th">nan_float</th>
+<th data-quarto-table-cell-role="th">nan_int</th>
+<th data-quarto-table-cell-role="th">none</th>
+<th data-quarto-table-cell-role="th">none_array</th>
+<th data-quarto-table-cell-role="th">none_str</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">str</th>
+<th data-quarto-table-cell-role="th">str_bool</th>
+<th data-quarto-table-cell-role="th">str_float</th>
+<th data-quarto-table-cell-role="th">str_int</th>
+<th data-quarto-table-cell-role="th">bool</th>
+<th data-quarto-table-cell-role="th">bool_float</th>
+<th data-quarto-table-cell-role="th">bool_int</th>
+<th data-quarto-table-cell-role="th">float</th>
+<th data-quarto-table-cell-role="th">float_int</th>
+<th data-quarto-table-cell-role="th">int</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+<td>...</td>
+<td>a</td>
+<td>a</td>
+<td>a</td>
+<td>a</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+<td>1.0</td>
+<td>1.0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>NaN</td>
+<td>None</td>
+<td>[]</td>
+<td>a</td>
+<td>True</td>
+<td>1.0</td>
+<td>1</td>
+<td>None</td>
+<td>[]</td>
+<td>a</td>
+<td>...</td>
+<td>b</td>
+<td>True</td>
+<td>1.0</td>
+<td>1</td>
+<td>False</td>
+<td>0.0</td>
+<td>1</td>
+<td>0.0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
 </table>
+
 <p>2 rows × 28 columns</p>
 </div>
 </div>
@@ -360,194 +378,195 @@ dtype: int64</code></pre>
 </section>
 <section id="type-inference-with-pandas.dataframe.infer_objects" class="level2">
 <h2 class="anchored" data-anchor-id="type-inference-with-pandas.dataframe.infer_objects">Type inference with <code>pandas.DataFrame.infer_objects</code></h2>
-<div class="cell" data-tags="[]" data-execution_count="4">
+<div id="889a05aa-2582-4b9f-bd04-40367eb0e344" class="cell" data-tags="[]" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>example_results <span class="op">=</span> example.T</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>example_results[<span class="st">'pd_infer_objects'</span>] <span class="op">=</span> example.infer_objects().dtypes</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>example_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
-
 <div>
 
-<table class="dataframe table table-sm table-striped">
-  <thead>
-    <tr>
-      <th></th>
-      <th>0</th>
-      <th>1</th>
-      <th>pd_infer_objects</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>nan</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>nan_none</th>
-      <td>NaN</td>
-      <td>None</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>nan_array</th>
-      <td>NaN</td>
-      <td>[]</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>nan_str</th>
-      <td>NaN</td>
-      <td>a</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>nan_bool</th>
-      <td>NaN</td>
-      <td>True</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>nan_float</th>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>nan_int</th>
-      <td>NaN</td>
-      <td>1</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>none</th>
-      <td>None</td>
-      <td>None</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>none_array</th>
-      <td>None</td>
-      <td>[]</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>none_str</th>
-      <td>None</td>
-      <td>a</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>none_bool</th>
-      <td>None</td>
-      <td>True</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>none_float</th>
-      <td>None</td>
-      <td>0.0</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>none_int</th>
-      <td>None</td>
-      <td>1</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>array</th>
-      <td>[]</td>
-      <td>[]</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>array_str</th>
-      <td>[]</td>
-      <td>a</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>array_bool</th>
-      <td>[]</td>
-      <td>True</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>array_float</th>
-      <td>[]</td>
-      <td>1.0</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>array_int</th>
-      <td>[]</td>
-      <td>1</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>str</th>
-      <td>a</td>
-      <td>b</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>str_bool</th>
-      <td>a</td>
-      <td>True</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>str_float</th>
-      <td>a</td>
-      <td>1.0</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>str_int</th>
-      <td>a</td>
-      <td>1</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>bool</th>
-      <td>True</td>
-      <td>False</td>
-      <td>bool</td>
-    </tr>
-    <tr>
-      <th>bool_float</th>
-      <td>True</td>
-      <td>0.0</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>bool_int</th>
-      <td>True</td>
-      <td>1</td>
-      <td>object</td>
-    </tr>
-    <tr>
-      <th>float</th>
-      <td>1.0</td>
-      <td>0.0</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>float_int</th>
-      <td>1.0</td>
-      <td>0</td>
-      <td>float64</td>
-    </tr>
-    <tr>
-      <th>int</th>
-      <td>1</td>
-      <td>0</td>
-      <td>int64</td>
-    </tr>
-  </tbody>
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">pd_infer_objects</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>float64</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_none</td>
+<td>NaN</td>
+<td>None</td>
+<td>float64</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_array</td>
+<td>NaN</td>
+<td>[]</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_str</td>
+<td>NaN</td>
+<td>a</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_bool</td>
+<td>NaN</td>
+<td>True</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_float</td>
+<td>NaN</td>
+<td>1.0</td>
+<td>float64</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_int</td>
+<td>NaN</td>
+<td>1</td>
+<td>float64</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none</td>
+<td>None</td>
+<td>None</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_array</td>
+<td>None</td>
+<td>[]</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_str</td>
+<td>None</td>
+<td>a</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_bool</td>
+<td>None</td>
+<td>True</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_float</td>
+<td>None</td>
+<td>0.0</td>
+<td>float64</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_int</td>
+<td>None</td>
+<td>1</td>
+<td>float64</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array</td>
+<td>[]</td>
+<td>[]</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_str</td>
+<td>[]</td>
+<td>a</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array_bool</td>
+<td>[]</td>
+<td>True</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_float</td>
+<td>[]</td>
+<td>1.0</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array_int</td>
+<td>[]</td>
+<td>1</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str</td>
+<td>a</td>
+<td>b</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_bool</td>
+<td>a</td>
+<td>True</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str_float</td>
+<td>a</td>
+<td>1.0</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_int</td>
+<td>a</td>
+<td>1</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">bool</td>
+<td>True</td>
+<td>False</td>
+<td>bool</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">bool_float</td>
+<td>True</td>
+<td>0.0</td>
+<td>object</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">bool_int</td>
+<td>True</td>
+<td>1</td>
+<td>object</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">float</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>float64</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">float_int</td>
+<td>1.0</td>
+<td>0</td>
+<td>float64</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">int</td>
+<td>1</td>
+<td>0</td>
+<td>int64</td>
+</tr>
+</tbody>
 </table>
+
 </div>
 </div>
 </div>
@@ -556,254 +575,255 @@ dtype: int64</code></pre>
 <section id="type-inference-with-pandas.api.types.infer_dtype" class="level2">
 <h2 class="anchored" data-anchor-id="type-inference-with-pandas.api.types.infer_dtype">Type inference with <code>pandas.api.types.infer_dtype</code></h2>
 <p>This method allows two variants: with skipping na values and without. Let’s get inference results from the both.</p>
-<div class="cell" data-tags="[]" data-execution_count="5">
+<div id="2fffe96a-ee40-4a50-8972-b46906f75b2c" class="cell" data-tags="[]" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>example_results[<span class="st">'pd_infer_dtype'</span>] <span class="op">=</span> example.<span class="bu">apply</span>(<span class="kw">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op">=</span><span class="va">False</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>example_results[<span class="st">'pd_infer_dtype_skipna'</span>] <span class="op">=</span> example.<span class="bu">apply</span>(<span class="kw">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="6">
+<div id="718bcc57" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>example_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
-
 <div>
 
-<table class="dataframe table table-sm table-striped">
-  <thead>
-    <tr>
-      <th></th>
-      <th>0</th>
-      <th>1</th>
-      <th>pd_infer_objects</th>
-      <th>pd_infer_dtype</th>
-      <th>pd_infer_dtype_skipna</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>nan</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>float64</td>
-      <td>floating</td>
-      <td>empty</td>
-    </tr>
-    <tr>
-      <th>nan_none</th>
-      <td>NaN</td>
-      <td>None</td>
-      <td>float64</td>
-      <td>mixed</td>
-      <td>empty</td>
-    </tr>
-    <tr>
-      <th>nan_array</th>
-      <td>NaN</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>nan_str</th>
-      <td>NaN</td>
-      <td>a</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>string</td>
-    </tr>
-    <tr>
-      <th>nan_bool</th>
-      <td>NaN</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>boolean</td>
-    </tr>
-    <tr>
-      <th>nan_float</th>
-      <td>NaN</td>
-      <td>1.0</td>
-      <td>float64</td>
-      <td>floating</td>
-      <td>floating</td>
-    </tr>
-    <tr>
-      <th>nan_int</th>
-      <td>NaN</td>
-      <td>1</td>
-      <td>float64</td>
-      <td>integer-na</td>
-      <td>integer</td>
-    </tr>
-    <tr>
-      <th>none</th>
-      <td>None</td>
-      <td>None</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>empty</td>
-    </tr>
-    <tr>
-      <th>none_array</th>
-      <td>None</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>none_str</th>
-      <td>None</td>
-      <td>a</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>string</td>
-    </tr>
-    <tr>
-      <th>none_bool</th>
-      <td>None</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>boolean</td>
-    </tr>
-    <tr>
-      <th>none_float</th>
-      <td>None</td>
-      <td>0.0</td>
-      <td>float64</td>
-      <td>mixed</td>
-      <td>mixed-integer-float</td>
-    </tr>
-    <tr>
-      <th>none_int</th>
-      <td>None</td>
-      <td>1</td>
-      <td>float64</td>
-      <td>mixed-integer</td>
-      <td>integer</td>
-    </tr>
-    <tr>
-      <th>array</th>
-      <td>[]</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_str</th>
-      <td>[]</td>
-      <td>a</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_bool</th>
-      <td>[]</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_float</th>
-      <td>[]</td>
-      <td>1.0</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_int</th>
-      <td>[]</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>str</th>
-      <td>a</td>
-      <td>b</td>
-      <td>object</td>
-      <td>string</td>
-      <td>string</td>
-    </tr>
-    <tr>
-      <th>str_bool</th>
-      <td>a</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>str_float</th>
-      <td>a</td>
-      <td>1.0</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>str_int</th>
-      <td>a</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>bool</th>
-      <td>True</td>
-      <td>False</td>
-      <td>bool</td>
-      <td>boolean</td>
-      <td>boolean</td>
-    </tr>
-    <tr>
-      <th>bool_float</th>
-      <td>True</td>
-      <td>0.0</td>
-      <td>object</td>
-      <td>mixed</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>bool_int</th>
-      <td>True</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>float</th>
-      <td>1.0</td>
-      <td>0.0</td>
-      <td>float64</td>
-      <td>floating</td>
-      <td>floating</td>
-    </tr>
-    <tr>
-      <th>float_int</th>
-      <td>1.0</td>
-      <td>0</td>
-      <td>float64</td>
-      <td>mixed-integer-float</td>
-      <td>mixed-integer-float</td>
-    </tr>
-    <tr>
-      <th>int</th>
-      <td>1</td>
-      <td>0</td>
-      <td>int64</td>
-      <td>integer</td>
-      <td>integer</td>
-    </tr>
-  </tbody>
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">pd_infer_objects</th>
+<th data-quarto-table-cell-role="th">pd_infer_dtype</th>
+<th data-quarto-table-cell-role="th">pd_infer_dtype_skipna</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>float64</td>
+<td>floating</td>
+<td>empty</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_none</td>
+<td>NaN</td>
+<td>None</td>
+<td>float64</td>
+<td>mixed</td>
+<td>empty</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_array</td>
+<td>NaN</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_str</td>
+<td>NaN</td>
+<td>a</td>
+<td>object</td>
+<td>mixed</td>
+<td>string</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_bool</td>
+<td>NaN</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+<td>boolean</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_float</td>
+<td>NaN</td>
+<td>1.0</td>
+<td>float64</td>
+<td>floating</td>
+<td>floating</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_int</td>
+<td>NaN</td>
+<td>1</td>
+<td>float64</td>
+<td>integer-na</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none</td>
+<td>None</td>
+<td>None</td>
+<td>object</td>
+<td>mixed</td>
+<td>empty</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_array</td>
+<td>None</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_str</td>
+<td>None</td>
+<td>a</td>
+<td>object</td>
+<td>mixed</td>
+<td>string</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_bool</td>
+<td>None</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+<td>boolean</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_float</td>
+<td>None</td>
+<td>0.0</td>
+<td>float64</td>
+<td>mixed</td>
+<td>mixed-integer-float</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_int</td>
+<td>None</td>
+<td>1</td>
+<td>float64</td>
+<td>mixed-integer</td>
+<td>integer</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array</td>
+<td>[]</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_str</td>
+<td>[]</td>
+<td>a</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array_bool</td>
+<td>[]</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_float</td>
+<td>[]</td>
+<td>1.0</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array_int</td>
+<td>[]</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str</td>
+<td>a</td>
+<td>b</td>
+<td>object</td>
+<td>string</td>
+<td>string</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_bool</td>
+<td>a</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str_float</td>
+<td>a</td>
+<td>1.0</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_int</td>
+<td>a</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">bool</td>
+<td>True</td>
+<td>False</td>
+<td>bool</td>
+<td>boolean</td>
+<td>boolean</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">bool_float</td>
+<td>True</td>
+<td>0.0</td>
+<td>object</td>
+<td>mixed</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">bool_int</td>
+<td>True</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">float</td>
+<td>1.0</td>
+<td>0.0</td>
+<td>float64</td>
+<td>floating</td>
+<td>floating</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">float_int</td>
+<td>1.0</td>
+<td>0</td>
+<td>float64</td>
+<td>mixed-integer-float</td>
+<td>mixed-integer-float</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">int</td>
+<td>1</td>
+<td>0</td>
+<td>int64</td>
+<td>integer</td>
+<td>integer</td>
+</tr>
+</tbody>
 </table>
+
 </div>
 </div>
 </div>
@@ -811,7 +831,7 @@ dtype: int64</code></pre>
 <section id="comparison-with-vs.-without-na-values-in-pandas.api.types.infer_dtype" class="level2">
 <h2 class="anchored" data-anchor-id="comparison-with-vs.-without-na-values-in-pandas.api.types.infer_dtype">Comparison: with vs.&nbsp;without na values in <code>pandas.api.types.infer_dtype</code></h2>
 <p>When we don’t skip na values (<code>skipna=False</code>), we often get <code>"mixed"</code> results from <code>pandas.api.types.infer_dtype</code> for arrays that are inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code>. This means, the inference results are not granular, like we just saw from <code>pandas.DataFrame.infer_objects</code>. For instance, in the table above, <code>"nan_array", "nan_str", "nan_bool"</code> are all identified as <code>"mixed"</code> when we don’t ignore nan.</p>
-<div class="cell" data-execution_count="7">
+<div id="aab69619" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>example_results.loc[[<span class="st">"nan_array"</span>, <span class="st">"nan_str"</span>, <span class="st">"nan_bool"</span>], <span class="st">"pd_infer_dtype"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>nan_array    mixed
@@ -821,7 +841,7 @@ Name: pd_infer_dtype, dtype: object</code></pre>
 </div>
 </div>
 <p>However, when we ignore na values, we get more granular results, which identify the correct data types (without missing).</p>
-<div class="cell" data-execution_count="8">
+<div id="819b8ecf" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>example_results.loc[[<span class="st">"nan_array"</span>, <span class="st">"nan_str"</span>, <span class="st">"nan_bool"</span>], <span class="st">"pd_infer_dtype_skipna"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>nan_array      mixed
@@ -834,158 +854,159 @@ Name: pd_infer_dtype_skipna, dtype: object</code></pre>
 <section id="comparison-pandas.dataframe.infer_objects-vs.-pandas.api.types.infer_dtypeskipnatrue" class="level2">
 <h2 class="anchored" data-anchor-id="comparison-pandas.dataframe.infer_objects-vs.-pandas.api.types.infer_dtypeskipnatrue">Comparison: <code>pandas.DataFrame.infer_objects</code> vs.&nbsp;<code>pandas.api.types.infer_dtype(skipna=True)</code></h2>
 <p>Because <code>pandas.DataFrame.infer_objects</code> has a blanket approach to mixed data arrays, using this method to various mixed arrays, we get a lot of <code>object</code> columns. Let’s take a deeper look at the columns inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code>, and examine the inference result from <code>pandas.api.types.infer_dtype(skipna=True)</code>.</p>
-<div class="cell" data-tags="[]" data-execution_count="9">
+<div id="f8e3242e-7d90-4e7e-a7a3-1012464128ca" class="cell" data-tags="[]" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>example_results[example_results[<span class="st">'pd_infer_objects'</span>] <span class="op">==</span> <span class="bu">object</span>].drop(<span class="st">'pd_infer_dtype'</span>, axis<span class="op">=</span><span class="dv">1</span>).sort_values(by<span class="op">=</span><span class="st">'pd_infer_dtype_skipna'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
-
 <div>
 
-<table class="dataframe table table-sm table-striped">
-  <thead>
-    <tr>
-      <th></th>
-      <th>0</th>
-      <th>1</th>
-      <th>pd_infer_objects</th>
-      <th>pd_infer_dtype_skipna</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>nan_bool</th>
-      <td>NaN</td>
-      <td>True</td>
-      <td>object</td>
-      <td>boolean</td>
-    </tr>
-    <tr>
-      <th>none_bool</th>
-      <td>None</td>
-      <td>True</td>
-      <td>object</td>
-      <td>boolean</td>
-    </tr>
-    <tr>
-      <th>none</th>
-      <td>None</td>
-      <td>None</td>
-      <td>object</td>
-      <td>empty</td>
-    </tr>
-    <tr>
-      <th>nan_array</th>
-      <td>NaN</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>str_float</th>
-      <td>a</td>
-      <td>1.0</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>str_bool</th>
-      <td>a</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_float</th>
-      <td>[]</td>
-      <td>1.0</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_bool</th>
-      <td>[]</td>
-      <td>True</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_str</th>
-      <td>[]</td>
-      <td>a</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array</th>
-      <td>[]</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>none_array</th>
-      <td>None</td>
-      <td>[]</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>bool_float</th>
-      <td>True</td>
-      <td>0.0</td>
-      <td>object</td>
-      <td>mixed</td>
-    </tr>
-    <tr>
-      <th>array_int</th>
-      <td>[]</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>str_int</th>
-      <td>a</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>bool_int</th>
-      <td>True</td>
-      <td>1</td>
-      <td>object</td>
-      <td>mixed-integer</td>
-    </tr>
-    <tr>
-      <th>none_str</th>
-      <td>None</td>
-      <td>a</td>
-      <td>object</td>
-      <td>string</td>
-    </tr>
-    <tr>
-      <th>str</th>
-      <td>a</td>
-      <td>b</td>
-      <td>object</td>
-      <td>string</td>
-    </tr>
-    <tr>
-      <th>nan_str</th>
-      <td>NaN</td>
-      <td>a</td>
-      <td>object</td>
-      <td>string</td>
-    </tr>
-  </tbody>
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+<th data-quarto-table-cell-role="th">pd_infer_objects</th>
+<th data-quarto-table-cell-role="th">pd_infer_dtype_skipna</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">nan_bool</td>
+<td>NaN</td>
+<td>True</td>
+<td>object</td>
+<td>boolean</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_bool</td>
+<td>None</td>
+<td>True</td>
+<td>object</td>
+<td>boolean</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none</td>
+<td>None</td>
+<td>None</td>
+<td>object</td>
+<td>empty</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_array</td>
+<td>NaN</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str_float</td>
+<td>a</td>
+<td>1.0</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_bool</td>
+<td>a</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_float</td>
+<td>[]</td>
+<td>1.0</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array_bool</td>
+<td>[]</td>
+<td>True</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_str</td>
+<td>[]</td>
+<td>a</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">array</td>
+<td>[]</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">none_array</td>
+<td>None</td>
+<td>[]</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">bool_float</td>
+<td>True</td>
+<td>0.0</td>
+<td>object</td>
+<td>mixed</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">array_int</td>
+<td>[]</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">str_int</td>
+<td>a</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">bool_int</td>
+<td>True</td>
+<td>1</td>
+<td>object</td>
+<td>mixed-integer</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">none_str</td>
+<td>None</td>
+<td>a</td>
+<td>object</td>
+<td>string</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">str</td>
+<td>a</td>
+<td>b</td>
+<td>object</td>
+<td>string</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">nan_str</td>
+<td>NaN</td>
+<td>a</td>
+<td>object</td>
+<td>string</td>
+</tr>
+</tbody>
 </table>
+
 </div>
 </div>
 </div>
 <p>This shows that a variety of mixed arrays is inferred as <code>object</code> by <code>pandas.DataFrame.infer_objects</code> but <code>pandas.api.types.infer_dtype(skipna=True)</code> can often identify true types. It’s true that the latter returns a lot of different arrays as <code>"mixed"</code> but most of them have non-numerical values such as string or array.</p>
 <p>One interesting observation is that <code>[True, 0.0]</code> is inferred as <code>"mixed"</code> but <code>[True, 1]</code> as <code>"mixed-integer"</code>, which implies that <code>pandas.api.types.infer_dtype</code> method is designed to highlight the presence of integers in inferred type information.</p>
 <p>Finally, we can compare the returned values of two methods:</p>
-<div class="cell" data-tags="[]" data-execution_count="7">
+<div id="bd601df0-8797-4da3-8d81-9006bb4e60c1" class="cell" data-tags="[]" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> val <span class="kw">in</span> <span class="bu">set</span>(example_results[<span class="st">'pd_infer_objects'</span>]):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(val, <span class="bu">type</span>(val))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -995,7 +1016,7 @@ bool &lt;class 'numpy.dtype[bool_]'&gt;
 object &lt;class 'numpy.dtype[object_]'&gt;</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="8">
+<div id="4ea2f495-c820-4733-8611-fdb8ead00094" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> val <span class="kw">in</span> <span class="bu">set</span>(example_results[<span class="st">'pd_infer_dtype_skipna'</span>]):</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(val, <span class="bu">type</span>(val))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1048,9 +1069,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -1086,10 +1121,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -1099,8 +1133,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -1115,6 +1158,238 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
@@ -1155,6 +1430,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+
 
 
 

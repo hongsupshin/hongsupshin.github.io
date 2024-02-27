@@ -2,6 +2,7 @@
 title: "Fairness in ML at ACM FAT 2019"
 date: "2019-02-01"
 image: "2019-02-01-acm-fat.jpeg"
+author: Hongsup Shin
 categories: 
     - conference
     - fairness

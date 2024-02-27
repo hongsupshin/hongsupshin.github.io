@@ -2,6 +2,7 @@
 title: Critiquing and rethinking at ACM FAT 2020
 date: "2020-03-01"
 image: "2020-03-01-acm-fat-badge.png"
+author: Hongsup Shin
 description: Summary of FAT 2020 in Barcelona, Spain. "Critiquing and rethinking" was their new attempt to open up a discussion between multidisciplinary stakeholders
 categories: 
     - conference
