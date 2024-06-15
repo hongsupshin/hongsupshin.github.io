@@ -3,6 +3,7 @@ title: (tentative) Why ML projects fail
 date: 2024-02-21
 description: 
 image: 
+author: Hongsup Shin
 categories: 
     - ML
 ---
