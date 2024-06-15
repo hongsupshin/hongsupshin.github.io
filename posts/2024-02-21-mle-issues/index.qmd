@@ -1,0 +1,33 @@
+---
+title: (tentative) Why ML projects fail
+date: 2024-02-21
+description: 
+image: 
+author: Hongsup Shin
+categories: 
+    - ML
+---
+
+Focus: high level issues, what undermines ML productization and ML engineering
+
+Basic ideas
+- Lack of understanding of the nature of ML products
+- ML hype comlicates the issue
+- Not always about technical issues, management and collaboration affects too
+
+Brain dump
+- Upper management lack of ML engineering
+  - Ignoring research
+  - treating ML project as a typical software engineering product
+  - there's no true handoff
+  - domain experts are not looped properly
+  - treating ML as magic
+  - zero exploratory work
+  - not understanding client needs
+  - misalignment of KPIs and model optimization metrics
+- Team mismanagement
+  - ML/data engineering lack of support for ML work: experimentationn, a/b testing, reproducibility
+  - ML engineering implementation going separate ways
+  - Overly democratic process (non meritocratic and everybody is invited to all meetings); people generally feel safer in smaller meetings; dispeserion of responsibility and accountability
+  - no accountability and coordination
+  - lack of psychological safety to fail fast and move on
