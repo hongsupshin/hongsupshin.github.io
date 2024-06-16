@@ -1,0 +1,38 @@
+---
+title: Outlier/Novelty detection with Local Outlier Factor 
+date: 2024-06-14
+description: Test
+image: https://scikit-learn.org/stable/_images/sphx_glr_plot_lof_novelty_detection_001.png
+author: Hongsup Shin
+categories: 
+    - ML
+---
+
+The sklearn library has several unsupervised algorithms that can be used for outlier and novelty detection. [Local outlier factor (LOF)](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.LocalOutlierFactor.html) (LOF) is one of those which recently piqued my interest for several reasons. Firs, LOF can be used for both outlier and novelty detection problems (yes, they are different!). Second, the intuition behind the algorithm is interesting because it is based on the k-nearest neighbors algorithm. In this post, let's follow the examples in sklearn and take a closer look at the algorithm. 
+
+## Novelty detection vs. outlier detection
+
+Let's first talk about the difference between outlier detection and novelty detection. To simply put, outlier detection assumes that data ingested by a model contains both inliers and outliers, while novel detection considers the data consisting of purely inliers. This difference affects how algorithms are used in practice. 
+
+In outlier detection where the goal is to distinguish outliers from inliers, there is no need to train a model in advance on a separate *training* dataset. On a given dataset, which we suspect contains both inliers and outliers, we can train a model immediately and make prediction for all samples. This is why the outlier detection algorithms in sklearn provide the `fit_predict` method, not `fit` and `predict` together. The model *fitting* naturally involves detection of outliers.
+
+With novelty detection, we assume the data are not contaminated with outliers. The goal is to train a model with a dataset consisting of inliers only, and then use the trained model to make prediction to detect novelty (i.e., samples that the model expects the least) during inference. Thus a novelty detection algorithm has separate `fit` and `predict` methods. 
+
+Interestingly, the LOF algorithm can be used in both ways. Its default mode is outlier detection but we can `novelty=True` when instantiating the model to use it for a novelty detection problem. 
+
+## Model evaluation of unsupervised learning algorithms
+
+Even though unsupervised learning algorithms are taught in ML courses, using these models in practice is more challenging than the case of supervised learning models. The main reason is that the data for unsupervised learning do not have labeled output, meaning it is difficult to evaluate the model performance.
+
+One may say we can use a labeled dataset such as a binary classification dataset for to evaluate unsupervised models, but [it is generally not the best idea to use an unsupervised learning for a labeled dataset](https://amueller.github.io/aml/03-unsupervised-learning/03-outlier-detection.html) because you can simply just use supervised learning algorithms.
+
+
+### Model parameters and attributes
+
+LOF and other unsupervised algorithms have a hyperparameter that represents the degree of contamination. This parameter is used as a threshold to create binary labels (inliers or outliers) and does not affect model training. Thus, this does not have to be tuned. Since LOF is based on the K-nearest neighbor (KNN) algorithm, one important hyperparameter that can be tuned is `n_neighbor`, the number of neighbors to consider when computing the distance metric. The sklearn developers suggest that setting `n_neighbor=20` usually results in decent performance, so we will take their advice.
+
+A trained LOF model has `negative_outlier_factor_` attribute. The higher, the more normal. The attribute value lies between -1 and 1. This attribute can be used to rank the samples in a dataset.
+
+There are specific algorithm-related hyperparameters such as `algorithm` and `leaf_size`, which are used to compute the nearest neighbors. The `algorithm` hyperparameter has the `auto` option where we can delegate this to the model itself. We can further tweak `leaf_size` to optimize speed and memory, but for this exercise we decide not to touch this.
+
+One important hyperparameter though is `p`, a parameter for the Minkowski metric. If `p=1`, the model uses Manhattan distance, and if `p=2` then Euclidean distance. Other values can be used for a general Minkowski distance. [Studies](https://bib.dbvis.de/uploadedFiles/155.pdf) show that the Manhattan distance is preferred for high dimensionality data, we will set `p=1`.
