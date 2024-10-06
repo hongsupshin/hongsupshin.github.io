@@ -9,8 +9,54 @@
 <link>https://hongsupshin.github.io/</link>
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.4.549</generator>
-<lastBuildDate>Wed, 11 Oct 2023 05:00:00 GMT</lastBuildDate>
+<generator>quarto-1.5.57</generator>
+<lastBuildDate>Sat, 05 Oct 2024 05:00:00 GMT</lastBuildDate>
+<item>
+  <title>Building datasets for model benchmarking in production</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2024-10-05/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.</p>
+<p>In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We’ll examine the practical considerations that arise when applying benchmarking to real-world applications.</p>
+<section id="data-preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
+<p>When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, which demands raw data experimentation, such as optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.</p>
+</section>
+<section id="data-split-and-reproducibility" class="level2">
+<h2 class="anchored" data-anchor-id="data-split-and-reproducibility">Data split and reproducibility</h2>
+<p>Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the <a href="https://www.tensorflow.org/datasets/catalog/imagenet2012">ImageNet dataset</a> on TensorFlow shows the <code>'train', 'validation', 'test'</code> splits. In contrast, tabular ML often embraces cross-validation, requiring a more nuanced approach to benchmark design. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn’s <code>KFold</code>.</p>
+</section>
+<section id="data-curation" class="level2">
+<h2 class="anchored" data-anchor-id="data-curation">Data curation</h2>
+<p>While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply <em>bad</em>), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.</p>
+</section>
+<section id="data-staleness" class="level2">
+<h2 class="anchored" data-anchor-id="data-staleness">Data staleness</h2>
+<p>In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of your product’s lifecycle.</p>
+</section>
+<section id="overfitting-to-the-benchmark-data" class="level2">
+<h2 class="anchored" data-anchor-id="overfitting-to-the-benchmark-data">Overfitting to the benchmark data</h2>
+<p><a href="https://arxiv.org/abs/2405.00332">A recent paper</a> has showed the susceptibility of LLMs to overfit public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).</p>
+</section>
+<section id="other-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
+<p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>MLOps</category>
+  <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
+  <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
+  <media:content url="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png" medium="image" type="image/png"/>
+</item>
 <item>
   <title>Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -433,6 +479,7 @@ font-style: inherit;">1</span>,    </span>
 <div id="29875de3-ddac-4c67-9673-cb62634d446e" class="cell" data-tags="[]" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
@@ -638,8 +685,10 @@ font-style: inherit;">*</span>n_train_size)</span>
 <span id="cb15-6"></span>
 <span id="cb15-7"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> train_index, val_index <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> ps.split():</span>
 <span id="cb15-8">    X_train <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -664,6 +713,7 @@ font-style: inherit;">3</span></span>
 <span id="cb16-2"></span>
 <span id="cb16-3"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
@@ -821,6 +871,7 @@ font-style: inherit;">1</span>)</span></code></pre></div>
 <div id="dc7954c5-4d19-4b2c-94fc-8d2b25f8dd4a" class="cell" data-tags="[]" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
@@ -909,6 +960,7 @@ font-style: inherit;">=</span> mlflow_client.get_run(run.info.run_id)</span></co
 <div id="a31b2c59-a15e-41d1-9c6f-d10948db8417" class="cell" data-tags="[]" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">assert</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;
@@ -923,6 +975,7 @@ background-color: null;
 font-style: inherit;">'clf__learning_rate'</span>]</span>
 <span id="cb22-3"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">assert</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;
@@ -948,6 +1001,7 @@ font-style: inherit;">'clf__subsample'</span>]</span></code></pre></div>
 <div id="1a629ef7-4a01-406e-af8a-eb6ccd74353f" class="cell" data-tags="[]" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
@@ -1034,6 +1088,7 @@ font-style: inherit;">"binary_logloss"</span>],</span>
 <div id="7d789316-6f32-425b-8082-c3cf605d3df9" class="cell" data-tags="[]" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">with</span> mlflow.start_run(run_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
@@ -1123,6 +1178,7 @@ font-style: inherit;">=</span> mlflow_client.get_run(run.info.run_id)</span></co
 <div id="527128e5-6c5e-4e62-8e0f-7616560f7701" class="cell" data-tags="[]" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">assert</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;
@@ -1137,6 +1193,7 @@ background-color: null;
 font-style: inherit;">'learning_rate'</span>]</span>
 <span id="cb30-3"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">assert</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(search_cv.best_estimator_.get_params()[<span class="st" style="color: #20794D;
@@ -1719,6 +1776,7 @@ font-style: inherit;">=</span> example.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
@@ -1732,6 +1790,7 @@ font-style: inherit;">=</span> example.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">lambda</span> x:pd.api.types.infer_dtype(x, skipna<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
@@ -2200,8 +2259,10 @@ font-style: inherit;">'pd_infer_dtype_skipna'</span>)</span></code></pre></div>
 <div id="bd601df0-8797-4da3-8d81-9006bb4e60c1" class="cell" data-tags="[]" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> val <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">set</span>(example_results[<span class="st" style="color: #20794D;
@@ -2222,8 +2283,10 @@ object &lt;class 'numpy.dtype[object_]'&gt;</code></pre>
 <div id="4ea2f495-c820-4733-8611-fdb8ead00094" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> val <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">set</span>(example_results[<span class="st" style="color: #20794D;
@@ -2950,8 +3013,10 @@ background-color: null;
 font-style: inherit;">200</span>])</span>
 <span id="cb7-5"><span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> county_name <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> top5_locs:</span>
 <span id="cb7-6">    ax.annotate(county_name.capitalize(), (pop_size.loc[county_name]<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -3396,8 +3461,10 @@ font-style: inherit;">'</span>.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">format</span>(s) <span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> s <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> age_range_names[inds_age_binned]]</span>
 <span id="cb15-24">df_death_age_male_pct.index <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -3411,8 +3478,10 @@ font-style: inherit;">'</span>.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">format</span>(s) <span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> s <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> age_range_names[inds_age_binned]]</span></code></pre></div>
 </details>
 </div>
@@ -3584,8 +3653,10 @@ font-style: inherit;">)'</span>.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">format</span>(n) <span class="cf" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">for</span> s, n <span class="kw" style="color: #003B4F;
 background-color: null;
+font-weight: bold;
 font-style: inherit;">in</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">zip</span>(df_civilian_incident_race_top5.columns, </span>
