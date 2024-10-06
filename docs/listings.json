@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2024-10-05/index.html",
       "/posts/2023-10-11-ethics-week2/index.html",
       "/posts/2023-10-04-ethics-week1/index.html",
       "/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html",

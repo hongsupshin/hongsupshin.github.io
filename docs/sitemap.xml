@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://hongsupshin.github.io/about.html</loc>
-    <lastmod>2024-02-27T03:52:44.533Z</lastmod>
+    <lastmod>2024-06-15T03:36:05.354Z</lastmod>
   </url>
   <url>
     <loc>https://hongsupshin.github.io/index.html</loc>
@@ -71,5 +71,9 @@
   <url>
     <loc>https://hongsupshin.github.io/publications.html</loc>
     <lastmod>2023-09-30T23:49:16.390Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2024-10-05/index.html</loc>
+    <lastmod>2024-10-06T21:44:15.748Z</lastmod>
   </url>
 </urlset>
