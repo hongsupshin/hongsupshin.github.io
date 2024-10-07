@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2024-10-05">
+<meta name="description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
 
-<title>Publications and Talks – Hongsup Shin</title>
+<title>Building datasets for model benchmarking in production – Hongsup Shin</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,22 +26,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -68,19 +71,21 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Publications and Talks – Hongsup Shin">
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Building datasets for model benchmarking in production – Hongsup Shin">
+<meta property="og:description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
+<meta property="og:image" content="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png">
 <meta property="og:site_name" content="Hongsup Shin">
 </head>
 
 <body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Hongsup Shin</span>
     </a>
   </div>
@@ -91,11 +96,11 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./publications.html" aria-current="page"> 
+    <a class="nav-link" href="../../publications.html"> 
 <span class="menu-text">Publications</span></a>
   </li>  
   <li class="nav-item compact">
@@ -116,109 +121,79 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Building datasets for model benchmarking in production</h1>
+                  <div>
+        <div class="description">
+          Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">ML</div>
+                <div class="quarto-category">MLOps</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 5, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Publications and Talks</h1>
-</div>
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
 
 
-</header>
-
-
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">2023</h2>
-<ul>
-<li><a href="https://austinmljournalclub.github.io/posts/20230329/">Visualization in Bayesian workflow</a> (paper presentation). Austin ML Journal Club.</li>
-<li><a href="https://zenodo.org/record/8136049">Data-centric ML pipeline for data drift and data preprocessing</a>. The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).</li>
-<li><a href="https://austinmljournalclub.github.io/posts/20230831/">Constitutional AI: Harmlessness from AI Feedback</a> (paper presentation). Austin ML Journal Club.</li>
-</ul>
+<p>At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.</p>
+<p>In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We’ll examine the practical considerations that arise when applying benchmarking to real-world applications.</p>
+<section id="data-preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
+<p>When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, experimentation demands raw data for optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.</p>
 </section>
-<section id="section-1" class="level2">
-<h2 class="anchored" data-anchor-id="section-1">2022</h2>
-<ul>
-<li><a href="https://ieeexplore.ieee.org/document/9908095/">Data-Centric Machine Learning Pipeline for Hardware Verification</a>. The 35th IEEE International System-on-Chip.</li>
-<li><a href="https://austinmljournalclub.github.io/posts/20221027/">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</a> (paper presentation). Austin ML Journal Club.</li>
-<li><a href="https://austinmljournalclub.github.io/posts/20221215/">Zero-Shot Text-to-Image Generation</a> (paper presentation). Austin ML Journal Club.</li>
-</ul>
+<section id="data-split-and-reproducibility" class="level2">
+<h2 class="anchored" data-anchor-id="data-split-and-reproducibility">Data split and reproducibility</h2>
+<p>Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the <a href="https://www.tensorflow.org/datasets/catalog/imagenet2012">ImageNet dataset</a> on TensorFlow shows the <code>'train', 'validation', 'test'</code> splits. In contrast, tabular ML often uses cross-validation. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn’s <code>KFold</code>.</p>
 </section>
-<section id="section-2" class="level2">
-<h2 class="anchored" data-anchor-id="section-2">2021</h2>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=gfqKaplRTsk&amp;ab_channel=AustinPythonMeetup">Data science volunteering for criminal justice</a>. Austin Python Meetup.</li>
-</ul>
+<section id="data-curation" class="level2">
+<h2 class="anchored" data-anchor-id="data-curation">Data curation</h2>
+<p>While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply <em>bad</em>), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.</p>
 </section>
-<section id="section-3" class="level2">
-<h2 class="anchored" data-anchor-id="section-3">2020</h2>
-<ul>
-<li><a href="https://community.arm.com/arm-research/b/articles/posts/efficient-bug-discovery-with-machine-learning-for-hardware-verification">Efficient Bug Discovery with Machine Learning for Hardware Verification</a>. Arm Research Blog.</li>
-<li>Exploiting while exploring: effective bug discovery in unit-level verification via supervised learning. The 57th Design Automation Conference.</li>
-<li><a href="https://texasjusticeinitiative.org/static/TJI_OISReport_2020.pdf">Officer-involver shooting (OIS) in Texas</a> (<a href="https://drive.google.com/file/d/1aXvxJ8E4pP9uE4WU0dW3A4ncglxvZhCH/view">talk video</a>). Texas Justice Initiative.</li>
-</ul>
+<section id="data-staleness" class="level2">
+<h2 class="anchored" data-anchor-id="data-staleness">Data staleness</h2>
+<p>In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of product lifecycle.</p>
 </section>
-<section id="section-4" class="level2">
-<h2 class="anchored" data-anchor-id="section-4">2019</h2>
-<ul>
-<li><a href="https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/">Reflection</a> on the <a href="https://usfblogs.usfca.edu/dataethics/2020/02/09/big-picture/">Tech Policy Workshop</a> event at USF Data Institute&nbsp;Center for Applied Data Ethics.</li>
-<li><a href="https://conference.scipy.org/proceedings/scipy2019/pdfs/Hongsup_Shin.pdf">Case study: Real-world machine learning application for hardware failure detection</a>. Proc. of the 18th Python In Science Conf (Scipy 2019).</li>
-<li>Fairness in ML. Arm Global Engineering Conference; Data &amp; Diversity Workshop.</li>
-<li><a href="https://github.com/hongsupshin/publications/blob/main/Fairness_in_ML_Hongsup_Shin_DS_ML_Club_2018.pdf">Introduction to Fairness in ML</a>. Arm DS/ML Journal club.</li>
-</ul>
+<section id="overfitting-to-the-benchmark-data" class="level2">
+<h2 class="anchored" data-anchor-id="overfitting-to-the-benchmark-data">Overfitting to the benchmark data</h2>
+<p><a href="https://arxiv.org/abs/2405.00332">A recent paper</a> has showed the susceptibility of LLMs to overfitting for public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).</p>
 </section>
-<section id="section-5" class="level2">
-<h2 class="anchored" data-anchor-id="section-5">2018</h2>
-<ul>
-<li><a href="https://github.com/hongsupshin/publications/blob/main/UT_lecture_Hongsup_Shin_Dec_5.pdf">A Practical Guide to Machine Learning</a>. Guest lecture at the Computer Architecture course at UT Austin.</li>
-<li><a href="https://medium.com/@hongsupshin/talent-luck-and-success-simulating-meritocracy-and-inequality-with-stochasticity-501e0c1b4969">Talent, luck and success: simulating meritocracy and inequality with stochasticity</a>. Medium.</li>
-</ul>
-</section>
-<section id="section-6" class="level2">
-<h2 class="anchored" data-anchor-id="section-6">2017</h2>
-<ul>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2666126">The effects of delay duration on visual working memory for orientation</a>. Journal of Vision.</li>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2648987">Visual short-term memory for oriented, colored objects</a>. Journal of Vision.</li>
-</ul>
-</section>
-<section id="section-7" class="level2">
-<h2 class="anchored" data-anchor-id="section-7">2016</h2>
-<ul>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2503856">Crowdsourced single-trial probes of visual working memory for irrelevant features</a>. Journal of Vision.</li>
-</ul>
-</section>
-<section id="section-8" class="level2">
-<h2 class="anchored" data-anchor-id="section-8">2015</h2>
-<ul>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2433649">Visual working memory of irrelevant features in multi-feature objects</a>. Journal of Vision.</li>
-</ul>
-</section>
-<section id="section-9" class="level2">
-<h2 class="anchored" data-anchor-id="section-9">2013</h2>
-<ul>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2142565">Visual short-term memory resource is not shared among features</a>. Journal of Vision.</li>
-<li><a href="https://jov.arvojournals.org/article.aspx?articleid=2143472">Continuous resources and variable precision in working memory</a>. Journal of Vision.</li>
-</ul>
-</section>
-<section id="section-10" class="level2">
-<h2 class="anchored" data-anchor-id="section-10">2012</h2>
-<ul>
-<li><a href="https://www.pnas.org/doi/10.1073/pnas.1117465109">Variability in encoding precision accounts for visual short-term memory limitations</a>. PNAS.</li>
-</ul>
+<section id="other-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
+<p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.</p>
 
 
 </section>

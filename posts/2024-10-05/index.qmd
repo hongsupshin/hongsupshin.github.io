@@ -1,0 +1,38 @@
+---
+title: Building datasets for model benchmarking in production
+date: 2024-10-05
+description: Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
+image: https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png
+author: Hongsup Shin
+categories: 
+    - ML
+    - MLOps
+---
+
+At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.
+
+In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We'll examine the practical considerations that arise when applying benchmarking to real-world applications.
+
+## Data preprocessing
+
+When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, experimentation demands raw data for optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.
+
+## Data split and reproducibility
+
+Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the [ImageNet dataset](https://www.tensorflow.org/datasets/catalog/imagenet2012) on TensorFlow shows the `'train', 'validation', 'test'` splits. In contrast, tabular ML often uses cross-validation. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn's `KFold`.
+
+## Data curation
+
+While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply *bad*), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.
+
+## Data staleness
+
+In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of product lifecycle.
+
+## Overfitting to the benchmark data
+
+[A recent paper](https://arxiv.org/abs/2405.00332) has showed the susceptibility of LLMs to overfitting for public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).
+
+## Other considerations
+
+Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it's important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.
