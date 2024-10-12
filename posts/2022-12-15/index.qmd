@@ -1,0 +1,63 @@
+---
+title: "Zero-Shot Text-to-Image Generation"
+author: "Hongsup Shin"
+date: "2022-12-15"
+image: "Fig 8.png"
+description: There is so much hype in generative AI. But how does it actually work? We discuss OpenAI's DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.
+categories: [paper]
+---
+
+:::{.callout-note}
+- Paper: [*Zero-Shot Text-to-Image Generation*](https://arxiv.org/abs/2102.12092)
+- Presenter: [Hongsup](https://www.linkedin.com/in/hongsupshin/)
+- Attendees: [Hannah](https://www.linkedin.com/in/hannah-peeler-a4751bb2/), [Hongsup](https://www.linkedin.com/in/hongsupshin/), [Joel](https://www.linkedin.com/in/joelafriyie/), and [Steve](https://www.linkedin.com/in/steve-sebastian/)
+:::
+
+## Why this paper
+Generative AI has a lot of hype in ML community these days. OpenAI's DALL·E, GPT-3, and ChatGPT are good examples. And there's also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI. 
+
+But whenever there is hype around something, I think we should be more curious about what's going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E's text-to-image generative model works, what the authors did to make this happen, and how they validated the result.
+
+To understand this paper thoroughly, you need to know other deep learning model frameworks such as transformer, variational autoencoder, and OpenAI's CLIP (Contrastive Language-Image Pre-training) model. I found these [two](https://ml.berkeley.edu/blog/posts/vq-vae/) [articles](https://ml.berkeley.edu/blog/posts/dalle2/) extremely useful, written by Charlie Snell at UC Berkeley. In this post, I will talk about a high-level summary and the interesting discussion we had as a group. If you are interested in more detailed summary of the paper itself, I recommend those two posts.
+
+## Big picture
+The authors created a deep learning model which **generate images from a text input**. For instance, if you type "hands", the model will generate images of hands. As the title says, this is done in *zero-shot* way, meaning that it can generate images that it hasn't seen before. To be clear, the authors of this paper are not the first ones who created a model like this. There have been precedents but the authors say that the generated images from those still suffer from severe artifacts such as object distortion, illogical object placement, or unnatural blending of foreground and background elements. So the authors made improvements by adopting these two approaches: using a large set of training data and **building a bigger model**.
+
+Before we look into the results, let's first talk about the model architecture. Their model consists of two parts: **variational autoencoder (VAE)** and **transformer**. 
+
+## Variational autoencoder (VAE)
+The VAE contributes to the generative nature of the model because VAEs have latent representation in the middle that is a probability distribution. Once trained, we can use this distribution to draw samples from it, providing a *generative* framework. To train the VAE, the authors assumed uniform prior over the latent space. The model can **learn the actual prior from the transformer later** to generate images that match to text input. To train the VAE, the authors used images with text captions from various sources such as Wikipedia images.
+
+What is interesting about the VAE they used is that it assumes **discrete latent distribution** instead of continuous. This variant of VAE is called **vector-quantized VAE (VQ-VAE)**. The motivation is that images and texts are discrete than continuous. But this assumption comes with a major complication: a discrete space is non-differentiable (i.e., can't back-propagate). That's why VQ-VAE has a **codebook**, which is essentially a look-up table where a discrete representation is associated with a codebook vector. To be accurate, this paper used a variant of VQ-VAE called **dVAE** where they made this look-up as a weighted average to further smooth out the space.
+
+This VAE also acts as a dimensionality reduction technique because the discrete latent space the authors used has a resolution of 32x32 instead of 256x256, the resolution of the original training images. This brings compression benefit so that the transformer doesn't have to memorize extremely long sequence but a sequence of length 1024 (=32*32).
+
+## Transformer
+Once the VAE is learned, **we can abandon the uniform prior assumption and use transformer to learn the actual prior**. Transformers help image generation by pixel-wise prediction in an autoregressive way. For instance, given the sequence of previous pixels, the transformer can predict what the next pixel would look like. 
+
+Once the transformer is trained, when we give a text prompt to the model, the transformer makes predictions for the image latents (32x32 space) in an autoregressive way. Once we have all predictions, we use the dVAE codebook to lookup the vectors and generate the image. Since we can sample the sequence in a new way, we can generate multiple images. The authors used a **top k approach** to return the *best* images by ranking the generated images from a candidate pool based on the **scores from OpenAI's CLIP model**, which represents how well the images match the caption.
+
+The transformer has **12 billion parameters** and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.
+
+## <font color="blue">Discussion</font>
+### <font color="blue">Are the results representative enough?</font>
+Most of us were somewhat *disappointed* by the authors' model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were **not sure whether these were cherry-picked or not** because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors' model was more realistic than the competitors'. Aside from the ethical issues surrounding hiring mturk workers, we thought **the number of mturk workers was small** (5 people) and the number of images they evaluated was small as well.
+
+### <font color="blue">Why not investigate model failures?</font>
+What was more interesting to us was Fig. 8, the CUB dataset which have images of birds. The example images here looked worse than others and the authors speculated that this was due to the detail-oriented text information of images, which might have been lost during the compression in dVAE. This was a plausible explanation but **we wanted to see more in-depth investigation on model failures**. There are numerous examples of terrifyingly looking images of hands generated by DALL·E because apparently it keeps failing at generating images of humans hands with five fingers. 
+
+We also discussed the **lack of investigation on model failure from an ethical and responsible AI perspective.** If OpenAI was going to publish a public API for a model like this, which would have varying degrees of socio-technical impact (look at all the issues ChatGPT has been creating these days), it would have been more responsible for them to test the model's capacity more thoroughly and rigorously before rolling it out.
+
+We found [a model card](https://github.com/openai/DALL-E/blob/master/model_card.md) from their repository and it was **disappointingly short and did not address any possible ethical and social ramifications** that would be caused by the model.
+
+### <font color="blue">Validity of the scoring metrics</font>
+The authors used FID and IS scores (generated by the CLIP model) to assess how well the images reflect the text input. The scores were used to rank a pool of candidate images and the model returned top k results. We questioned the validity of the decision behind using these scores because they are model-dependent, which means **they are training-data-dependent**. Plus, there was no mention of (at least) a qualitative comparison between the training datasets of this paper and the CLIP paper. This made us question the reliability of the CLIP model scores. It might have been interesting to see a batch of images that were ranked high (or low) so that we could judge the validity of the scores and understand the model behavior better.
+
+### <font color="blue">Qualitative contribution</font>
+As in other deep learning papers, it was **difficult for us to understand which decisions they made led to their results and advancement**. For instance, they highlighted the larger training dataset and the larger model size. What was the measurable impact of each, and which one was more important? Similar to this, it would have been nice if they had some guidance on model tuning and hyperparameter selection to inform other researchers on model architecture design.
+
+### <font color="blue">Reproducibility and novelty</font>
+To be blunt, **the main highlight of this paper seemed to be the scale**. They were able to use bigger datasets with a bigger model. But let's be honest, how many academic institutions or companies are able to afford to train a model with 12 billion parameters? Especially without proper model inspection, **how can we understand the model properly when we can't reproduce it easily?** Although there were certain elements of novelty especially on their tricks of utilizing GPU resources to train the model, if the scale is the main factor of success, **can we really call this as a novel invention?**
+
+## Final thoughts
+Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to *amuse* general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.
