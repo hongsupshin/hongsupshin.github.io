@@ -170,29 +170,9 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li>Paper: <a href="https://arxiv.org/abs/2102.12092"><em>Zero-Shot Text-to-Image Generation</em></a></li>
-<li>Presenter: <a href="https://www.linkedin.com/in/hongsupshin/">Hongsup</a></li>
-<li>Attendees: <a href="https://www.linkedin.com/in/hannah-peeler-a4751bb2/">Hannah</a>, <a href="https://www.linkedin.com/in/hongsupshin/">Hongsup</a>, <a href="https://www.linkedin.com/in/joelafriyie/">Joel</a>, and <a href="https://www.linkedin.com/in/steve-sebastian/">Steve</a></li>
-</ul>
-</div>
-</div>
-<section id="why-this-paper" class="level2">
-<h2 class="anchored" data-anchor-id="why-this-paper">Why this paper</h2>
 <p>Generative AI has a lot of hype in ML community these days. OpenAI’s DALL·E, GPT-3, and ChatGPT are good examples. And there’s also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI.</p>
 <p>But whenever there is hype around something, I think we should be more curious about what’s going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E’s text-to-image generative model works, what the authors did to make this happen, and how they validated the result.</p>
 <p>To understand this paper thoroughly, you need to know other deep learning model frameworks such as transformer, variational autoencoder, and OpenAI’s CLIP (Contrastive Language-Image Pre-training) model. I found these <a href="https://ml.berkeley.edu/blog/posts/vq-vae/">two</a> <a href="https://ml.berkeley.edu/blog/posts/dalle2/">articles</a> extremely useful, written by Charlie Snell at UC Berkeley. In this post, I will talk about a high-level summary and the interesting discussion we had as a group. If you are interested in more detailed summary of the paper itself, I recommend those two posts.</p>
-</section>
 <section id="big-picture" class="level2">
 <h2 class="anchored" data-anchor-id="big-picture">Big picture</h2>
 <p>The authors created a deep learning model which <strong>generate images from a text input</strong>. For instance, if you type “hands”, the model will generate images of hands. As the title says, this is done in <em>zero-shot</em> way, meaning that it can generate images that it hasn’t seen before. To be clear, the authors of this paper are not the first ones who created a model like this. There have been precedents but the authors say that the generated images from those still suffer from severe artifacts such as object distortion, illogical object placement, or unnatural blending of foreground and background elements. So the authors made improvements by adopting these two approaches: using a large set of training data and <strong>building a bigger model</strong>.</p>
@@ -210,8 +190,8 @@ Note
 <p>Once the transformer is trained, when we give a text prompt to the model, the transformer makes predictions for the image latents (32x32 space) in an autoregressive way. Once we have all predictions, we use the dVAE codebook to lookup the vectors and generate the image. Since we can sample the sequence in a new way, we can generate multiple images. The authors used a <strong>top k approach</strong> to return the <em>best</em> images by ranking the generated images from a candidate pool based on the <strong>scores from OpenAI’s CLIP model</strong>, which represents how well the images match the caption.</p>
 <p>The transformer has <strong>12 billion parameters</strong> and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.</p>
 </section>
-<section id="discussion" class="level2">
-<h2 class="anchored" data-anchor-id="discussion"><font color="blue">Discussion</font></h2>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
 <section id="are-the-results-representative-enough" class="level3">
 <h3 class="anchored" data-anchor-id="are-the-results-representative-enough"><font color="blue">Are the results representative enough?</font></h3>
 <p>Most of us were somewhat <em>disappointed</em> by the authors’ model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were <strong>not sure whether these were cherry-picked or not</strong> because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors’ model was more realistic than the competitors’. Aside from the ethical issues surrounding hiring mturk workers, we thought <strong>the number of mturk workers was small</strong> (5 people) and the number of images they evaluated was small as well.</p>

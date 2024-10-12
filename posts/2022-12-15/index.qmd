@@ -7,13 +7,6 @@ description: There is so much hype in generative AI. But how does it actually wo
 categories: [paper]
 ---
 
-:::{.callout-note}
-- Paper: [*Zero-Shot Text-to-Image Generation*](https://arxiv.org/abs/2102.12092)
-- Presenter: [Hongsup](https://www.linkedin.com/in/hongsupshin/)
-- Attendees: [Hannah](https://www.linkedin.com/in/hannah-peeler-a4751bb2/), [Hongsup](https://www.linkedin.com/in/hongsupshin/), [Joel](https://www.linkedin.com/in/joelafriyie/), and [Steve](https://www.linkedin.com/in/steve-sebastian/)
-:::
-
-## Why this paper
 Generative AI has a lot of hype in ML community these days. OpenAI's DALL·E, GPT-3, and ChatGPT are good examples. And there's also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI. 
 
 But whenever there is hype around something, I think we should be more curious about what's going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E's text-to-image generative model works, what the authors did to make this happen, and how they validated the result.
@@ -39,7 +32,7 @@ Once the transformer is trained, when we give a text prompt to the model, the tr
 
 The transformer has **12 billion parameters** and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.
 
-## <font color="blue">Discussion</font>
+## Journal club discussion
 ### <font color="blue">Are the results representative enough?</font>
 Most of us were somewhat *disappointed* by the authors' model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were **not sure whether these were cherry-picked or not** because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors' model was more realistic than the competitors'. Aside from the ethical issues surrounding hiring mturk workers, we thought **the number of mturk workers was small** (5 people) and the number of images they evaluated was small as well.
 
