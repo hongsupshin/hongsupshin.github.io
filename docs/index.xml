@@ -3471,6 +3471,114 @@ empty &lt;class 'str'&gt;</code></pre>
   <media:content url="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png" medium="image" type="image/png" height="124" width="144"/>
 </item>
 <item>
+  <title>“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2022-10-27/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Many ML articles exist but few talk about how the sausage gets made. They are often based on toy or clean benchmark datasets, which are quite different from what we get in real world. That’s why I enjoy reading survey papers. They interview people in the field like us and try to address common pain points to find a broader picture.</p>
+<p>For the past several years, I have been noticing a trend in ML community. Many practitioners tend to ignore data quality but instead put all their efforts into models and algorithms. I find it very troubling because many problems in real-world ML are caused by data-related issues. <a href="https://research.google/pubs/pub49953/">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</a> talks about this pattern based on the interviews from dozens of ML practitioners all over the globe. I presented the paper in Austin ML Journal Club in Oct 2022.</p>
+<section id="data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascades">Data cascades</h2>
+<p>The paper focuses on “data cascades,” a series of compounding negative events due to data-related issues. The authors say the problems are wildly prevalent (92% reported experience at least one type of data cascades). <font color="blue">During the discussion, we thought about sampling bias because those who are ignorant of these problems may not be able to recognize them.</font> Indeed, they are often opaque because there are no clear indicators and often discovered later. Data cascades often lead to technical debt and harm to beneficiary communities. They can sour relationships between stakeholders and in extremely cases, force ML practitioners discard entire datasets. Figure 1 shows the schematic of the data cascades. <font color="blue">We thought the figure wasn’t particularly informative because too many arrows exist between the points. We hoped that the authors explained why there aren’t arrows between certain points.</font></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI full.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1. Data cascades in high-stakes AI</figcaption>
+</figure>
+</div>
+</section>
+<section id="high-stake-domains" class="level2">
+<h2 class="anchored" data-anchor-id="high-stake-domains">High-stake domains</h2>
+<p>Data cascades are more critical in high stake domains such as landslide detection, suicide prevention, and cancer detection. There are several reasons:</p>
+<ul>
+<li>More ML applications are deployed in these domains where more direct humanitarian impact exists.</li>
+<li>This impact can be disproportionate towards vulnerable communities.</li>
+<li>It is often very challenging to acquire high quality data in these domains.</li>
+<li>The problems frequently require more multidisciplinary approach.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Summary of participant demographics.png" class="img-fluid figure-img"></p>
+<figcaption>Table 1. Summary of participant demographics; Domain</figcaption>
+</figure>
+</div>
+<p>The authors find that the problems are due to human factors. Unfortunately solutions have been focusing on other issues such as database, legal, or license. To gather firsthand experience in the field, the authors interviewed 50+ ML practitioners all over the world, ranging from the US to India and African countries, and from founders to developers. Table 1 summarizes various high-stake domains. <font color="blue">It was fascinating for us to learn that ML is used in areas as landslide detection, poaching prevention, or regenerative farming. It would have been more interesting to see how data cascades create specific negative consequences in some domains.</font></p>
+</section>
+<section id="data-cascade-triggers" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascade-triggers">Data cascade triggers</h2>
+<p>The authors introduce three triggers that cause data cascades.</p>
+<section id="physical-world-brittleness" class="level3">
+<h3 class="anchored" data-anchor-id="physical-world-brittleness">Physical world brittleness</h3>
+<p>Physical world changes over time and thus often ML systems can’t produce robust results. Data drifts due to hardware (measurements) and environmental changes are commonly mentioned in ML Ops literature. In high-stake domains, they become more pronounced because training data are very limited and policy or regulation changes can impact the ML systems in various ways.</p>
+</section>
+<section id="inadequate-application-domain-expertise" class="level3">
+<h3 class="anchored" data-anchor-id="inadequate-application-domain-expertise">Inadequate application-domain expertise</h3>
+<p>Most ML practitioners are not equipped with domain knowledge. <font color="blue">All of us admitted that our academic background does not match to the domain that we work in.</font> Even though close collaboration between domain experts and ML practitioners is always emphasized, in practice the authors find that domain experts are often detached from the larger impact of the applications. The authors explain two specific types of problems:</p>
+<p><strong>Subjectivity in ground truth:</strong> Areas such as insurance claim approval or medical imaging for cancer detection involve highly specialized and often subjective decision-making. To build a reliable and robust ML system, it is necessary to standardize the decision-making criteria and find consensus. However, ML practitioners are asked to rush through the development process, and thus do not have time to address it.</p>
+<p><strong>Poor domain expertise in finding representative data:</strong> ML practitioners often start building ML applications without involving domain experts much because the practitioners simply believe that data are reliable. However, because they lack domain knowledge, practitioners make incomplete assumptions, which results in disparity between data collection and deployment. This often leads to poor and unreliable model performance.</p>
+</section>
+<section id="conflicting-reward-system" class="level3">
+<h3 class="anchored" data-anchor-id="conflicting-reward-system">Conflicting reward system</h3>
+<p>Data collection and any data-related work are often considered non-technical and undervalued. The situation gets worse for frontline workers because they are asked to collect and curate field data on top of their existing responsibilities but they are not well compensated.</p>
+</section>
+<section id="poor-cross-organizational-documentation" class="level3">
+<h3 class="anchored" data-anchor-id="poor-cross-organizational-documentation">Poor cross-organizational documentation</h3>
+<p>Metadata about data collection, quality, and curation are also often missing. Some good practices the authors suggest involve keeping good documentation on reproducible assets such as data collection plan, data strategy handbooks, design documents, file conventions, field notes, and so on.</p>
+</section>
+</section>
+<section id="broader-context" class="level2">
+<h2 class="anchored" data-anchor-id="broader-context">Broader context</h2>
+<p>Data cascades discussion can be extended to bigger problems in ML community.</p>
+<section id="incentives-and-currency-in-ai" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-and-currency-in-ai">Incentives and currency in AI</h3>
+<p>Because of the low incentives, data-related work are not rewarded or even tracked. This makes us difficult to get buy-in from stakeholders. The situation is similar in academia as well. Most practitioners and researchers focus on developing algorithms but they rarely mention or work on data. <font color="blue">The title <em>“Everyone wants to do the model work, not the data work”</em> was a verbatim from an interviewee. Unfortunately, we were all able to relate to this quote.</font></p>
+</section>
+<section id="data-education" class="level3">
+<h3 class="anchored" data-anchor-id="data-education">Data education</h3>
+<p>Most ML or data science curricula lack any mention of data quality or ethics. They use toy datasets or very clean benchmark datasets. <font color="blue">As experience ML practitioners, we wholeheartedly agreed with this finding. We lamented that these courses do not prepare students with practical knowledge because one never works with clean datasets in real world. Some of us have experienced this pattern firsthand because we have been interviewing candidates for an ML practitioner position and found that the candidates who only worked with clean datasets (or primarily worked on algorithms) often lack basic practical ML knowledge.</font></p>
+</section>
+<section id="data-bootstrapping" class="level3">
+<h3 class="anchored" data-anchor-id="data-bootstrapping">Data bootstrapping</h3>
+<p>Data bootstrapping describes ML practitioners’ use of other data sources such as established data services or existing datasets to create their own dataset. <font color="blue">For most of us, it was surprising to learn that many ML practitioners in high-stake domains in countries from Global South had to collect data from scratch. We agreed that challenges in data collection and lack of access to quality data would create inequality between countries.</font></p>
+</section>
+</section>
+<section id="how-to-address-data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-address-data-cascades">How to address data cascades</h2>
+<p>The authors introduce several ways of addressing the problem of data cascades. They introduce the concept of <em>“data excellence”</em>, an effort to <strong>“focus on the practices, politics, and values of humans of the data pipeline to improve the quality and sanctity of data, through the use of processes, standards, infrastructure and incentives”</strong>.</p>
+<section id="from-goodness-of-fit-to-goodness-of-data" class="level3">
+<h3 class="anchored" data-anchor-id="from-goodness-of-fit-to-goodness-of-data">From goodness-of-fit to goodness-of-data</h3>
+<p>The first is to use the right metric to evaluate data quality. Many ML practitioners use model performance metrics such as accuracy and RMSE to evaluate data quality. <font color="blue">Some of us had a similar experience. We had to argue that model metrics shouldn’t be used to make a decision on data-pipeline and data-quality features. We hope that the authors can introduce specific examples of goodness-of-data metrics in the future.</font></p>
+</section>
+<section id="incentives-for-data-excellence" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-for-data-excellence">Incentives for data excellence</h3>
+<p>There are several ways to address the low incentives of data work. First, journals and conferences should require dataset documentation, provenance, and ethics as mandatory disclosure. Second, organizations should reward data-related work similar to how good software engineering is rewarded. Finally, partnership between stakeholders can nurture data excellence by sharing the reward on data-related work such as data collection, anomaly identification, and model verification.</p>
+</section>
+<section id="education-and-visibility" class="level3">
+<h3 class="anchored" data-anchor-id="education-and-visibility">Education and visibility</h3>
+<p>The authors argue for real-world data literacy in AI education, which includes training on data collection, infrastructure building, data documentation, data sense-making, and data ethics and responsible AI in general. Increasing the data visibility in ML lifecycle is important as well; implementing good monitoring system is one of the most important ML Ops practices anyway.</p>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Some of us found this paper vindicating because we have been advocating for data quality at work and had to fight for the attention it deserves. The paper helped us share our own practices at work that address data-related issues especially data collection, curation, and post-deployment data problems. Even though we generally agreed with authors’ suggestions, some of us wanted something more specific, like a case study. Overall, we found the paper interesting and insightful. We thought it would be beneficial to read the paper with our colleagues at work to start a discussion for data excellence.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>governance</category>
+  <category>responsible AI</category>
+  <guid>https://hongsupshin.github.io/posts/2022-10-27/</guid>
+  <pubDate>Thu, 27 Oct 2022 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI.png" medium="image" type="image/png" height="70" width="144"/>
+</item>
+<item>
   <title>Tech volunteering tips for nonprofits</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/</link>
@@ -5417,80 +5525,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2020-03-01-acm-fat-2020/</guid>
   <pubDate>Sun, 01 Mar 2020 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2020-03-01-acm-fat-2020/2020-03-01-acm-fat-badge.png" medium="image" type="image/png" height="96" width="144"/>
-</item>
-<item>
-  <title>Reflection on USF tech policy and data ethics workshop</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p><img src="https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" class="img-fluid"></p>
-<p>As a data scientist working in industry, I frequently witness the impact a machine learning application can make. This impact often has a cascade of downstream effects which are inconceivable to a data scientist without enough domain knowledge. Nevertheless, under the widespread motto, “move fast and break things,” in tech industry, ML practitioners tend to care little about the size of their products’ impact. In certain cases, they even overlook scientifically rigorous evaluation of their products. These phenomena have been greatly worrying me ever since I started my career in industry. My concern has deepened due to many recent instances of AI applications reproducing human bias on a massive scale and aggravating existing socioeconomic problems.</p>
-<p>Recently, I found out about the event, <strong><a href="https://www.sfdatainstitute.org/">The Tech Policy Workshop at the Center for Applied Data Ethics at USF</a></strong> via Dr.&nbsp;Rachel Thomas on social media, as I have been enjoying her blog posts and talks. She is smart, honest, and concerned about the welfare of people and society. Thus, I assumed that the workshop would be beneficial in many ways. The lineup was also very interesting because the speakers had diverse backgrounds. Additionally, the low registration cost was helpful.</p>
-<p>I have been interested in <strong>fairness, accountability, and transparency of ML</strong> for several years, and thus have been attending events related to the topics. Compared with those events, I found this workshop unique in two ways. First, the organizers made a great effort to gather experts from a wide variety of domains ranging from computer science to policymaking. This makes sense because tech ethics and policy are multidisciplinary issues. Second, by choosing the format of a workshop, instead of a conference, the event was more interactive. There were several hands-on exercises, which encouraged valuable discussions among the attendees. The workshop exceeded my expectations and I felt grateful for the opportunity to attend.</p>
-<section id="interactive-ethics-exercise-on-facial-recognition" class="level2">
-<h2 class="anchored" data-anchor-id="interactive-ethics-exercise-on-facial-recognition">Interactive ethics exercise on facial recognition</h2>
-<p>Every session was interesting and unique in its own way. However, the main lesson I got out of the workshop came from the ethics session led by Irina Raicu from Santa Clara University. Ethics can be vague, abstract, and even esoteric but Irina made it sound accessible. She compared it to birdwatching; <strong>the more we learn about ethics, the more easily we can notice ethical issues in the world</strong>. Instead of giving a lengthy philosophy lecture, she taught us various easy-to-understand <strong>ethical “lenses”</strong>. She then asked us to use these in an exercise based on a real-world case about face recognition. <strong>The case was about a dataset<sup>1</sup> that ML researchers at IBM created to train a fairer face recognition model</strong>.</p>
-<p>I was already familiar with the case. Joy Buolamwini, a ML researcher at MIT, published a study<sup>2</sup> that revealed gender and racial bias in the training dataset in many commercial face recognition platforms including IBM’s. After this paper was published, IBM was forthcoming about the issue and they promised to improve their application. It is safe to assume that IBM researchers had good intentions when they published a new training dataset. Unfortunately, we found that this new dataset still had many problems, especially related to data privacy.</p>
-<p>During the exercise, we applied different ethical lenses to address which ethical values were pursued or violated. Since we were a group of data scientists, policymakers, and activists, there were a variety of ideas. I admit that in the beginning of the exercise, I was somewhat frustrated because ethics cannot be easily optimized. This meant that we might not be able to reach conclusions easily. However, once we started discussion, I realized that the true value of the exercise was not about finding the right answer quickly, but about evaluating various perspectives especially when multiple ethical values were in conflict. The exercise also taught me that <strong>ethical decision making is a highly dynamic process that requires a diverse set of opinions</strong>. I started thinking this type of exercise would be beneficial for tech engineers to change the way they think.</p>
-</section>
-<section id="ethics-training-for-tech-workers" class="level2">
-<h2 class="anchored" data-anchor-id="ethics-training-for-tech-workers">Ethics training for tech workers</h2>
-<p>Granted, as Chris Riley at Mozilla pointed out during his session, teaching ethics to engineers may not be the best way to solve the tech-related problems in our society. After all, ethics focuses on individuals. Typically, <strong>socioeconomic problems are solved more effectively through legislation, regulations, and policies</strong>. However, several speakers hinted that training engineers to learn about ethical decision making can still be useful.</p>
-</section>
-<section id="tech-industry-has-great-power-and-influence-on-our-society" class="level2">
-<h2 class="anchored" data-anchor-id="tech-industry-has-great-power-and-influence-on-our-society">Tech industry has great power and influence on our society</h2>
-<p>As Prof.&nbsp;Elizabeth E. Joh from UC Davis mentioned, <strong>tech industry has a significant amount of power</strong> these days. According to her, in certain circumstances, police must even drop their investigation so as not to violate the non-disclosure agreement related to the procurement of technological devices they use. She gave an example of police body-cams produced by the company, Axon, who dominates the market. They make almost every decision on how the device works, how and where data is stored and maintained, and so on. This means <strong>the management decision in the tech company can have a significant impact on the general public</strong>. Guillaume Chaslot from Algo Transparency delivered a similar message using an example from YouTube. It showed <strong>how slow and passive YouTube’s response was on content moderation</strong>. This is similar to Facebook’s naïve approach that contributed to the dissemination of disinformation over the internet, which created numerous sociopolitical problems all over the world.</p>
-</section>
-<section id="tech-workers-also-have-power" class="level2">
-<h2 class="anchored" data-anchor-id="tech-workers-also-have-power">Tech workers also have power</h2>
-<p>Multiple speakers emphasized that tech workers have great power as well. Recent tech employee walkouts demonstrate that power. Some even affected their companies’ decisions on certain social issues. The news<sup>3</sup> about <strong>Google recently hiring firm known for anti-union efforts implies that companies now have recognized employee unrest as a threat</strong>. ML practitioners who work closely on sensitive datasets can wield even greater power. Kristian Lum from Human Rights Data Analyses Group shared a disturbing example of a ML application used at a government branch. A ML practitioner manipulated the results by hand-selecting model coefficients from multiple versions of a dataset, but this only came to light much later during an audit. Based on my conversations with other data scientists, <strong>proper oversight or formalized review of technical work is still missing in many industries</strong>. Under these circumstances, <strong>the responsibility to provide transparency and accountability falls to individual ML practitioners</strong>. Since building a ML application is a complex process, technical debt can aggravate quickly.</p>
-</section>
-<section id="what-i-can-do-as-a-tech-worker" class="level2">
-<h2 class="anchored" data-anchor-id="what-i-can-do-as-a-tech-worker">What I can do as a tech worker</h2>
-<p>The fact that ethics is about an individual’s decisions makes me think that there should be something I can do and that I should be aware of the responsibility that comes with my power as a tech worker. I can share a few things I try at work to make a change even though they are small. First, I seek out resources to <strong>learn about best practices in ML</strong> across the industry and to establish them at work regarding transparency and accountability. My team uses <strong>Model Cards<sup>4</sup></strong>, which summarize how models are trained and how they are supposed to be used, and <strong>Datasheets<sup>5</sup></strong>, which describe how data are collected, used, and processed. Second, to prevent technical debt, I often <strong>ask for reviews</strong> so that my work is seen by many different stakeholders. Another effort is <strong>bringing my work to a public space through publications, seminars, or conferences</strong>. For the tech ethics and policy issues, I try to <strong>take advantage of any opportunities inside my job (e.g., lunch-and-learn sessions) or outside (e.g., house parties or friends’ gatherings) to raise awareness</strong>. Finally, I try to learn more about the topics via events like this workshop.</p>
-</section>
-<section id="what-i-can-do-as-a-citizen" class="level2">
-<h2 class="anchored" data-anchor-id="what-i-can-do-as-a-citizen">What I can do as a citizen</h2>
-<p>I spent a lot of time thinking about what I can do as a tech worker, but I was forgetting something more important. At the end of the workshop, Prof.&nbsp;Elizabeth E. Joh talked about how tech companies wield their massive power in surveillance and policing. An attendee asked her whether there is anything we can do to make a change. Rather than answering his question, she asked him how many times he has previously attended city council meetings of his own city. She said there is still not enough awareness about this problem among the general public nor even momentum to create strong public opinion. That is why <strong>we need to raise our voices to address the issue and demand a change.</strong> Carrying out my duty as a citizen by speaking up was the one that I have overlooked.</p>
-<p>At the workshop, I heard from Bay Area government officials about how they try to protect their citizens. Catherine Bracy from TechEquity Collaborative discussed organizations that help protect local communities from tech-related problems. Even though the Bay Area has been facing many problems such as housing and severe income inequality due to tech industry, it also has become the place where movements to fight back are pioneered. I think it has happened here because 1) it is the epicenter of the tech boom, 2) the severity of the problems is extreme, and 3) people are more aware of and sensitive about these issues.</p>
-<p>Other local governments face a very different situation. The Litigating Algorithms report<sup>6</sup> by the AI Now Institute mentions that many local governments are drawn to the idea of implementing automated decision processes (ADP) because officials expect ADP to save money. <strong>Since the governments do not have affordable access to the right talent, they end up outsourcing the work to cheap vendors who often do poor execution and do not provide enough transparency.</strong> The report lists many examples of ADP that went wrong and harmed many people.</p>
-</section>
-<section id="responsibility-as-a-citizen-and-a-tech-worker" class="level2">
-<h2 class="anchored" data-anchor-id="responsibility-as-a-citizen-and-a-tech-worker">Responsibility as a citizen and a tech worker</h2>
-<p>This workshop gave me an idea of how to <strong>combine my duty as a citizen and my duty as a tech worker.</strong> Government officials I spoke to at the workshop said it is extremely difficult for governments to catch up with the tech industry. It makes sense—policymaking is an inherently slow process but tech is all about fast developments and adaptations. To reduce the gap, <strong>we can start organizing small groups of tech workers to help nonprofits and local governments navigate the ever-changing tech space more efficiently</strong>. In the long run, these groups can form an advisory board or a civilian oversight committee to monitor tech-related issues in local communities such as predictive policing. By then, of course, these groups will include <strong>not only tech workers but other stakeholders such as local residents, legal experts, social scientists, activists, and more.</strong> This way, tech workers like myself can provide our local communities with technical expertise. At the same time, I will have a better idea of the real impact that my work makes. <strong>I optimistically believe that as we tech workers engage with our communities, we will change tech culture positively.</strong></p>
-</section>
-<section id="final-thoughts" class="level2">
-<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
-<p>In addition to learning much about tech ethics and policy, I found the workshop particularly special because I met great people from a variety of backgrounds, and I made new friends. I am sure many attendees had the same experience. It’s a rare occasion to have a diverse group of people sharing many concerns about the future in the same place for two days of honest discussions.</p>
-<p>When I saw ads for the event, I hesitated whether I should register. I was unsure whether I would belong there because policy is outside of my experience. During the workshop, I confessed this to other attendees. Some said they had similar hesitations. After listening to my confession, Shirley Bekins, a housing activist who sat beside me, said with a big smile, “Of course you should be here!”</p>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>M. Merler, N. Ratha, R. S. Feris, and J. R. Smith, “Diversity in Faces,” ArXiv190110436 Cs, Apr.&nbsp;2019.↩︎</p></li>
-<li id="fn2"><p>J. Buolamwini and T. Gebru, “Gender Shades: Intersectional Accuracy Disparities in Commercial Gender Classiﬁcation,” p.&nbsp;15.↩︎</p></li>
-<li id="fn3"><p>N. Scheiber and D. Wakabayashi, “Google Hires Firm Known for Anti-Union Efforts,” New York Times, 20-Nov-2019.↩︎</p></li>
-<li id="fn4"><p>M. Mitchell et al., “Model Cards for Model Reporting,” Proc. Conf. Fairness Account. Transpar. – FAT 19, pp.&nbsp;220–229, 2019.↩︎</p></li>
-<li id="fn5"><p>T. Gebru et al., “Datasheets for Datasets,” ArXiv180309010 Cs, Apr.&nbsp;2019.↩︎</p></li>
-<li id="fn6"><p>R. Richardson, J. M. Schultz, and V. M. Southerland, “LITIGATING ALGORITHMS 2019 US REPORT:,” p.&nbsp;32.↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>ethics</category>
-  <guid>https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/</guid>
-  <pubDate>Thu, 30 Jan 2020 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" medium="image" type="image/png" height="77" width="144"/>
 </item>
 </channel>
 </rss>
