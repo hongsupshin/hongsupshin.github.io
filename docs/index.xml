@@ -52,10 +52,842 @@
 
  ]]></description>
   <category>ML</category>
-  <category>MLOps</category>
+  <category>ML Ops</category>
   <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
   <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
   <media:content url="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png" medium="image" type="image/png"/>
+</item>
+<item>
+  <title>Modeling Tabular Data using Conditional GAN</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2024-05-30/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>At work, I train models using tabular data with extreme class imbalance, which is often quite challenging. To tackle this, I have been looking into data augmentation techniques for tabular data, which is a relatively understudied domain compared to unstructured data. <a href="https://docs.sdv.dev/sdv">Synthetic Data Vault</a> is a popular python library for tabular data synthesis, and the main techniques originate from the paper above. Since class imbalance is a common problem in real-world data and most of us work with tabular data, I think this will be an interesting paper to discuss. I presented the paper in Austin ML Journal Club in May 2024.</p>
+<section id="paper-summary" class="level2">
+<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
+<p>Several challenges lie in tabular data synthesis. They often have mixed data types with non-Gaussian or multi-modal distributions. Categorical variables in a tabular dataset often have severe class imbalance and provide insufficient samples. The authors argue that GAN’s flexibility can address these problems. The authors introduce several techniques for their approach, conditional-tabular GAN (CT-GAN).</p>
+<section id="mode-specific-normalization" class="level3">
+<h3 class="anchored" data-anchor-id="mode-specific-normalization">Mode-specific normalization</h3>
+<p>The basic idea is mode-specific normalization is to convert a continuous-variable column into a set of columns where each column represents an estimated mode (like an indicator) and its value represents the weight of the corresponding mode. To estimate the number of the modes, they use variational Gaussian mixture (VGM) method.</p>
+</section>
+<section id="conditional-generator-and-training-by-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="conditional-generator-and-training-by-sampling">Conditional generator and training-by-sampling</h3>
+<p>Traditional GANs have Gaussian assumption where a vector is sampled from a standard multivariate normal distribution. However, this doesn’t account for class imbalance, which is a problem in tabular data. So the goal here is to resample data so that all categories are sampled <em>evenly</em> during training, and to estimate the conditional distribution of rows given that particular value at that particular column.</p>
+</section>
+<section id="ct-gan-model" class="level3">
+<h3 class="anchored" data-anchor-id="ct-gan-model">CT-GAN model</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2024-05-30/Fig 2.png" class="img-fluid figure-img"></p>
+<figcaption>CT GAN model</figcaption>
+</figure>
+</div>
+<p>In the CT-GAN model, the data are represented Conditional vector where each discrete column is a one-hot vector. The mask vector is used to only represent a category of a single discrete column (in one-hot way, the rest is all zero). The generator loss is cross-entropy between <img src="https://latex.codecogs.com/png.latex?m_%7Bi%5E*%7D"> (given by data) and <img src="https://latex.codecogs.com/png.latex?%5Chat%7Bd%7D_%7Bi%5E*%7D"> (produced by the generator) averaged over all rows in a batch. During the critic assessment stage, the model measures distance between learned conditional distribution and conditional distribution on real data <em>while exploring all possible values evenly</em>.</p>
+</section>
+<section id="model-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="model-evaluation">Model evaluation</h3>
+<section id="baseline-models" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-models">Baseline models</h4>
+<p>The paper uses multiple baseline models for performance comparison. They use two Bayesian network models (CLBN and PrivBN), other GAN models (MedGAN, VeeGAN, TableGAN), and a tabular VAE (TVAE) model that they built. The TVAE model has multivariate Gaussian assumption.</p>
+</section>
+<section id="evaluation-metrics" class="level4">
+<h4 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h4>
+<p>For model comparison, the authors use two metrics. Likelihood fitness metric which estimates how well the synthetic data can fit the data oracle well. They also use <em>ML efficacy</em>, which measures whether ML model performance from synthetic data is comparable to that from using real data.</p>
+</section>
+<section id="results" class="level4">
+<h4 class="anchored" data-anchor-id="results">Results</h4>
+<p>For model comparison, they used several different sets of data. First, they used multi-modal Gaussian-simulated data. Here, other GANs suffer from model collapse and the CT-GAN showed better performance. When simulated data from Bayesian networks were used, the Bayesian baseline models (CLBN and PrivBN) performed the best. With real-world data, TVAE and CTGAN performed the best although TVAE was often better.</p>
+</section>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Even though we were pleased to see good baseline comparison with multiple different datasets, we thought the authors should have did more thorough work on literature review such as comparing their work with <code>synthpop</code>, a widely-used data synthesis package in R. They also could have looked into other statistical models because data synthesis an active research area in statistics.</p>
+<p>We also questioned the validity of the VGM technique because it is the core of creating the embedding of continuous variables. The proposed model does not have checks that evaluate the fidelity of VGM estimation, and thus poor estimation of a multi-model distribution by it can further compromise model performance in general.</p>
+<p>We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the <em>ML efficacy</em> metric the authors proposed. Finally, the proposed models for the regression problem showed <em>negative</em> R scores, suggesting that the models performed quite poorly.</p>
+<p>Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>GenAI</category>
+  <category>ML</category>
+  <guid>https://hongsupshin.github.io/posts/2024-05-30/</guid>
+  <pubDate>Thu, 30 May 2024 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2024-05-30/Fig 1.png" medium="image" type="image/png" height="128" width="144"/>
+</item>
+<item>
+  <title>Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2024-03-28/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Fresh out of academia and at my first job, I remember being surprised by the great power I was able to wield as the main data scientist in the team. A few lines of my code could easily have cascading impact on business decisions. And (as is often the case) since management didn’t care much about technical details, this power gave me a sense of grave responsibility, which was honestly often terrifying. To this day, this sense is something I try to remind myself of, especially because ML systems are getting more complex and we still have very little accountability for ML. So in a way, every ML practitioner is the first line of defense. And this responsibility is more critical if one is working in an high-impact domain such as healthcare.</p>
+<p>These days it feels like ML is all about LLMs and AI assistants. But algorithmic bias is still widespread, and unfortunately it’s even more overshadowed by this massive hype. This seminal paper from 2019 identified racial bias in a healthcare algorithm and discussed the problem of label choice bias. I find this paper still relevant because this bias can easily sneak when building datasets and algorithms. Since the paper is a few years old, it will be interesting to discuss what’s happened since then. I presented the paper in Mar 2024 in Austin ML Journal Club.</p>
+<section id="paper-summary" class="level2">
+<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
+<p>This is a famous paper in Fair ML field that’s cited frequently. One reason is that this is one of the first algorithm audit papers that used a creative approach to dissect an algorithm already used in public. The first author Ziad Obermeyer is an active figure in algorithmic bias specifically in healthcare, and the corresponding author Sendhil Mullainathan is a seminal figure in behavioral economics.</p>
+<p>The main message of the paper is simple and straightforward. In a widely used healthcare algorithm, the authors found that given a score generated by a trained algorithm, which predicts how sick a patient is, Black patients were much sicker than the White. By using creative approaches, the authors found that this algorithmic behavior originated from label choice bias. The algorithm used healthcare cost as target, which the ML practitioners considered as a proxy for a patient’s sickness. The authors cautioned that seemingly effective proxies for ground truth can cause algorithmic bias.</p>
+<section id="background" class="level3">
+<h3 class="anchored" data-anchor-id="background">Background</h3>
+<p>The authors discussed the difficulty of empirical investigation on commercially used algorithms because they are considered proprietary, and thus researchers have to work “from the outside”. They can come up with creative methods but these can be still limiting because without knowing how the model works, it is difficult to understand how and why. For instance, we need training data, objective function, prediction method, and so on, to have a deeper understanding of an algorithm.</p>
+<section id="high-risk-care-management-system" class="level4">
+<h4 class="anchored" data-anchor-id="high-risk-care-management-system">High-risk care management system</h4>
+<p>This study is about a high-risk care management system often used in hospitals to provide care for complex medical needs, which tend to be quite expensive. In essence, hospitals want to prioritize patients so that they can optimize which patients will benefit the most by optimizing resource allocation. For instance, early identification of a high risk patient can reduce expensive cost later, like an ER visit. The authors said healthy care systems rely on algorithms <em>extensively</em> for this type of care management. This type of algorithm actually has many analogies, and an algorithm like this is often called as a risk assessment tool, which is also used in finance, criminal justice, and so on.</p>
+</section>
+<section id="who-will-benefit-the-most" class="level4">
+<h4 class="anchored" data-anchor-id="who-will-benefit-the-most">“Who will benefit the most?”</h4>
+<p>The authors emphasized that this is a difficult <em>causal inference</em> problem. We need to estimate individual treatment effects after the resources are allocated. The underlying assumption is “those with the greatest needs will benefit the most,” and thus we are setting <em>future health care needs</em> as main target.</p>
+</section>
+</section>
+<section id="the-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="the-algorithm">The algorithm</h3>
+<p>For this study, the authors had a unique advantage to have access to training data, objective function, and prediction. This is mainly due to that the first author worked at the hospital which used the algorithm and he had access.</p>
+<p>The data are from a large academic hospital, collected between 2013 and 2015. The authors focused on the white vs.&nbsp;black relationship to examine racial bias. There were about 6k black patients and 40k white patients. For the algorithm, <strong>total medical expenditure</strong> (<img src="https://latex.codecogs.com/png.latex?C">) is used as target variable. The input feature data are collected from insurance claim data, which includes demographics, insurance type, ICD-9 (international classification of diseases code), medications, medical encounters such as surgery or radiology, and so on. The authors shared the code and data <a href="https://gitlab.com/labsysmed/dissecting-bias/-/tree/master">here</a> and we can take a look at the data ourselves.</p>
+<div id="660576c6" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> os</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-5">plt.style.use(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ggplot'</span>)</span>
+<span id="cb1-6"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>config InlineBackend.figure_format<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'retina'</span></span>
+<span id="cb1-7"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> seaborn <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> sns</span></code></pre></div>
+</details>
+</div>
+<div id="0f908394" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://gitlab.com/labsysmed/dissecting-bias/-/raw/master/data/data_new.csv"</span>)</span>
+<span id="cb2-2">data.head()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">risk_score_t</th>
+<th data-quarto-table-cell-role="th">program_enrolled_t</th>
+<th data-quarto-table-cell-role="th">cost_t</th>
+<th data-quarto-table-cell-role="th">cost_avoidable_t</th>
+<th data-quarto-table-cell-role="th">bps_mean_t</th>
+<th data-quarto-table-cell-role="th">ghba1c_mean_t</th>
+<th data-quarto-table-cell-role="th">hct_mean_t</th>
+<th data-quarto-table-cell-role="th">cre_mean_t</th>
+<th data-quarto-table-cell-role="th">ldl_mean_t</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">trig_min-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_min-normal_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-low_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-normal_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-low_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-normal_tm1</th>
+<th data-quarto-table-cell-role="th">gagne_sum_tm1</th>
+<th data-quarto-table-cell-role="th">gagne_sum_t</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1.987430</td>
+<td>0</td>
+<td>1200.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>5.4</td>
+<td>NaN</td>
+<td>1.110000</td>
+<td>194.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>7.677934</td>
+<td>0</td>
+<td>2600.0</td>
+<td>0.0</td>
+<td>119.0</td>
+<td>5.5</td>
+<td>40.4</td>
+<td>0.860000</td>
+<td>93.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>0.407678</td>
+<td>0</td>
+<td>500.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0.798369</td>
+<td>0</td>
+<td>1300.0</td>
+<td>0.0</td>
+<td>117.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>17.513165</td>
+<td>0</td>
+<td>1100.0</td>
+<td>0.0</td>
+<td>116.0</td>
+<td>NaN</td>
+<td>34.1</td>
+<td>1.303333</td>
+<td>53.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 160 columns</p>
+</div>
+</div>
+</div>
+<p>Note that the risk score (<img src="https://latex.codecogs.com/png.latex?R">, <code>risk_score_t</code>) and the predicted cost (<img src="https://latex.codecogs.com/png.latex?C">, <code>cost_t</code>) are not the same. <strong>We do NOT know how the risk score is calculated based on the predicted score.</strong></p>
+<div id="2cd7f6e3-d93d-4af6-a896-fbc4abb1a59a" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">plt.figure(figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>))</span>
+<span id="cb3-2">plt.plot(data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'cost_t'</span>], data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_score_t'</span>], <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'.'</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.01</span>)</span>
+<span id="cb3-3">plt.loglog()</span>
+<span id="cb3-4">plt.axis(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'equal'</span>)</span>
+<span id="cb3-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Predicted Cost'</span>)</span>
+<span id="cb3-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Risk Score'</span>)</span>
+<span id="cb3-7">plt.show()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2024-03-28/index_files/figure-html/cell-4-output-1.png" width="548" height="528" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The algorithm score was generated for each patient during the enrollment period. After ranking this prediction scores from a group, the top 3% (97th percentile) is automatically flagged as required to be enrolled although this does not guarantee enrollment. The top 45% (55th percentile) is referred to their PCP for further examination.</p>
+</section>
+<section id="the-algorithm-audit" class="level3">
+<h3 class="anchored" data-anchor-id="the-algorithm-audit">The algorithm audit</h3>
+<p>As a main method, the authors measured the algorithm calibration to assess fairness across different racial groups. This means that the authors focused on parity of how risk score is calibrated across race. Fair result would satisfy <img src="https://latex.codecogs.com/png.latex?E%5BY%7CR,%20W%5D%20=%20E%5BY%7CR,%20B%5D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?Y"> is our main interest, <img src="https://latex.codecogs.com/png.latex?W"> is the White, <img src="https://latex.codecogs.com/png.latex?B"> is the Black, and <img src="https://latex.codecogs.com/png.latex?R"> is the risk score.</p>
+<p>To dissect the algorithm, the authors compared the distribution of <img src="https://latex.codecogs.com/png.latex?R_%7Bi,%20t%7D%7CH_%7Bi,%20t%7D"> and <img src="https://latex.codecogs.com/png.latex?R_%7Bi,%20t%7D%7CC_%7Bi,%20t%7D"> between White and Black patients where - <img src="https://latex.codecogs.com/png.latex?R_%7Bi,%20t%7D">: risk score given patient <img src="https://latex.codecogs.com/png.latex?i"> in year <img src="https://latex.codecogs.com/png.latex?t"> given the input feature <img src="https://latex.codecogs.com/png.latex?X_%7Bi,%20t-1%7D"> from the previous year - <img src="https://latex.codecogs.com/png.latex?H_%7Bi,%20t%7D">: realized health - <img src="https://latex.codecogs.com/png.latex?C_%7Bi,%20t%7D">: actual cost</p>
+<p>To measure <img src="https://latex.codecogs.com/png.latex?H">, the authors used health record data, diagnoses, lab results, and vital sign data. As a main measure of realized health, the authors used comorbidity score, the total number of chronic illnesses over a year, which is a measure of medical complexity. The cost variable <img src="https://latex.codecogs.com/png.latex?C"> includes insurance claims on utilization, outpatient/ER visit, hospitalization, and general health care costs.</p>
+</section>
+<section id="using-a-counterfactual-scenario-to-describe-racial-bias-fig.-1b" class="level3">
+<h3 class="anchored" data-anchor-id="using-a-counterfactual-scenario-to-describe-racial-bias-fig.-1b">Using a counterfactual scenario to describe racial bias (Fig. 1B)</h3>
+<p>Fig. 1A shows mean comorbidity vs.&nbsp;risk score. At a given risk score, Blacks have significantly more illness than Whites. For instance, at the 97th percentile, mean comorbidity score was 4.8 for Black and 3.8 for White. This means that sicker black patients and healthier white patients can have the same score, causing substantial disparities in program screening. The authors designed a counterfactual scenario with no racial bias, and described the severity of the disparity.</p>
+<p><strong>We found it difficult to understand how the authors measured the disparity between the counterfactual and actual</strong>. Fortunately, the code that the authors shared helped us. Here is how this assessment was done in the paper:</p>
+<ol type="1">
+<li>At a given percentile (e.g., 97th percentile) identify the following:
+<ul>
+<li>Group “White-above”: White patients whose risk score is above the threshold</li>
+<li>Group “Black-above”: Black patients whose risk score is above the threshold</li>
+</ul></li>
+<li>If the comorbidity score of the healthiest patient in the White-above group is <em>lower</em> than that of the sickest patient in the Black-lower group, remove the healthiest white patients from White-above, and move the sickest Black patient from the Black-lower above the threshold.</li>
+<li>Repeat this process until patients cannot be moved any more.</li>
+</ol>
+<p>The second step can be considered as a White patient who shouldn’t be in the enrollment group (above the threshold) giving their spot to the sicker black patient, who was supposed to be in the enrollment group. The authors’ original code was written in R but I translated it into python to further investigate this simulation.</p>
+<div id="2cfdc3c9" class="cell" data-execution_count="25">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> setup(data, default_in_percentile<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">95</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">97</span>]):</span>
+<span id="cb4-2">    cohort <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> data[[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_score_t'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>]]</span>
+<span id="cb4-3">    dt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> cohort.copy()</span>
+<span id="cb4-4">    dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_pctile'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.cut(dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_score_t'</span>], bins<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>np.unique(np.percentile(dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_score_t'</span>], np.arange(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">101</span>))), include_lowest<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, labels<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>)</span>
+<span id="cb4-5">    </span>
+<span id="cb4-6">    enroll_stats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros((<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(default_in_percentile), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>))</span>
+<span id="cb4-7">    enroll_stats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame(enroll_stats, columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black_before'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black_after'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ratio'</span>])</span>
+<span id="cb4-8">    enroll_stats.index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> default_in_percentile</span>
+<span id="cb4-9">    </span>
+<span id="cb4-10">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dt'</span>: dt, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'enroll_stats'</span>: enroll_stats}</span></code></pre></div>
+</details>
+</div>
+<div id="81e4949a" class="cell" data-execution_count="49">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">default_in_percentile <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">97</span>]</span>
+<span id="cb5-2">j <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb5-3"></span>
+<span id="cb5-4">dt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> setup(data, default_in_percentile)[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dt'</span>]</span>
+<span id="cb5-5">enroll_stats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> setup(data, default_in_percentile)[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'enroll_stats'</span>]</span>
+<span id="cb5-6"></span>
+<span id="cb5-7">prior_enrolled <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dt[dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_pctile'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> default_in_percentile[j]]</span>
+<span id="cb5-8">prior_w <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> prior_enrolled[prior_enrolled[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'white'</span>]</span>
+<span id="cb5-9">prior_b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> prior_enrolled[prior_enrolled[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>]</span>
+<span id="cb5-10"></span>
+<span id="cb5-11">upperb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dt[(dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_pctile'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> default_in_percentile[j]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> (dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>)]</span>
+<span id="cb5-12">upperw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dt[(dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_pctile'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> default_in_percentile[j]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> (dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'white'</span>)]</span>
+<span id="cb5-13">lowerb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dt[(dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_pctile'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> default_in_percentile[j]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> (dt[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'race'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>)]</span>
+<span id="cb5-14"></span>
+<span id="cb5-15">upperw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upperw.sort_values(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>)</span>
+<span id="cb5-16">lowerb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> lowerb.sort_values([<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'risk_score_t'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>], ascending<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>])</span>
+<span id="cb5-17"></span>
+<span id="cb5-18">upperb_actual <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upperb.copy()</span>
+<span id="cb5-19">upperw_actual <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upperw.copy()</span>
+<span id="cb5-20">lowerb_actual <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> lowerb.copy()</span></code></pre></div>
+</details>
+</div>
+<div id="106954f1" class="cell" data-execution_count="50">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">sw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb6-2">sb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb6-3">switched_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb6-4">switched_w <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb6-5">switched_b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb6-6"></span>
+<span id="cb6-7"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">while</span> sb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> lowerb.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]:</span>
+<span id="cb6-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> upperw.iloc[sw][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> lowerb.iloc[sb][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>]:</span>
+<span id="cb6-9">        switched_w.append(upperw.iloc[sw])</span>
+<span id="cb6-10">        switched_b.append(lowerb.iloc[sb])</span>
+<span id="cb6-11"></span>
+<span id="cb6-12">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># healthiest white patient is dropped and sickest black patient is added</span></span>
+<span id="cb6-13">        upperb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.concat([upperb, pd.DataFrame(lowerb.iloc[sb]).T], axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb6-14">        upperw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upperw.drop(upperw.index[sw])</span>
+<span id="cb6-15">        upperw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upperw.sort_values(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>)</span>
+<span id="cb6-16">        </span>
+<span id="cb6-17">        sb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb6-18">        switched_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb6-19">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb6-20">        sb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb6-21">        switched_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> switched_count</span></code></pre></div>
+</details>
+</div>
+<div id="f4c85304" class="cell" data-execution_count="51">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">fig, axes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>), sharex<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, sharey<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb7-2">sns.kdeplot(upperw_actual[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'White-upper'</span>, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb7-3">sns.kdeplot(upperb_actual[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Black-upper'</span>, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb7-4">axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>].<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">set</span>(xlabel<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Comorbidity score'</span>, title<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Actual'</span>)</span>
+<span id="cb7-5">axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>].legend()</span>
+<span id="cb7-6"></span>
+<span id="cb7-7">sns.kdeplot(upperw[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'White-upper'</span>, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])</span>
+<span id="cb7-8">sns.kdeplot(upperb[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gagne_sum_t'</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Black-upper'</span>, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])</span>
+<span id="cb7-9">axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>].<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">set</span>(xlabel<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Comorbidity score'</span>, title<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Counterfactual'</span>)</span>
+<span id="cb7-10">axes[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>].legend()</span>
+<span id="cb7-11"></span>
+<span id="cb7-12">fig.suptitle(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'97th percentile'</span>, x<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>, y<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>, fontsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">15</span>)</span>
+<span id="cb7-13">fig.tight_layout()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2024-03-28/index_files/figure-html/cell-8-output-1.png" width="789" height="386" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The left figure shows the distribution of comorbidity score of white and black patients who are above the 97th percentile threshold, identified by the algorithm as those who need the high-risk care. The white patient distribution is tilted to the left and the black patient’s has more density towards right, indicating that white patients are generally healthier thant the black patients in the above-threshold group. The right figure is after we simulate the counterfactual scenario by swapping the healthiest white patient’s slot above the threshold with the sickest black patient below the threshold until the swapping cannot be done any more. The distribution now shows that the two distributions are similar.</p>
+</section>
+<section id="mechanisms-of-bias" class="level3">
+<h3 class="anchored" data-anchor-id="mechanisms-of-bias">Mechanisms of bias</h3>
+<p>Based on Fig. 3A, the algorithm calibrates cost (target variable) quite well, meaning this is not a problem of prediction quality. Fig. 3B shows that at a given level of health score, black patients generate lower costs than the White, making the algorithm prioritizing the White patients. Tab. S2 shows that how healthcare cost is spent between the black and white patients vary by categories. For instance, the black patients have higher costs related to ER and dialysis and fewer inpatient surgical and outpatient specialist costs, which also suggest that their healthcare cost occurs when the worst scenario happens (ER visit). The negative values mean black patients spend less money in that category.</p>
+<p><img src="https://hongsupshin.github.io/posts/2024-03-28/Tab S2.png" class="img-fluid"></p>
+<p>There are several socio-economic reasons. First, poor patients face substantial barriers to accessing health care, even the insured ones such as geography or transportation, demands from job and child care, and knowledge of reasons to seek care. There is also cost that is directly affected by race. <a href="https://en.wikipedia.org/wiki/Taste-based_discrimination">Taste-based discrimination</a>, employers’ prejudice or dislikes in an organizational culture rooted in prohibited grounds can have negative results in hiring minority workers, is one, and the doctor-patient relationship is another. It is known that black patients would take preventive care suggested by black provider more and they also have lower trust in health care system in general due to an incident like Tuskegee study. Doctors also may have different perceptions of black patients regarding such as intelligence, affiliation, or pain tolerance.</p>
+</section>
+<section id="experiments-on-label-choice-and-human-ai-interaction" class="level3">
+<h3 class="anchored" data-anchor-id="experiments-on-label-choice-and-human-ai-interaction">Experiments on label choice and human-AI interaction</h3>
+<p>The authors then conducted experiments to see alternative label choices other than the total health care cost can result in fairer results. They compared the original model (total cost) against the two alternatives: avoidable cost such as ER visit, and health (comorbidity score). Even though it was not perfect, they found that the algorithms trained on alternative labels produced fairer results.</p>
+<p>Finally, the authors examined the interaction between human doctors and the algorithm. The algorithm’s risk score suggests a pool of patients candidates to doctors and they make the ultimate decision on the enrollment. The experiment showed that the doctors can “redress” (=correct) algorithm’s bias but not by much. This indicates that the racial bias produced by the algorithm can have drastic disparaging effect on healthcare management across different race groups that humans cannot correct completely.</p>
+</section>
+<section id="working-on-solutions-together" class="level3">
+<h3 class="anchored" data-anchor-id="working-on-solutions-together">Working on solutions together</h3>
+<p>Interestingly, the authors mentioned that they reached out to the manufacturer of the algorithm with their results. Fortunately, they were able to replicate the authors’ results on their own and by collaborating with the authors, they were able to reduce the bias by 84%. With this, the authors ended the paper on a hopeful note. They emphasized that algorithmic bias is fixable and this does not necessarily require changes in the algorithm itself.</p>
+<p>The paper triggered multiple investigations and stimulated algorithm audit research in the following years. In the same year in 2019, <a href="https://www.wsj.com/articles/new-york-regulator-probes-unitedhealth-algorithm-for-racial-bias-11572087601">New York regulators started investing UnitedHealth algorithm for racial bias</a> and similarly in <a href="https://oag.ca.gov/news/press-releases/attorney-general-bonta-launches-inquiry-racial-and-ethnic-bias-healthcare">California in 2022</a>. In 2021, <a href="https://www.ftc.gov/business-guidance/blog/2021/04/aiming-truth-fairness-equity-your-companys-use-ai">FTC published a guidance document on truth, fairness, and equity in the use of AI in industry</a>. In 2024, there has been a <a href="https://www.finance.senate.gov/chairmans-news/wyden-statement-at-finance-committee-hearing-on-ai-in-health-care">Senate Finance Committee Hearing on AI in healthcare</a> as well.</p>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>We first had several questions about the care management system described in the paper. The cost categories listed in the paper seemed to include cost for both patients and hospitals and we were not sure whether the cost allocation mattered at all. Some of us were also curious about the actual outcome of the care management system especially for the patients who were enrolled (and potential racial bias of the realized outcome). We also talked about other demographic features that can cause medical bias such as gender and age, and especially their intersectionality.</p>
+<p>We agreed that the technical description of the counterfactual scenario was not clear in the paper, and we spent some time understanding how it worked. Similarly, Tab. 2, where the authors created different models with alternative labels and measured the proportion of the high-risk patients identify each model, was a bit confusing to understand, but fortunately, because the authors shared their code for all analyses, we were able to follow eventually.</p>
+<p>We then talked about how to satisfy certain criteria during model training. We questioned the feasibility of satisfying multiple criteria (e.g., fairness metric and accuracy) in healthcare where we often have to work with very small data. This problem will get worsened when considering intersectionality, for instance. And the small data problem naturally leads to safety and privacy issues, especially when data contain sensitive information like in healthcare.</p>
+<p>We also discussed practical aspects such as how to roll out an algorithm carefully especially when it touches millions of people. Some companies release their models gradually and share training data publicly, but we were wondering whether there were more specific tips on how ML deployment can evolve while having human in the loop, especially those who are impacted by the algorithm. And finally, we agreed that even though it’s important to understand how algorithmic bias damages our society and people, we were hopeful that we would like to learn about positive and beneficial use case of ML.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>ML</category>
+  <category>ethics</category>
+  <category>fairness</category>
+  <guid>https://hongsupshin.github.io/posts/2024-03-28/</guid>
+  <pubDate>Thu, 28 Mar 2024 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2024-03-28/Fig 1b.png" medium="image" type="image/png" height="151" width="144"/>
 </item>
 <item>
   <title>Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
@@ -351,6 +1183,7 @@
 
  ]]></description>
   <category>paper</category>
+  <category>GenAI</category>
   <category>LLM</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-08-31/</guid>
@@ -438,6 +1271,7 @@
  ]]></description>
   <category>paper</category>
   <category>Bayesian</category>
+  <category>visualization</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-29/</guid>
   <pubDate>Wed, 29 Mar 2023 05:00:00 GMT</pubDate>
@@ -1493,8 +2327,7 @@ font-style: inherit;">'subsample'</span>])</span></code></pre></div>
 
  ]]></description>
   <category>ML</category>
-  <category>MLOps</category>
-  <category>MLflow</category>
+  <category>ML Ops</category>
   <category>Interoperability</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</guid>
   <pubDate>Fri, 17 Mar 2023 05:00:00 GMT</pubDate>
@@ -2566,6 +3399,184 @@ empty &lt;class 'str'&gt;</code></pre>
   <category>data preprocessing</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</guid>
   <pubDate>Thu, 02 Mar 2023 06:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Zero-Shot Text-to-Image Generation</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2022-12-15/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Generative AI has a lot of hype in ML community these days. OpenAI’s DALL·E, GPT-3, and ChatGPT are good examples. And there’s also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI.</p>
+<p>But whenever there is hype around something, I think we should be more curious about what’s going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E’s text-to-image generative model works, what the authors did to make this happen, and how they validated the result.</p>
+<p>To understand this paper thoroughly, you need to know other deep learning model frameworks such as transformer, variational autoencoder, and OpenAI’s CLIP (Contrastive Language-Image Pre-training) model. I found these <a href="https://ml.berkeley.edu/blog/posts/vq-vae/">two</a> <a href="https://ml.berkeley.edu/blog/posts/dalle2/">articles</a> extremely useful, written by Charlie Snell at UC Berkeley. In this post, I will talk about a high-level summary and the interesting discussion we had as a group. If you are interested in more detailed summary of the paper itself, I recommend those two posts.</p>
+<section id="big-picture" class="level2">
+<h2 class="anchored" data-anchor-id="big-picture">Big picture</h2>
+<p>The authors created a deep learning model which <strong>generate images from a text input</strong>. For instance, if you type “hands”, the model will generate images of hands. As the title says, this is done in <em>zero-shot</em> way, meaning that it can generate images that it hasn’t seen before. To be clear, the authors of this paper are not the first ones who created a model like this. There have been precedents but the authors say that the generated images from those still suffer from severe artifacts such as object distortion, illogical object placement, or unnatural blending of foreground and background elements. So the authors made improvements by adopting these two approaches: using a large set of training data and <strong>building a bigger model</strong>.</p>
+<p>Before we look into the results, let’s first talk about the model architecture. Their model consists of two parts: <strong>variational autoencoder (VAE)</strong> and <strong>transformer</strong>.</p>
+</section>
+<section id="variational-autoencoder-vae" class="level2">
+<h2 class="anchored" data-anchor-id="variational-autoencoder-vae">Variational autoencoder (VAE)</h2>
+<p>The VAE contributes to the generative nature of the model because VAEs have latent representation in the middle that is a probability distribution. Once trained, we can use this distribution to draw samples from it, providing a <em>generative</em> framework. To train the VAE, the authors assumed uniform prior over the latent space. The model can <strong>learn the actual prior from the transformer later</strong> to generate images that match to text input. To train the VAE, the authors used images with text captions from various sources such as Wikipedia images.</p>
+<p>What is interesting about the VAE they used is that it assumes <strong>discrete latent distribution</strong> instead of continuous. This variant of VAE is called <strong>vector-quantized VAE (VQ-VAE)</strong>. The motivation is that images and texts are discrete than continuous. But this assumption comes with a major complication: a discrete space is non-differentiable (i.e., can’t back-propagate). That’s why VQ-VAE has a <strong>codebook</strong>, which is essentially a look-up table where a discrete representation is associated with a codebook vector. To be accurate, this paper used a variant of VQ-VAE called <strong>dVAE</strong> where they made this look-up as a weighted average to further smooth out the space.</p>
+<p>This VAE also acts as a dimensionality reduction technique because the discrete latent space the authors used has a resolution of 32x32 instead of 256x256, the resolution of the original training images. This brings compression benefit so that the transformer doesn’t have to memorize extremely long sequence but a sequence of length 1024 (=32*32).</p>
+</section>
+<section id="transformer" class="level2">
+<h2 class="anchored" data-anchor-id="transformer">Transformer</h2>
+<p>Once the VAE is learned, <strong>we can abandon the uniform prior assumption and use transformer to learn the actual prior</strong>. Transformers help image generation by pixel-wise prediction in an autoregressive way. For instance, given the sequence of previous pixels, the transformer can predict what the next pixel would look like.</p>
+<p>Once the transformer is trained, when we give a text prompt to the model, the transformer makes predictions for the image latents (32x32 space) in an autoregressive way. Once we have all predictions, we use the dVAE codebook to lookup the vectors and generate the image. Since we can sample the sequence in a new way, we can generate multiple images. The authors used a <strong>top k approach</strong> to return the <em>best</em> images by ranking the generated images from a candidate pool based on the <strong>scores from OpenAI’s CLIP model</strong>, which represents how well the images match the caption.</p>
+<p>The transformer has <strong>12 billion parameters</strong> and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.</p>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<section id="are-the-results-representative-enough" class="level3">
+<h3 class="anchored" data-anchor-id="are-the-results-representative-enough"><font color="blue">Are the results representative enough?</font></h3>
+<p>Most of us were somewhat <em>disappointed</em> by the authors’ model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were <strong>not sure whether these were cherry-picked or not</strong> because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors’ model was more realistic than the competitors’. Aside from the ethical issues surrounding hiring mturk workers, we thought <strong>the number of mturk workers was small</strong> (5 people) and the number of images they evaluated was small as well.</p>
+</section>
+<section id="why-not-investigate-model-failures" class="level3">
+<h3 class="anchored" data-anchor-id="why-not-investigate-model-failures"><font color="blue">Why not investigate model failures?</font></h3>
+<p>What was more interesting to us was Fig. 8, the CUB dataset which have images of birds. The example images here looked worse than others and the authors speculated that this was due to the detail-oriented text information of images, which might have been lost during the compression in dVAE. This was a plausible explanation but <strong>we wanted to see more in-depth investigation on model failures</strong>. There are numerous examples of terrifyingly looking images of hands generated by DALL·E because apparently it keeps failing at generating images of humans hands with five fingers.</p>
+<p>We also discussed the <strong>lack of investigation on model failure from an ethical and responsible AI perspective.</strong> If OpenAI was going to publish a public API for a model like this, which would have varying degrees of socio-technical impact (look at all the issues ChatGPT has been creating these days), it would have been more responsible for them to test the model’s capacity more thoroughly and rigorously before rolling it out.</p>
+<p>We found <a href="https://github.com/openai/DALL-E/blob/master/model_card.md">a model card</a> from their repository and it was <strong>disappointingly short and did not address any possible ethical and social ramifications</strong> that would be caused by the model.</p>
+</section>
+<section id="validity-of-the-scoring-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="validity-of-the-scoring-metrics"><font color="blue">Validity of the scoring metrics</font></h3>
+<p>The authors used FID and IS scores (generated by the CLIP model) to assess how well the images reflect the text input. The scores were used to rank a pool of candidate images and the model returned top k results. We questioned the validity of the decision behind using these scores because they are model-dependent, which means <strong>they are training-data-dependent</strong>. Plus, there was no mention of (at least) a qualitative comparison between the training datasets of this paper and the CLIP paper. This made us question the reliability of the CLIP model scores. It might have been interesting to see a batch of images that were ranked high (or low) so that we could judge the validity of the scores and understand the model behavior better.</p>
+</section>
+<section id="qualitative-contribution" class="level3">
+<h3 class="anchored" data-anchor-id="qualitative-contribution"><font color="blue">Qualitative contribution</font></h3>
+<p>As in other deep learning papers, it was <strong>difficult for us to understand which decisions they made led to their results and advancement</strong>. For instance, they highlighted the larger training dataset and the larger model size. What was the measurable impact of each, and which one was more important? Similar to this, it would have been nice if they had some guidance on model tuning and hyperparameter selection to inform other researchers on model architecture design.</p>
+</section>
+<section id="reproducibility-and-novelty" class="level3">
+<h3 class="anchored" data-anchor-id="reproducibility-and-novelty"><font color="blue">Reproducibility and novelty</font></h3>
+<p>To be blunt, <strong>the main highlight of this paper seemed to be the scale</strong>. They were able to use bigger datasets with a bigger model. But let’s be honest, how many academic institutions or companies are able to afford to train a model with 12 billion parameters? Especially without proper model inspection, <strong>how can we understand the model properly when we can’t reproduce it easily?</strong> Although there were certain elements of novelty especially on their tricks of utilizing GPU resources to train the model, if the scale is the main factor of success, <strong>can we really call this as a novel invention?</strong></p>
+</section>
+</section>
+<section id="final-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
+<p>Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to <em>amuse</em> general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>computer vision</category>
+  <category>GenAI</category>
+  <guid>https://hongsupshin.github.io/posts/2022-12-15/</guid>
+  <pubDate>Thu, 15 Dec 2022 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png" medium="image" type="image/png" height="124" width="144"/>
+</item>
+<item>
+  <title>“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2022-10-27/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Many ML articles exist but few talk about how the sausage gets made. They are often based on toy or clean benchmark datasets, which are quite different from what we get in real world. That’s why I enjoy reading survey papers. They interview people in the field like us and try to address common pain points to find a broader picture.</p>
+<p>For the past several years, I have been noticing a trend in ML community. Many practitioners tend to ignore data quality but instead put all their efforts into models and algorithms. I find it very troubling because many problems in real-world ML are caused by data-related issues. <a href="https://research.google/pubs/pub49953/">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</a> talks about this pattern based on the interviews from dozens of ML practitioners all over the globe. I presented the paper in Austin ML Journal Club in Oct 2022.</p>
+<section id="data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascades">Data cascades</h2>
+<p>The paper focuses on “data cascades,” a series of compounding negative events due to data-related issues. The authors say the problems are wildly prevalent (92% reported experience at least one type of data cascades). <font color="blue">During the discussion, we thought about sampling bias because those who are ignorant of these problems may not be able to recognize them.</font> Indeed, they are often opaque because there are no clear indicators and often discovered later. Data cascades often lead to technical debt and harm to beneficiary communities. They can sour relationships between stakeholders and in extremely cases, force ML practitioners discard entire datasets. Figure 1 shows the schematic of the data cascades. <font color="blue">We thought the figure wasn’t particularly informative because too many arrows exist between the points. We hoped that the authors explained why there aren’t arrows between certain points.</font></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI full.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1. Data cascades in high-stakes AI</figcaption>
+</figure>
+</div>
+</section>
+<section id="high-stake-domains" class="level2">
+<h2 class="anchored" data-anchor-id="high-stake-domains">High-stake domains</h2>
+<p>Data cascades are more critical in high stake domains such as landslide detection, suicide prevention, and cancer detection. There are several reasons:</p>
+<ul>
+<li>More ML applications are deployed in these domains where more direct humanitarian impact exists.</li>
+<li>This impact can be disproportionate towards vulnerable communities.</li>
+<li>It is often very challenging to acquire high quality data in these domains.</li>
+<li>The problems frequently require more multidisciplinary approach.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Summary of participant demographics.png" class="img-fluid figure-img"></p>
+<figcaption>Table 1. Summary of participant demographics; Domain</figcaption>
+</figure>
+</div>
+<p>The authors find that the problems are due to human factors. Unfortunately solutions have been focusing on other issues such as database, legal, or license. To gather firsthand experience in the field, the authors interviewed 50+ ML practitioners all over the world, ranging from the US to India and African countries, and from founders to developers. Table 1 summarizes various high-stake domains. <font color="blue">It was fascinating for us to learn that ML is used in areas as landslide detection, poaching prevention, or regenerative farming. It would have been more interesting to see how data cascades create specific negative consequences in some domains.</font></p>
+</section>
+<section id="data-cascade-triggers" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascade-triggers">Data cascade triggers</h2>
+<p>The authors introduce three triggers that cause data cascades.</p>
+<section id="physical-world-brittleness" class="level3">
+<h3 class="anchored" data-anchor-id="physical-world-brittleness">Physical world brittleness</h3>
+<p>Physical world changes over time and thus often ML systems can’t produce robust results. Data drifts due to hardware (measurements) and environmental changes are commonly mentioned in ML Ops literature. In high-stake domains, they become more pronounced because training data are very limited and policy or regulation changes can impact the ML systems in various ways.</p>
+</section>
+<section id="inadequate-application-domain-expertise" class="level3">
+<h3 class="anchored" data-anchor-id="inadequate-application-domain-expertise">Inadequate application-domain expertise</h3>
+<p>Most ML practitioners are not equipped with domain knowledge. <font color="blue">All of us admitted that our academic background does not match to the domain that we work in.</font> Even though close collaboration between domain experts and ML practitioners is always emphasized, in practice the authors find that domain experts are often detached from the larger impact of the applications. The authors explain two specific types of problems:</p>
+<p><strong>Subjectivity in ground truth:</strong> Areas such as insurance claim approval or medical imaging for cancer detection involve highly specialized and often subjective decision-making. To build a reliable and robust ML system, it is necessary to standardize the decision-making criteria and find consensus. However, ML practitioners are asked to rush through the development process, and thus do not have time to address it.</p>
+<p><strong>Poor domain expertise in finding representative data:</strong> ML practitioners often start building ML applications without involving domain experts much because the practitioners simply believe that data are reliable. However, because they lack domain knowledge, practitioners make incomplete assumptions, which results in disparity between data collection and deployment. This often leads to poor and unreliable model performance.</p>
+</section>
+<section id="conflicting-reward-system" class="level3">
+<h3 class="anchored" data-anchor-id="conflicting-reward-system">Conflicting reward system</h3>
+<p>Data collection and any data-related work are often considered non-technical and undervalued. The situation gets worse for frontline workers because they are asked to collect and curate field data on top of their existing responsibilities but they are not well compensated.</p>
+</section>
+<section id="poor-cross-organizational-documentation" class="level3">
+<h3 class="anchored" data-anchor-id="poor-cross-organizational-documentation">Poor cross-organizational documentation</h3>
+<p>Metadata about data collection, quality, and curation are also often missing. Some good practices the authors suggest involve keeping good documentation on reproducible assets such as data collection plan, data strategy handbooks, design documents, file conventions, field notes, and so on.</p>
+</section>
+</section>
+<section id="broader-context" class="level2">
+<h2 class="anchored" data-anchor-id="broader-context">Broader context</h2>
+<p>Data cascades discussion can be extended to bigger problems in ML community.</p>
+<section id="incentives-and-currency-in-ai" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-and-currency-in-ai">Incentives and currency in AI</h3>
+<p>Because of the low incentives, data-related work are not rewarded or even tracked. This makes us difficult to get buy-in from stakeholders. The situation is similar in academia as well. Most practitioners and researchers focus on developing algorithms but they rarely mention or work on data. <font color="blue">The title <em>“Everyone wants to do the model work, not the data work”</em> was a verbatim from an interviewee. Unfortunately, we were all able to relate to this quote.</font></p>
+</section>
+<section id="data-education" class="level3">
+<h3 class="anchored" data-anchor-id="data-education">Data education</h3>
+<p>Most ML or data science curricula lack any mention of data quality or ethics. They use toy datasets or very clean benchmark datasets. <font color="blue">As experience ML practitioners, we wholeheartedly agreed with this finding. We lamented that these courses do not prepare students with practical knowledge because one never works with clean datasets in real world. Some of us have experienced this pattern firsthand because we have been interviewing candidates for an ML practitioner position and found that the candidates who only worked with clean datasets (or primarily worked on algorithms) often lack basic practical ML knowledge.</font></p>
+</section>
+<section id="data-bootstrapping" class="level3">
+<h3 class="anchored" data-anchor-id="data-bootstrapping">Data bootstrapping</h3>
+<p>Data bootstrapping describes ML practitioners’ use of other data sources such as established data services or existing datasets to create their own dataset. <font color="blue">For most of us, it was surprising to learn that many ML practitioners in high-stake domains in countries from Global South had to collect data from scratch. We agreed that challenges in data collection and lack of access to quality data would create inequality between countries.</font></p>
+</section>
+</section>
+<section id="how-to-address-data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-address-data-cascades">How to address data cascades</h2>
+<p>The authors introduce several ways of addressing the problem of data cascades. They introduce the concept of <em>“data excellence”</em>, an effort to <strong>“focus on the practices, politics, and values of humans of the data pipeline to improve the quality and sanctity of data, through the use of processes, standards, infrastructure and incentives”</strong>.</p>
+<section id="from-goodness-of-fit-to-goodness-of-data" class="level3">
+<h3 class="anchored" data-anchor-id="from-goodness-of-fit-to-goodness-of-data">From goodness-of-fit to goodness-of-data</h3>
+<p>The first is to use the right metric to evaluate data quality. Many ML practitioners use model performance metrics such as accuracy and RMSE to evaluate data quality. <font color="blue">Some of us had a similar experience. We had to argue that model metrics shouldn’t be used to make a decision on data-pipeline and data-quality features. We hope that the authors can introduce specific examples of goodness-of-data metrics in the future.</font></p>
+</section>
+<section id="incentives-for-data-excellence" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-for-data-excellence">Incentives for data excellence</h3>
+<p>There are several ways to address the low incentives of data work. First, journals and conferences should require dataset documentation, provenance, and ethics as mandatory disclosure. Second, organizations should reward data-related work similar to how good software engineering is rewarded. Finally, partnership between stakeholders can nurture data excellence by sharing the reward on data-related work such as data collection, anomaly identification, and model verification.</p>
+</section>
+<section id="education-and-visibility" class="level3">
+<h3 class="anchored" data-anchor-id="education-and-visibility">Education and visibility</h3>
+<p>The authors argue for real-world data literacy in AI education, which includes training on data collection, infrastructure building, data documentation, data sense-making, and data ethics and responsible AI in general. Increasing the data visibility in ML lifecycle is important as well; implementing good monitoring system is one of the most important ML Ops practices anyway.</p>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Some of us found this paper vindicating because we have been advocating for data quality at work and had to fight for the attention it deserves. The paper helped us share our own practices at work that address data-related issues especially data collection, curation, and post-deployment data problems. Even though we generally agreed with authors’ suggestions, some of us wanted something more specific, like a case study. Overall, we found the paper interesting and insightful. We thought it would be beneficial to read the paper with our colleagues at work to start a discussion for data excellence.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>governance</category>
+  <category>responsible AI</category>
+  <guid>https://hongsupshin.github.io/posts/2022-10-27/</guid>
+  <pubDate>Thu, 27 Oct 2022 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI.png" medium="image" type="image/png" height="70" width="144"/>
 </item>
 <item>
   <title>Tech volunteering tips for nonprofits</title>
@@ -4021,7 +5032,7 @@ font-style: inherit;">1.03</span>)</span>
   <category>journalism</category>
   <category>measurement</category>
   <category>education</category>
-  <category>language models</category>
+  <category>LLM</category>
   <category>responsible AI</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/</guid>
@@ -4514,163 +5525,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2020-03-01-acm-fat-2020/</guid>
   <pubDate>Sun, 01 Mar 2020 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2020-03-01-acm-fat-2020/2020-03-01-acm-fat-badge.png" medium="image" type="image/png" height="96" width="144"/>
-</item>
-<item>
-  <title>Reflection on USF tech policy and data ethics workshop</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p><img src="https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" class="img-fluid"></p>
-<p>As a data scientist working in industry, I frequently witness the impact a machine learning application can make. This impact often has a cascade of downstream effects which are inconceivable to a data scientist without enough domain knowledge. Nevertheless, under the widespread motto, “move fast and break things,” in tech industry, ML practitioners tend to care little about the size of their products’ impact. In certain cases, they even overlook scientifically rigorous evaluation of their products. These phenomena have been greatly worrying me ever since I started my career in industry. My concern has deepened due to many recent instances of AI applications reproducing human bias on a massive scale and aggravating existing socioeconomic problems.</p>
-<p>Recently, I found out about the event, <strong><a href="https://www.sfdatainstitute.org/">The Tech Policy Workshop at the Center for Applied Data Ethics at USF</a></strong> via Dr.&nbsp;Rachel Thomas on social media, as I have been enjoying her blog posts and talks. She is smart, honest, and concerned about the welfare of people and society. Thus, I assumed that the workshop would be beneficial in many ways. The lineup was also very interesting because the speakers had diverse backgrounds. Additionally, the low registration cost was helpful.</p>
-<p>I have been interested in <strong>fairness, accountability, and transparency of ML</strong> for several years, and thus have been attending events related to the topics. Compared with those events, I found this workshop unique in two ways. First, the organizers made a great effort to gather experts from a wide variety of domains ranging from computer science to policymaking. This makes sense because tech ethics and policy are multidisciplinary issues. Second, by choosing the format of a workshop, instead of a conference, the event was more interactive. There were several hands-on exercises, which encouraged valuable discussions among the attendees. The workshop exceeded my expectations and I felt grateful for the opportunity to attend.</p>
-<section id="interactive-ethics-exercise-on-facial-recognition" class="level2">
-<h2 class="anchored" data-anchor-id="interactive-ethics-exercise-on-facial-recognition">Interactive ethics exercise on facial recognition</h2>
-<p>Every session was interesting and unique in its own way. However, the main lesson I got out of the workshop came from the ethics session led by Irina Raicu from Santa Clara University. Ethics can be vague, abstract, and even esoteric but Irina made it sound accessible. She compared it to birdwatching; <strong>the more we learn about ethics, the more easily we can notice ethical issues in the world</strong>. Instead of giving a lengthy philosophy lecture, she taught us various easy-to-understand <strong>ethical “lenses”</strong>. She then asked us to use these in an exercise based on a real-world case about face recognition. <strong>The case was about a dataset<sup>1</sup> that ML researchers at IBM created to train a fairer face recognition model</strong>.</p>
-<p>I was already familiar with the case. Joy Buolamwini, a ML researcher at MIT, published a study<sup>2</sup> that revealed gender and racial bias in the training dataset in many commercial face recognition platforms including IBM’s. After this paper was published, IBM was forthcoming about the issue and they promised to improve their application. It is safe to assume that IBM researchers had good intentions when they published a new training dataset. Unfortunately, we found that this new dataset still had many problems, especially related to data privacy.</p>
-<p>During the exercise, we applied different ethical lenses to address which ethical values were pursued or violated. Since we were a group of data scientists, policymakers, and activists, there were a variety of ideas. I admit that in the beginning of the exercise, I was somewhat frustrated because ethics cannot be easily optimized. This meant that we might not be able to reach conclusions easily. However, once we started discussion, I realized that the true value of the exercise was not about finding the right answer quickly, but about evaluating various perspectives especially when multiple ethical values were in conflict. The exercise also taught me that <strong>ethical decision making is a highly dynamic process that requires a diverse set of opinions</strong>. I started thinking this type of exercise would be beneficial for tech engineers to change the way they think.</p>
-</section>
-<section id="ethics-training-for-tech-workers" class="level2">
-<h2 class="anchored" data-anchor-id="ethics-training-for-tech-workers">Ethics training for tech workers</h2>
-<p>Granted, as Chris Riley at Mozilla pointed out during his session, teaching ethics to engineers may not be the best way to solve the tech-related problems in our society. After all, ethics focuses on individuals. Typically, <strong>socioeconomic problems are solved more effectively through legislation, regulations, and policies</strong>. However, several speakers hinted that training engineers to learn about ethical decision making can still be useful.</p>
-</section>
-<section id="tech-industry-has-great-power-and-influence-on-our-society" class="level2">
-<h2 class="anchored" data-anchor-id="tech-industry-has-great-power-and-influence-on-our-society">Tech industry has great power and influence on our society</h2>
-<p>As Prof.&nbsp;Elizabeth E. Joh from UC Davis mentioned, <strong>tech industry has a significant amount of power</strong> these days. According to her, in certain circumstances, police must even drop their investigation so as not to violate the non-disclosure agreement related to the procurement of technological devices they use. She gave an example of police body-cams produced by the company, Axon, who dominates the market. They make almost every decision on how the device works, how and where data is stored and maintained, and so on. This means <strong>the management decision in the tech company can have a significant impact on the general public</strong>. Guillaume Chaslot from Algo Transparency delivered a similar message using an example from YouTube. It showed <strong>how slow and passive YouTube’s response was on content moderation</strong>. This is similar to Facebook’s naïve approach that contributed to the dissemination of disinformation over the internet, which created numerous sociopolitical problems all over the world.</p>
-</section>
-<section id="tech-workers-also-have-power" class="level2">
-<h2 class="anchored" data-anchor-id="tech-workers-also-have-power">Tech workers also have power</h2>
-<p>Multiple speakers emphasized that tech workers have great power as well. Recent tech employee walkouts demonstrate that power. Some even affected their companies’ decisions on certain social issues. The news<sup>3</sup> about <strong>Google recently hiring firm known for anti-union efforts implies that companies now have recognized employee unrest as a threat</strong>. ML practitioners who work closely on sensitive datasets can wield even greater power. Kristian Lum from Human Rights Data Analyses Group shared a disturbing example of a ML application used at a government branch. A ML practitioner manipulated the results by hand-selecting model coefficients from multiple versions of a dataset, but this only came to light much later during an audit. Based on my conversations with other data scientists, <strong>proper oversight or formalized review of technical work is still missing in many industries</strong>. Under these circumstances, <strong>the responsibility to provide transparency and accountability falls to individual ML practitioners</strong>. Since building a ML application is a complex process, technical debt can aggravate quickly.</p>
-</section>
-<section id="what-i-can-do-as-a-tech-worker" class="level2">
-<h2 class="anchored" data-anchor-id="what-i-can-do-as-a-tech-worker">What I can do as a tech worker</h2>
-<p>The fact that ethics is about an individual’s decisions makes me think that there should be something I can do and that I should be aware of the responsibility that comes with my power as a tech worker. I can share a few things I try at work to make a change even though they are small. First, I seek out resources to <strong>learn about best practices in ML</strong> across the industry and to establish them at work regarding transparency and accountability. My team uses <strong>Model Cards<sup>4</sup></strong>, which summarize how models are trained and how they are supposed to be used, and <strong>Datasheets<sup>5</sup></strong>, which describe how data are collected, used, and processed. Second, to prevent technical debt, I often <strong>ask for reviews</strong> so that my work is seen by many different stakeholders. Another effort is <strong>bringing my work to a public space through publications, seminars, or conferences</strong>. For the tech ethics and policy issues, I try to <strong>take advantage of any opportunities inside my job (e.g., lunch-and-learn sessions) or outside (e.g., house parties or friends’ gatherings) to raise awareness</strong>. Finally, I try to learn more about the topics via events like this workshop.</p>
-</section>
-<section id="what-i-can-do-as-a-citizen" class="level2">
-<h2 class="anchored" data-anchor-id="what-i-can-do-as-a-citizen">What I can do as a citizen</h2>
-<p>I spent a lot of time thinking about what I can do as a tech worker, but I was forgetting something more important. At the end of the workshop, Prof.&nbsp;Elizabeth E. Joh talked about how tech companies wield their massive power in surveillance and policing. An attendee asked her whether there is anything we can do to make a change. Rather than answering his question, she asked him how many times he has previously attended city council meetings of his own city. She said there is still not enough awareness about this problem among the general public nor even momentum to create strong public opinion. That is why <strong>we need to raise our voices to address the issue and demand a change.</strong> Carrying out my duty as a citizen by speaking up was the one that I have overlooked.</p>
-<p>At the workshop, I heard from Bay Area government officials about how they try to protect their citizens. Catherine Bracy from TechEquity Collaborative discussed organizations that help protect local communities from tech-related problems. Even though the Bay Area has been facing many problems such as housing and severe income inequality due to tech industry, it also has become the place where movements to fight back are pioneered. I think it has happened here because 1) it is the epicenter of the tech boom, 2) the severity of the problems is extreme, and 3) people are more aware of and sensitive about these issues.</p>
-<p>Other local governments face a very different situation. The Litigating Algorithms report<sup>6</sup> by the AI Now Institute mentions that many local governments are drawn to the idea of implementing automated decision processes (ADP) because officials expect ADP to save money. <strong>Since the governments do not have affordable access to the right talent, they end up outsourcing the work to cheap vendors who often do poor execution and do not provide enough transparency.</strong> The report lists many examples of ADP that went wrong and harmed many people.</p>
-</section>
-<section id="responsibility-as-a-citizen-and-a-tech-worker" class="level2">
-<h2 class="anchored" data-anchor-id="responsibility-as-a-citizen-and-a-tech-worker">Responsibility as a citizen and a tech worker</h2>
-<p>This workshop gave me an idea of how to <strong>combine my duty as a citizen and my duty as a tech worker.</strong> Government officials I spoke to at the workshop said it is extremely difficult for governments to catch up with the tech industry. It makes sense—policymaking is an inherently slow process but tech is all about fast developments and adaptations. To reduce the gap, <strong>we can start organizing small groups of tech workers to help nonprofits and local governments navigate the ever-changing tech space more efficiently</strong>. In the long run, these groups can form an advisory board or a civilian oversight committee to monitor tech-related issues in local communities such as predictive policing. By then, of course, these groups will include <strong>not only tech workers but other stakeholders such as local residents, legal experts, social scientists, activists, and more.</strong> This way, tech workers like myself can provide our local communities with technical expertise. At the same time, I will have a better idea of the real impact that my work makes. <strong>I optimistically believe that as we tech workers engage with our communities, we will change tech culture positively.</strong></p>
-</section>
-<section id="final-thoughts" class="level2">
-<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
-<p>In addition to learning much about tech ethics and policy, I found the workshop particularly special because I met great people from a variety of backgrounds, and I made new friends. I am sure many attendees had the same experience. It’s a rare occasion to have a diverse group of people sharing many concerns about the future in the same place for two days of honest discussions.</p>
-<p>When I saw ads for the event, I hesitated whether I should register. I was unsure whether I would belong there because policy is outside of my experience. During the workshop, I confessed this to other attendees. Some said they had similar hesitations. After listening to my confession, Shirley Bekins, a housing activist who sat beside me, said with a big smile, “Of course you should be here!”</p>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>M. Merler, N. Ratha, R. S. Feris, and J. R. Smith, “Diversity in Faces,” ArXiv190110436 Cs, Apr.&nbsp;2019.↩︎</p></li>
-<li id="fn2"><p>J. Buolamwini and T. Gebru, “Gender Shades: Intersectional Accuracy Disparities in Commercial Gender Classiﬁcation,” p.&nbsp;15.↩︎</p></li>
-<li id="fn3"><p>N. Scheiber and D. Wakabayashi, “Google Hires Firm Known for Anti-Union Efforts,” New York Times, 20-Nov-2019.↩︎</p></li>
-<li id="fn4"><p>M. Mitchell et al., “Model Cards for Model Reporting,” Proc. Conf. Fairness Account. Transpar. – FAT 19, pp.&nbsp;220–229, 2019.↩︎</p></li>
-<li id="fn5"><p>T. Gebru et al., “Datasheets for Datasets,” ArXiv180309010 Cs, Apr.&nbsp;2019.↩︎</p></li>
-<li id="fn6"><p>R. Richardson, J. M. Schultz, and V. M. Southerland, “LITIGATING ALGORITHMS 2019 US REPORT:,” p.&nbsp;32.↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>ethics</category>
-  <guid>https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/</guid>
-  <pubDate>Thu, 30 Jan 2020 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/2020-01-30-presentation.png" medium="image" type="image/png" height="77" width="144"/>
-</item>
-<item>
-  <title>Fairness in ML at ACM FAT 2019</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p><img src="https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/2019-02-01-acm-fat.jpeg" title="From Moritz Hardt's CS 294: Fairness in Machine Learning course" class="img-fluid"></p>
-<p>ACM Conference on Fairness, Accountability, and Transparency (ACM FAT*) is a “multi- disciplinary conference that brings together researchers and practitioners interested in fairness, accountability, and transparency in socio-technical systems.” The conference originated from a fairness workshop in machine learning workshop at NIPS a few years and last year they had the first inaugural event as an independent conference. This year, they were joined with ACM and it was held in Atlanta, GA in Jan 2019. I attended both the tutorials and the main conference.</p>
-<section id="general-thoughts" class="level2">
-<h2 class="anchored" data-anchor-id="general-thoughts">General thoughts</h2>
-<p>Compared to the last year’s conference, which I also attended, it seemed that the academic discipline has become more mature; last year, there were many talks focused on showing the examples of biased machine learning in practice and researchers discussed how they can agree upon defining terms such as fairness in mathematical concept. This year, there were many in- depth theoretical studies where researchers built mathematical models to simulate the propagated effect of bias in machine learning (ML). Empirical studies were also presented as well, in which researchers crowd-sourced data to show bias in human judgment especially when they interact with ML algorithms. Unfortunately, due to the recent long-term government shutdown, there weren’t many government officials who were supposed to participate. Hence, it was lacking to see how the discoveries made in academia can be translated into actual policies and legislation. However, it’s important to notice that there is huge growing interest in this field as ML-based algorithmic decision making is widespread in our society.</p>
-</section>
-<section id="tutorials" class="level2">
-<h2 class="anchored" data-anchor-id="tutorials">Tutorials</h2>
-<p>For tutorials, I attended the <a href="https://www.youtube.com/watch?v=nksfAaEJtm8">Translation Tutorial: A History of Quantitative Fairness in Testing</a> and <a href="https://youtu.be/XCFDckvyC0M">Hands-on Tutorial: AI Fairness 360 Part 1</a> and <a href="https://youtu.be/_TueqDj_vfU">Part 2</a>.</p>
-<p>The tutorials are divided into two categories: translation and hands-on. Since the conference is multi-disciplinary, there are attendees from various backgrounds; computer science, social science, law and policy, etc.</p>
-<section id="translation-tutorial-a-history-of-quantitative-fairness-in-testing" class="level3">
-<h3 class="anchored" data-anchor-id="translation-tutorial-a-history-of-quantitative-fairness-in-testing">Translation Tutorial: A History of Quantitative Fairness in Testing</h3>
-<p>The translation tutorials are designed to have everyone more or less be on the same page. This specific translation tutorial I attended seemed to be aimed at computer scientists who are not much aware of the history of research on fairness and automated decision making. This was given by Google researchers Ben Hutchinson and Margaret Mitchell, who showed that the growing current interest on fairness in ML isn’t something new but existed in 1960’s when the civil rights movement started, which made sense.</p>
-<p>Then, the interest was on designing fair standardized tests like SAT or LSAT. Based on correlation studies, researchers then discovered that standardized tests require specific cultural knowledge, which is unfair to racial minorities. There were several views on how to build a fairer model, similar to the various modeling perspectives found in modern studies, such as whether to use sensitive features like race or gender exclusively in models. Also, researchers then pointed out that what we are trying to predict and what we should do are two different questions, which is always mentioned in almost every presentation at this conference.</p>
-<p>Ben and Margaret finished the talk by inspiring the audience with various research opportunities that we can learn from the history. For instance, these historical studies started by asking the question of “what is unfair?” instead of the definition of fairness itself. Correlation- based approach and addressing regression problem (instead of classification) in fairness are other examples.</p>
-</section>
-<section id="hands-on-tutorial-ai-fairness-360" class="level3">
-<h3 class="anchored" data-anchor-id="hands-on-tutorial-ai-fairness-360">Hands-on Tutorial: AI Fairness 360</h3>
-<p>The second tutorial I attended (“AI Fairness 360”) was a hands-on one. Here, I learned about IBM Research’s effort to build an open-source Python package that implemented mathematical definition of various fairness criteria and how to apply them to a user’s existing workflow. The package seemed quite comprehensive and had great usability for the following reasons:</p>
-<ul>
-<li>There is no one definition that satisfies all the needs and hence they have implemented a variety of metrics.</li>
-<li>The package addresses different steps in ML pipeline where the fairness adjustment (i.e., mitigation algorithm) can be made: pre-process (mitigation to training data), in-process (mitigation to model during training), post-process (mitigation to predicted labels). This gives freedom and flexibility in the mitigation process.</li>
-<li>Its syntax is similar to scikit-learn, which make everything easy and familiar. Plus, their API is well-established, and the repository has many notebook examples.</li>
-<li>The package can have various types of data (tabular, images, etc.)</li>
-</ul>
-<p>This is just a start and of course, there are aspects that can be improved and investigated. First, some mitigation algorithms require tuning. It’ll be interesting to understand how this works on top of the main ML model’s tuning process. Since there are various fairness metrics, it would be nice to directly target those metrics for tuning. When a mitigation algorithm is applied, we sometimes see a compromise in model performance. In this case, it will be interesting to conduct an error analysis to find in which examples the model starts missing predictions.</p>
-</section>
-</section>
-<section id="keynote" class="level2">
-<h2 class="anchored" data-anchor-id="keynote">Keynote</h2>
-<p>There were two keynotes from two very different domains: computer science and law. The computer science one was given by Jon Kleinberg at Cornell University. His talk was about mathematical formulation of a mitigation policy called Rooney Rule. The Rooney Rule is a requirement that at least one of the finalists be chosen from the affected group. His researched showed that it not only improves the representation of this affected group, but also leads to higher payoffs in absolute terms for the organization performing the recruiting. He presented a mathematical proof to prove his point. His model has only three parameters: composition of pool (diversity), level of bias, and abundance of outliers (superstars) and he showed that with certain constraints, Rooney Rule can be used to improve to the utility of the entire group (not just for the minority).</p>
-<p>The second one was given by Deirdre Mulligan from UC Berkeley. Her talk was on “fostering cultures of algorithmic responsibility through administrative law and design”. She started by citing the case Loomis v. Wisconsin where Eric Loomis challenged the State of Wisconsin’s use of proprietary, closed-source risk assessment software (COMPAS) in the sentencing of himself to six years in prison. His argument was that there was gender and race bias in the software, which was also addressed by many investigative journalists. One of the interesting and disappointing part of this case was that the court addressed that “it is unclear how COMPAS accounts for gender and race…”, meaning the lack of transparency of the software but also the lack of ability to handle these cases in law. To fix this problem, she emphasized that there should be case laws addressing limits and details of math and algorithms, but more importantly, a “contestable” design. This means whenever there is a wrong done to a person by automated decision, they should be able to contest on this algorithmic decision.</p>
-</section>
-<section id="main-sessions" class="level2">
-<h2 class="anchored" data-anchor-id="main-sessions">Main sessions</h2>
-<p>In total, there were 11 sessions and there was a wide range of topics ranging from problem formulation to content distribution and economic models. The following sessions stood out.</p>
-<section id="framing-and-abstraction" class="level3">
-<h3 class="anchored" data-anchor-id="framing-and-abstraction">Framing and Abstraction</h3>
-<p>The talks in this session here mentioned that problems in ML projects can start from the very beginning where ML practitioners and data scientists start formulating ideas and framing problems. For examples, if what one wants to measure cannot be obtained or measurable, they use a proxy that is correlated to the original metric they wanted to measure. Sometimes data scientists transform a regression problem as classification by discretizing variables. Unfortunately, these decisions are often not well documented even though they happen in many layers in a ML project.</p>
-</section>
-<section id="profiling-and-representation" class="level3">
-<h3 class="anchored" data-anchor-id="profiling-and-representation">Profiling and Representation</h3>
-<p>Chakraborty at al.&nbsp;presented an interesting idea of handling online trolls in their talk, “Equality of Voice: Towards Fair Representation in Crowdsourced Top-K Recommendations.” Since algorithms trained by online user data make often offensive and biased prediction, they came up with a fairer “voting” system by considering that there are a few bad actors (the trolls) and that most users are silent (who don’t case a vote). Here, the main challenge was the latter because they need to infer how a silent user might have voted. To solve this, they used existing personalized recommendation techniques.</p>
-</section>
-<section id="fairness-methods" class="level3">
-<h3 class="anchored" data-anchor-id="fairness-methods">Fairness methods</h3>
-<p>In “From Soft Classifiers to Hard Decisions: How fair can we be?”, Canetti at al.&nbsp;tackles the fairness problem by implementing a deferral process. Instead of making hard yes/no decisions, the model can defer the decision to a group of moderators so that they can gather more information and make more socially-acceptable decisions. Their paper discussion a couple of options of deferrals: applying different thresholds per group for deferral or equalizing the accuracy with equal deferral rate.</p>
-<p>Similarly, in “Deep Weighted Averaging Classifiers”, Card et al.&nbsp;questions when we should know when not to trust a classifier. On top of traditional model performance, they come up with a separate measure of model credibility which can address whether this model is a right tool. They provided a fun example where they build a model by using the MNIST dataset and then used the trained model on the Fashion MNIST (the former has images of numerical digits and the latter, images of clothes and shoes). The model can still make predictions but clearly this model is not built for the testing data. In this case, the model’s “credibility” is very low.</p>
-</section>
-<section id="explainability" class="level3">
-<h3 class="anchored" data-anchor-id="explainability">Explainability</h3>
-<p>Ustun at al.&nbsp;points out that explanability does not mean contestability in their talk, “Actionable Recourse in Linear Classification”. When a model explains why your loan is rejected, it doesn’t mean what you should do about it, especially the explanation is based on immutable features like your race. They suggest that we should have a system and model that provides “ability to obtain a desired prediction from a model by changing actionable input” so that the model’s explanation is actually useful. Their tool provides two answers: 1) what users can do to flip the decision and 2) the proof of no recourse (by checking every option in actionable features). The second answer can be still valuable because then it provides the user with contestable information.</p>
-</section>
-<section id="economic-models" class="level3">
-<h3 class="anchored" data-anchor-id="economic-models">Economic Models</h3>
-<p>There were two dedicated sessions just for economic fairness, new to this year’s program compared to the last year’s. One interesting concept discussed in multiple talks was “strategic manipulation.” It is also called “Stackelberg game”, where candidates might try to change their feature to game the system (the model) and the learner anticipates this and adjust the classifier by changing the decision boundary more stringent, which can also result in changes in candidates’ behavior. Milli et al.’s discussed in “The Social Cost of Strategic Classification” that so far the approach to this problem has institutional-centric view. For instance, when the institution, who build the model, wants to come up with a counter-measure to strategic manipulation, they weigh hard-to-change features such as parents’ income or zip code more highly. Then it becomes extremely high-cost for credit-worthy individuals in the wrong zip code area to obtain a loan, meaning the social burden is now on individuals. Their study found that as the game is played, individual social burden increases and returns more unfair outcome.</p>
-</section>
-</section>
-<section id="summary" class="level2">
-<h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<p>I enjoy this conference very much not just because of personal interest but also of the fact that studies discussed here emphasize robustness and responsibility of ML algorithms, often ignored in ML community. Plus, the crosstalk between different domains enlighten me because they the topics can be applied to many aspects of ML engineering work. The theoretical studies provide new insights on how to measure abstract concepts like fairness and bias, transferrable to processes like problem statement that are highly important in ML. The empirical studies help theoretical studies grounded and more realistic. Finally, the law and policy side of works emphasizes the real implementation of these studies, which resembles constructing deployment plans and the results with stakeholders.</p>
-
-
-</section>
-
- ]]></description>
-  <category>conference</category>
-  <category>fairness</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/</guid>
-  <pubDate>Fri, 01 Feb 2019 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/2019-02-01-acm-fat.jpeg" medium="image" type="image/jpeg"/>
 </item>
 </channel>
 </rss>

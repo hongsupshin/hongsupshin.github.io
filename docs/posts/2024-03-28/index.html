@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2024-03-28">
+<meta name="description" content="Amidst the LLM hype, algorithmic bias in a critical domain such as healthcare is continued being overlooked. This algorithm-audit paper found racial bias in a widely used healthcare system and discussed the problem of using a wrong target variable. The paper is a few years old but the message is still relevant, and we discussed what’s happened since then.">
+
+<title>Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations – Hongsup Shin</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations – Hongsup Shin">
+<meta property="og:description" content="Amidst the LLM hype, algorithmic bias in a critical domain such as healthcare is continued being overlooked. This algorithm-audit paper found racial bias in a widely used healthcare system and discussed the problem of using a wrong target variable. The paper is a few years old but the message is still relevant, and we discussed what’s happened since then.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2024-03-28/Fig 1b.png">
+<meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="698">
+<meta property="og:image:width" content="664">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations</h1>
+                  <div>
+        <div class="description">
+          Amidst the LLM hype, algorithmic bias in a critical domain such as healthcare is continued being overlooked. This algorithm-audit paper found racial bias in a widely used healthcare system and discussed the problem of using a wrong target variable. The paper is a few years old but the message is still relevant, and we discussed what’s happened since then.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">paper</div>
+                <div class="quarto-category">ML</div>
+                <div class="quarto-category">ethics</div>
+                <div class="quarto-category">fairness</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 28, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>Fresh out of academia and at my first job, I remember being surprised by the great power I was able to wield as the main data scientist in the team. A few lines of my code could easily have cascading impact on business decisions. And (as is often the case) since management didn’t care much about technical details, this power gave me a sense of grave responsibility, which was honestly often terrifying. To this day, this sense is something I try to remind myself of, especially because ML systems are getting more complex and we still have very little accountability for ML. So in a way, every ML practitioner is the first line of defense. And this responsibility is more critical if one is working in an high-impact domain such as healthcare.</p>
+<p>These days it feels like ML is all about LLMs and AI assistants. But algorithmic bias is still widespread, and unfortunately it’s even more overshadowed by this massive hype. This seminal paper from 2019 identified racial bias in a healthcare algorithm and discussed the problem of label choice bias. I find this paper still relevant because this bias can easily sneak when building datasets and algorithms. Since the paper is a few years old, it will be interesting to discuss what’s happened since then. I presented the paper in Mar 2024 in Austin ML Journal Club.</p>
+<section id="paper-summary" class="level2">
+<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
+<p>This is a famous paper in Fair ML field that’s cited frequently. One reason is that this is one of the first algorithm audit papers that used a creative approach to dissect an algorithm already used in public. The first author Ziad Obermeyer is an active figure in algorithmic bias specifically in healthcare, and the corresponding author Sendhil Mullainathan is a seminal figure in behavioral economics.</p>
+<p>The main message of the paper is simple and straightforward. In a widely used healthcare algorithm, the authors found that given a score generated by a trained algorithm, which predicts how sick a patient is, Black patients were much sicker than the White. By using creative approaches, the authors found that this algorithmic behavior originated from label choice bias. The algorithm used healthcare cost as target, which the ML practitioners considered as a proxy for a patient’s sickness. The authors cautioned that seemingly effective proxies for ground truth can cause algorithmic bias.</p>
+<section id="background" class="level3">
+<h3 class="anchored" data-anchor-id="background">Background</h3>
+<p>The authors discussed the difficulty of empirical investigation on commercially used algorithms because they are considered proprietary, and thus researchers have to work “from the outside”. They can come up with creative methods but these can be still limiting because without knowing how the model works, it is difficult to understand how and why. For instance, we need training data, objective function, prediction method, and so on, to have a deeper understanding of an algorithm.</p>
+<section id="high-risk-care-management-system" class="level4">
+<h4 class="anchored" data-anchor-id="high-risk-care-management-system">High-risk care management system</h4>
+<p>This study is about a high-risk care management system often used in hospitals to provide care for complex medical needs, which tend to be quite expensive. In essence, hospitals want to prioritize patients so that they can optimize which patients will benefit the most by optimizing resource allocation. For instance, early identification of a high risk patient can reduce expensive cost later, like an ER visit. The authors said healthy care systems rely on algorithms <em>extensively</em> for this type of care management. This type of algorithm actually has many analogies, and an algorithm like this is often called as a risk assessment tool, which is also used in finance, criminal justice, and so on.</p>
+</section>
+<section id="who-will-benefit-the-most" class="level4">
+<h4 class="anchored" data-anchor-id="who-will-benefit-the-most">“Who will benefit the most?”</h4>
+<p>The authors emphasized that this is a difficult <em>causal inference</em> problem. We need to estimate individual treatment effects after the resources are allocated. The underlying assumption is “those with the greatest needs will benefit the most,” and thus we are setting <em>future health care needs</em> as main target.</p>
+</section>
+</section>
+<section id="the-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="the-algorithm">The algorithm</h3>
+<p>For this study, the authors had a unique advantage to have access to training data, objective function, and prediction. This is mainly due to that the first author worked at the hospital which used the algorithm and he had access.</p>
+<p>The data are from a large academic hospital, collected between 2013 and 2015. The authors focused on the white vs.&nbsp;black relationship to examine racial bias. There were about 6k black patients and 40k white patients. For the algorithm, <strong>total medical expenditure</strong> (<span class="math inline">\(C\)</span>) is used as target variable. The input feature data are collected from insurance claim data, which includes demographics, insurance type, ICD-9 (international classification of diseases code), medications, medical encounters such as surgery or radiology, and so on. The authors shared the code and data <a href="https://gitlab.com/labsysmed/dissecting-bias/-/tree/master">here</a> and we can take a look at the data ourselves.</p>
+<div id="660576c6" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>plt.style.use(<span class="st">'ggplot'</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>config InlineBackend.figure_format<span class="op">=</span><span class="st">'retina'</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="0f908394" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_csv(<span class="st">"https://gitlab.com/labsysmed/dissecting-bias/-/raw/master/data/data_new.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">risk_score_t</th>
+<th data-quarto-table-cell-role="th">program_enrolled_t</th>
+<th data-quarto-table-cell-role="th">cost_t</th>
+<th data-quarto-table-cell-role="th">cost_avoidable_t</th>
+<th data-quarto-table-cell-role="th">bps_mean_t</th>
+<th data-quarto-table-cell-role="th">ghba1c_mean_t</th>
+<th data-quarto-table-cell-role="th">hct_mean_t</th>
+<th data-quarto-table-cell-role="th">cre_mean_t</th>
+<th data-quarto-table-cell-role="th">ldl_mean_t</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">trig_min-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_min-normal_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-low_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_mean-normal_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-low_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-high_tm1</th>
+<th data-quarto-table-cell-role="th">trig_max-normal_tm1</th>
+<th data-quarto-table-cell-role="th">gagne_sum_tm1</th>
+<th data-quarto-table-cell-role="th">gagne_sum_t</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1.987430</td>
+<td>0</td>
+<td>1200.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>5.4</td>
+<td>NaN</td>
+<td>1.110000</td>
+<td>194.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>7.677934</td>
+<td>0</td>
+<td>2600.0</td>
+<td>0.0</td>
+<td>119.0</td>
+<td>5.5</td>
+<td>40.4</td>
+<td>0.860000</td>
+<td>93.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>0.407678</td>
+<td>0</td>
+<td>500.0</td>
+<td>0.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0.798369</td>
+<td>0</td>
+<td>1300.0</td>
+<td>0.0</td>
+<td>117.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>17.513165</td>
+<td>0</td>
+<td>1100.0</td>
+<td>0.0</td>
+<td>116.0</td>
+<td>NaN</td>
+<td>34.1</td>
+<td>1.303333</td>
+<td>53.0</td>
+<td>white</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 160 columns</p>
+</div>
+</div>
+</div>
+<p>Note that the risk score (<span class="math inline">\(R\)</span>, <code>risk_score_t</code>) and the predicted cost (<span class="math inline">\(C\)</span>, <code>cost_t</code>) are not the same. <strong>We do NOT know how the risk score is calculated based on the predicted score.</strong></p>
+<div id="2cd7f6e3-d93d-4af6-a896-fbc4abb1a59a" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>plt.plot(data[<span class="st">'cost_t'</span>], data[<span class="st">'risk_score_t'</span>], <span class="st">'.'</span>, alpha<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>plt.loglog()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>plt.axis(<span class="st">'equal'</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Predicted Cost'</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Risk Score'</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-4-output-1.png" width="548" height="528" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The algorithm score was generated for each patient during the enrollment period. After ranking this prediction scores from a group, the top 3% (97th percentile) is automatically flagged as required to be enrolled although this does not guarantee enrollment. The top 45% (55th percentile) is referred to their PCP for further examination.</p>
+</section>
+<section id="the-algorithm-audit" class="level3">
+<h3 class="anchored" data-anchor-id="the-algorithm-audit">The algorithm audit</h3>
+<p>As a main method, the authors measured the algorithm calibration to assess fairness across different racial groups. This means that the authors focused on parity of how risk score is calibrated across race. Fair result would satisfy <span class="math display">\[E[Y|R, W] = E[Y|R, B]\]</span></p>
+<p>where <span class="math inline">\(Y\)</span> is our main interest, <span class="math inline">\(W\)</span> is the White, <span class="math inline">\(B\)</span> is the Black, and <span class="math inline">\(R\)</span> is the risk score.</p>
+<p>To dissect the algorithm, the authors compared the distribution of <span class="math inline">\(R_{i, t}|H_{i, t}\)</span> and <span class="math inline">\(R_{i, t}|C_{i, t}\)</span> between White and Black patients where - <span class="math inline">\(R_{i, t}\)</span>: risk score given patient <span class="math inline">\(i\)</span> in year <span class="math inline">\(t\)</span> given the input feature <span class="math inline">\(X_{i, t-1}\)</span> from the previous year - <span class="math inline">\(H_{i, t}\)</span>: realized health - <span class="math inline">\(C_{i, t}\)</span>: actual cost</p>
+<p>To measure <span class="math inline">\(H\)</span>, the authors used health record data, diagnoses, lab results, and vital sign data. As a main measure of realized health, the authors used comorbidity score, the total number of chronic illnesses over a year, which is a measure of medical complexity. The cost variable <span class="math inline">\(C\)</span> includes insurance claims on utilization, outpatient/ER visit, hospitalization, and general health care costs.</p>
+</section>
+<section id="using-a-counterfactual-scenario-to-describe-racial-bias-fig.-1b" class="level3">
+<h3 class="anchored" data-anchor-id="using-a-counterfactual-scenario-to-describe-racial-bias-fig.-1b">Using a counterfactual scenario to describe racial bias (Fig. 1B)</h3>
+<p>Fig. 1A shows mean comorbidity vs.&nbsp;risk score. At a given risk score, Blacks have significantly more illness than Whites. For instance, at the 97th percentile, mean comorbidity score was 4.8 for Black and 3.8 for White. This means that sicker black patients and healthier white patients can have the same score, causing substantial disparities in program screening. The authors designed a counterfactual scenario with no racial bias, and described the severity of the disparity.</p>
+<p><strong>We found it difficult to understand how the authors measured the disparity between the counterfactual and actual</strong>. Fortunately, the code that the authors shared helped us. Here is how this assessment was done in the paper:</p>
+<ol type="1">
+<li>At a given percentile (e.g., 97th percentile) identify the following:
+<ul>
+<li>Group “White-above”: White patients whose risk score is above the threshold</li>
+<li>Group “Black-above”: Black patients whose risk score is above the threshold</li>
+</ul></li>
+<li>If the comorbidity score of the healthiest patient in the White-above group is <em>lower</em> than that of the sickest patient in the Black-lower group, remove the healthiest white patients from White-above, and move the sickest Black patient from the Black-lower above the threshold.</li>
+<li>Repeat this process until patients cannot be moved any more.</li>
+</ol>
+<p>The second step can be considered as a White patient who shouldn’t be in the enrollment group (above the threshold) giving their spot to the sicker black patient, who was supposed to be in the enrollment group. The authors’ original code was written in R but I translated it into python to further investigate this simulation.</p>
+<div id="2cfdc3c9" class="cell" data-execution_count="25">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> setup(data, default_in_percentile<span class="op">=</span>[<span class="dv">95</span>, <span class="dv">97</span>]):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    cohort <span class="op">=</span> data[[<span class="st">'race'</span>, <span class="st">'risk_score_t'</span>, <span class="st">'gagne_sum_t'</span>]]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> cohort.copy()</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    dt[<span class="st">'risk_pctile'</span>] <span class="op">=</span> pd.cut(dt[<span class="st">'risk_score_t'</span>], bins<span class="op">=</span>np.unique(np.percentile(dt[<span class="st">'risk_score_t'</span>], np.arange(<span class="dv">0</span>, <span class="dv">101</span>))), include_lowest<span class="op">=</span><span class="va">True</span>, labels<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    enroll_stats <span class="op">=</span> np.zeros((<span class="bu">len</span>(default_in_percentile), <span class="dv">3</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    enroll_stats <span class="op">=</span> pd.DataFrame(enroll_stats, columns<span class="op">=</span>[<span class="st">'black_before'</span>, <span class="st">'black_after'</span>, <span class="st">'ratio'</span>])</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    enroll_stats.index <span class="op">=</span> default_in_percentile</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">'dt'</span>: dt, <span class="st">'enroll_stats'</span>: enroll_stats}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="81e4949a" class="cell" data-execution_count="49">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>default_in_percentile <span class="op">=</span> [<span class="dv">97</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>j <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> setup(data, default_in_percentile)[<span class="st">'dt'</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>enroll_stats <span class="op">=</span> setup(data, default_in_percentile)[<span class="st">'enroll_stats'</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>prior_enrolled <span class="op">=</span> dt[dt[<span class="st">'risk_pctile'</span>] <span class="op">&gt;=</span> default_in_percentile[j]]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>prior_w <span class="op">=</span> prior_enrolled[prior_enrolled[<span class="st">'race'</span>] <span class="op">==</span> <span class="st">'white'</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>prior_b <span class="op">=</span> prior_enrolled[prior_enrolled[<span class="st">'race'</span>] <span class="op">==</span> <span class="st">'black'</span>]</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>upperb <span class="op">=</span> dt[(dt[<span class="st">'risk_pctile'</span>] <span class="op">&gt;=</span> default_in_percentile[j]) <span class="op">&amp;</span> (dt[<span class="st">'race'</span>] <span class="op">==</span> <span class="st">'black'</span>)]</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>upperw <span class="op">=</span> dt[(dt[<span class="st">'risk_pctile'</span>] <span class="op">&gt;=</span> default_in_percentile[j]) <span class="op">&amp;</span> (dt[<span class="st">'race'</span>] <span class="op">==</span> <span class="st">'white'</span>)]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>lowerb <span class="op">=</span> dt[(dt[<span class="st">'risk_pctile'</span>] <span class="op">&lt;</span> default_in_percentile[j]) <span class="op">&amp;</span> (dt[<span class="st">'race'</span>] <span class="op">==</span> <span class="st">'black'</span>)]</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>upperw <span class="op">=</span> upperw.sort_values(<span class="st">'gagne_sum_t'</span>)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>lowerb <span class="op">=</span> lowerb.sort_values([<span class="st">'risk_score_t'</span>, <span class="st">'gagne_sum_t'</span>], ascending<span class="op">=</span>[<span class="va">False</span>, <span class="va">False</span>])</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>upperb_actual <span class="op">=</span> upperb.copy()</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>upperw_actual <span class="op">=</span> upperw.copy()</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>lowerb_actual <span class="op">=</span> lowerb.copy()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="106954f1" class="cell" data-execution_count="50">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sw <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sb <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>switched_count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>switched_w <span class="op">=</span> []</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>switched_b <span class="op">=</span> []</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> sb <span class="op">&lt;</span> lowerb.shape[<span class="dv">0</span>]:</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> upperw.iloc[sw][<span class="st">'gagne_sum_t'</span>] <span class="op">&lt;</span> lowerb.iloc[sb][<span class="st">'gagne_sum_t'</span>]:</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        switched_w.append(upperw.iloc[sw])</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        switched_b.append(lowerb.iloc[sb])</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># healthiest white patient is dropped and sickest black patient is added</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        upperb <span class="op">=</span> pd.concat([upperb, pd.DataFrame(lowerb.iloc[sb]).T], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        upperw <span class="op">=</span> upperw.drop(upperw.index[sw])</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        upperw <span class="op">=</span> upperw.sort_values(<span class="st">'gagne_sum_t'</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        sb <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        switched_count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        sb <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        switched_count <span class="op">=</span> switched_count</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="f4c85304" class="cell" data-execution_count="51">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">4</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sns.kdeplot(upperw_actual[<span class="st">'gagne_sum_t'</span>], label<span class="op">=</span><span class="st">'White-upper'</span>, ax<span class="op">=</span>axes[<span class="dv">0</span>])</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sns.kdeplot(upperb_actual[<span class="st">'gagne_sum_t'</span>], label<span class="op">=</span><span class="st">'Black-upper'</span>, ax<span class="op">=</span>axes[<span class="dv">0</span>])</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">'Comorbidity score'</span>, title<span class="op">=</span><span class="st">'Actual'</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>sns.kdeplot(upperw[<span class="st">'gagne_sum_t'</span>], label<span class="op">=</span><span class="st">'White-upper'</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>])</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>sns.kdeplot(upperb[<span class="st">'gagne_sum_t'</span>], label<span class="op">=</span><span class="st">'Black-upper'</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>])</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">'Comorbidity score'</span>, title<span class="op">=</span><span class="st">'Counterfactual'</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">'97th percentile'</span>, x<span class="op">=</span><span class="fl">0.5</span>, y<span class="op">=</span><span class="fl">0.95</span>, fontsize<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-8-output-1.png" width="789" height="386" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The left figure shows the distribution of comorbidity score of white and black patients who are above the 97th percentile threshold, identified by the algorithm as those who need the high-risk care. The white patient distribution is tilted to the left and the black patient’s has more density towards right, indicating that white patients are generally healthier thant the black patients in the above-threshold group. The right figure is after we simulate the counterfactual scenario by swapping the healthiest white patient’s slot above the threshold with the sickest black patient below the threshold until the swapping cannot be done any more. The distribution now shows that the two distributions are similar.</p>
+</section>
+<section id="mechanisms-of-bias" class="level3">
+<h3 class="anchored" data-anchor-id="mechanisms-of-bias">Mechanisms of bias</h3>
+<p>Based on Fig. 3A, the algorithm calibrates cost (target variable) quite well, meaning this is not a problem of prediction quality. Fig. 3B shows that at a given level of health score, black patients generate lower costs than the White, making the algorithm prioritizing the White patients. Tab. S2 shows that how healthcare cost is spent between the black and white patients vary by categories. For instance, the black patients have higher costs related to ER and dialysis and fewer inpatient surgical and outpatient specialist costs, which also suggest that their healthcare cost occurs when the worst scenario happens (ER visit). The negative values mean black patients spend less money in that category.</p>
+<p><img src="Tab S2.png" class="img-fluid"></p>
+<p>There are several socio-economic reasons. First, poor patients face substantial barriers to accessing health care, even the insured ones such as geography or transportation, demands from job and child care, and knowledge of reasons to seek care. There is also cost that is directly affected by race. <a href="https://en.wikipedia.org/wiki/Taste-based_discrimination">Taste-based discrimination</a>, employers’ prejudice or dislikes in an organizational culture rooted in prohibited grounds can have negative results in hiring minority workers, is one, and the doctor-patient relationship is another. It is known that black patients would take preventive care suggested by black provider more and they also have lower trust in health care system in general due to an incident like Tuskegee study. Doctors also may have different perceptions of black patients regarding such as intelligence, affiliation, or pain tolerance.</p>
+</section>
+<section id="experiments-on-label-choice-and-human-ai-interaction" class="level3">
+<h3 class="anchored" data-anchor-id="experiments-on-label-choice-and-human-ai-interaction">Experiments on label choice and human-AI interaction</h3>
+<p>The authors then conducted experiments to see alternative label choices other than the total health care cost can result in fairer results. They compared the original model (total cost) against the two alternatives: avoidable cost such as ER visit, and health (comorbidity score). Even though it was not perfect, they found that the algorithms trained on alternative labels produced fairer results.</p>
+<p>Finally, the authors examined the interaction between human doctors and the algorithm. The algorithm’s risk score suggests a pool of patients candidates to doctors and they make the ultimate decision on the enrollment. The experiment showed that the doctors can “redress” (=correct) algorithm’s bias but not by much. This indicates that the racial bias produced by the algorithm can have drastic disparaging effect on healthcare management across different race groups that humans cannot correct completely.</p>
+</section>
+<section id="working-on-solutions-together" class="level3">
+<h3 class="anchored" data-anchor-id="working-on-solutions-together">Working on solutions together</h3>
+<p>Interestingly, the authors mentioned that they reached out to the manufacturer of the algorithm with their results. Fortunately, they were able to replicate the authors’ results on their own and by collaborating with the authors, they were able to reduce the bias by 84%. With this, the authors ended the paper on a hopeful note. They emphasized that algorithmic bias is fixable and this does not necessarily require changes in the algorithm itself.</p>
+<p>The paper triggered multiple investigations and stimulated algorithm audit research in the following years. In the same year in 2019, <a href="https://www.wsj.com/articles/new-york-regulator-probes-unitedhealth-algorithm-for-racial-bias-11572087601">New York regulators started investing UnitedHealth algorithm for racial bias</a> and similarly in <a href="https://oag.ca.gov/news/press-releases/attorney-general-bonta-launches-inquiry-racial-and-ethnic-bias-healthcare">California in 2022</a>. In 2021, <a href="https://www.ftc.gov/business-guidance/blog/2021/04/aiming-truth-fairness-equity-your-companys-use-ai">FTC published a guidance document on truth, fairness, and equity in the use of AI in industry</a>. In 2024, there has been a <a href="https://www.finance.senate.gov/chairmans-news/wyden-statement-at-finance-committee-hearing-on-ai-in-health-care">Senate Finance Committee Hearing on AI in healthcare</a> as well.</p>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>We first had several questions about the care management system described in the paper. The cost categories listed in the paper seemed to include cost for both patients and hospitals and we were not sure whether the cost allocation mattered at all. Some of us were also curious about the actual outcome of the care management system especially for the patients who were enrolled (and potential racial bias of the realized outcome). We also talked about other demographic features that can cause medical bias such as gender and age, and especially their intersectionality.</p>
+<p>We agreed that the technical description of the counterfactual scenario was not clear in the paper, and we spent some time understanding how it worked. Similarly, Tab. 2, where the authors created different models with alternative labels and measured the proportion of the high-risk patients identify each model, was a bit confusing to understand, but fortunately, because the authors shared their code for all analyses, we were able to follow eventually.</p>
+<p>We then talked about how to satisfy certain criteria during model training. We questioned the feasibility of satisfying multiple criteria (e.g., fairness metric and accuracy) in healthcare where we often have to work with very small data. This problem will get worsened when considering intersectionality, for instance. And the small data problem naturally leads to safety and privacy issues, especially when data contain sensitive information like in healthcare.</p>
+<p>We also discussed practical aspects such as how to roll out an algorithm carefully especially when it touches millions of people. Some companies release their models gradually and share training data publicly, but we were wondering whether there were more specific tips on how ML deployment can evolve while having human in the loop, especially those who are impacted by the algorithm. And finally, we agreed that even though it’s important to understand how algorithmic bias damages our society and people, we were hopeful that we would like to learn about positive and beneficial use case of ML.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/hongsupshin\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hongsup Shin">
-<meta name="dcterms.date" content="2024-10-05">
-<meta name="description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
+<meta name="dcterms.date" content="2022-12-15">
+<meta name="description" content="There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.">
 
-<title>Building datasets for model benchmarking in production – Hongsup Shin</title>
+<title>Zero-Shot Text-to-Image Generation – Hongsup Shin</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,10 +72,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Building datasets for model benchmarking in production – Hongsup Shin">
-<meta property="og:description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
-<meta property="og:image" content="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png">
+<meta property="og:title" content="Zero-Shot Text-to-Image Generation – Hongsup Shin">
+<meta property="og:description" content="There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png">
 <meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="1350">
+<meta property="og:image:width" content="1568">
 </head>
 
 <body class="nav-fixed fullcontent">
@@ -124,15 +126,16 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Building datasets for model benchmarking in production</h1>
+      <h1 class="title">Zero-Shot Text-to-Image Generation</h1>
                   <div>
         <div class="description">
-          Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
+          There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.
         </div>
       </div>
                           <div class="quarto-categories">
-                <div class="quarto-category">ML</div>
-                <div class="quarto-category">ML Ops</div>
+                <div class="quarto-category">paper</div>
+                <div class="quarto-category">computer vision</div>
+                <div class="quarto-category">GenAI</div>
               </div>
                   </div>
   </div>
@@ -150,7 +153,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">October 5, 2024</p>
+        <p class="date">December 15, 2022</p>
       </div>
     </div>
     
@@ -169,31 +172,54 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.</p>
-<p>In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We’ll examine the practical considerations that arise when applying benchmarking to real-world applications.</p>
-<section id="data-preprocessing" class="level2">
-<h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
-<p>When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, experimentation demands raw data for optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.</p>
+<p>Generative AI has a lot of hype in ML community these days. OpenAI’s DALL·E, GPT-3, and ChatGPT are good examples. And there’s also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI.</p>
+<p>But whenever there is hype around something, I think we should be more curious about what’s going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E’s text-to-image generative model works, what the authors did to make this happen, and how they validated the result.</p>
+<p>To understand this paper thoroughly, you need to know other deep learning model frameworks such as transformer, variational autoencoder, and OpenAI’s CLIP (Contrastive Language-Image Pre-training) model. I found these <a href="https://ml.berkeley.edu/blog/posts/vq-vae/">two</a> <a href="https://ml.berkeley.edu/blog/posts/dalle2/">articles</a> extremely useful, written by Charlie Snell at UC Berkeley. In this post, I will talk about a high-level summary and the interesting discussion we had as a group. If you are interested in more detailed summary of the paper itself, I recommend those two posts.</p>
+<section id="big-picture" class="level2">
+<h2 class="anchored" data-anchor-id="big-picture">Big picture</h2>
+<p>The authors created a deep learning model which <strong>generate images from a text input</strong>. For instance, if you type “hands”, the model will generate images of hands. As the title says, this is done in <em>zero-shot</em> way, meaning that it can generate images that it hasn’t seen before. To be clear, the authors of this paper are not the first ones who created a model like this. There have been precedents but the authors say that the generated images from those still suffer from severe artifacts such as object distortion, illogical object placement, or unnatural blending of foreground and background elements. So the authors made improvements by adopting these two approaches: using a large set of training data and <strong>building a bigger model</strong>.</p>
+<p>Before we look into the results, let’s first talk about the model architecture. Their model consists of two parts: <strong>variational autoencoder (VAE)</strong> and <strong>transformer</strong>.</p>
 </section>
-<section id="data-split-and-reproducibility" class="level2">
-<h2 class="anchored" data-anchor-id="data-split-and-reproducibility">Data split and reproducibility</h2>
-<p>Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the <a href="https://www.tensorflow.org/datasets/catalog/imagenet2012">ImageNet dataset</a> on TensorFlow shows the <code>'train', 'validation', 'test'</code> splits. In contrast, tabular ML often uses cross-validation. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn’s <code>KFold</code>.</p>
+<section id="variational-autoencoder-vae" class="level2">
+<h2 class="anchored" data-anchor-id="variational-autoencoder-vae">Variational autoencoder (VAE)</h2>
+<p>The VAE contributes to the generative nature of the model because VAEs have latent representation in the middle that is a probability distribution. Once trained, we can use this distribution to draw samples from it, providing a <em>generative</em> framework. To train the VAE, the authors assumed uniform prior over the latent space. The model can <strong>learn the actual prior from the transformer later</strong> to generate images that match to text input. To train the VAE, the authors used images with text captions from various sources such as Wikipedia images.</p>
+<p>What is interesting about the VAE they used is that it assumes <strong>discrete latent distribution</strong> instead of continuous. This variant of VAE is called <strong>vector-quantized VAE (VQ-VAE)</strong>. The motivation is that images and texts are discrete than continuous. But this assumption comes with a major complication: a discrete space is non-differentiable (i.e., can’t back-propagate). That’s why VQ-VAE has a <strong>codebook</strong>, which is essentially a look-up table where a discrete representation is associated with a codebook vector. To be accurate, this paper used a variant of VQ-VAE called <strong>dVAE</strong> where they made this look-up as a weighted average to further smooth out the space.</p>
+<p>This VAE also acts as a dimensionality reduction technique because the discrete latent space the authors used has a resolution of 32x32 instead of 256x256, the resolution of the original training images. This brings compression benefit so that the transformer doesn’t have to memorize extremely long sequence but a sequence of length 1024 (=32*32).</p>
 </section>
-<section id="data-curation" class="level2">
-<h2 class="anchored" data-anchor-id="data-curation">Data curation</h2>
-<p>While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply <em>bad</em>), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.</p>
+<section id="transformer" class="level2">
+<h2 class="anchored" data-anchor-id="transformer">Transformer</h2>
+<p>Once the VAE is learned, <strong>we can abandon the uniform prior assumption and use transformer to learn the actual prior</strong>. Transformers help image generation by pixel-wise prediction in an autoregressive way. For instance, given the sequence of previous pixels, the transformer can predict what the next pixel would look like.</p>
+<p>Once the transformer is trained, when we give a text prompt to the model, the transformer makes predictions for the image latents (32x32 space) in an autoregressive way. Once we have all predictions, we use the dVAE codebook to lookup the vectors and generate the image. Since we can sample the sequence in a new way, we can generate multiple images. The authors used a <strong>top k approach</strong> to return the <em>best</em> images by ranking the generated images from a candidate pool based on the <strong>scores from OpenAI’s CLIP model</strong>, which represents how well the images match the caption.</p>
+<p>The transformer has <strong>12 billion parameters</strong> and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.</p>
 </section>
-<section id="data-staleness" class="level2">
-<h2 class="anchored" data-anchor-id="data-staleness">Data staleness</h2>
-<p>In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of product lifecycle.</p>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<section id="are-the-results-representative-enough" class="level3">
+<h3 class="anchored" data-anchor-id="are-the-results-representative-enough"><font color="blue">Are the results representative enough?</font></h3>
+<p>Most of us were somewhat <em>disappointed</em> by the authors’ model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were <strong>not sure whether these were cherry-picked or not</strong> because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors’ model was more realistic than the competitors’. Aside from the ethical issues surrounding hiring mturk workers, we thought <strong>the number of mturk workers was small</strong> (5 people) and the number of images they evaluated was small as well.</p>
 </section>
-<section id="overfitting-to-the-benchmark-data" class="level2">
-<h2 class="anchored" data-anchor-id="overfitting-to-the-benchmark-data">Overfitting to the benchmark data</h2>
-<p><a href="https://arxiv.org/abs/2405.00332">A recent paper</a> has showed the susceptibility of LLMs to overfitting for public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).</p>
+<section id="why-not-investigate-model-failures" class="level3">
+<h3 class="anchored" data-anchor-id="why-not-investigate-model-failures"><font color="blue">Why not investigate model failures?</font></h3>
+<p>What was more interesting to us was Fig. 8, the CUB dataset which have images of birds. The example images here looked worse than others and the authors speculated that this was due to the detail-oriented text information of images, which might have been lost during the compression in dVAE. This was a plausible explanation but <strong>we wanted to see more in-depth investigation on model failures</strong>. There are numerous examples of terrifyingly looking images of hands generated by DALL·E because apparently it keeps failing at generating images of humans hands with five fingers.</p>
+<p>We also discussed the <strong>lack of investigation on model failure from an ethical and responsible AI perspective.</strong> If OpenAI was going to publish a public API for a model like this, which would have varying degrees of socio-technical impact (look at all the issues ChatGPT has been creating these days), it would have been more responsible for them to test the model’s capacity more thoroughly and rigorously before rolling it out.</p>
+<p>We found <a href="https://github.com/openai/DALL-E/blob/master/model_card.md">a model card</a> from their repository and it was <strong>disappointingly short and did not address any possible ethical and social ramifications</strong> that would be caused by the model.</p>
 </section>
-<section id="other-considerations" class="level2">
-<h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
-<p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.</p>
+<section id="validity-of-the-scoring-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="validity-of-the-scoring-metrics"><font color="blue">Validity of the scoring metrics</font></h3>
+<p>The authors used FID and IS scores (generated by the CLIP model) to assess how well the images reflect the text input. The scores were used to rank a pool of candidate images and the model returned top k results. We questioned the validity of the decision behind using these scores because they are model-dependent, which means <strong>they are training-data-dependent</strong>. Plus, there was no mention of (at least) a qualitative comparison between the training datasets of this paper and the CLIP paper. This made us question the reliability of the CLIP model scores. It might have been interesting to see a batch of images that were ranked high (or low) so that we could judge the validity of the scores and understand the model behavior better.</p>
+</section>
+<section id="qualitative-contribution" class="level3">
+<h3 class="anchored" data-anchor-id="qualitative-contribution"><font color="blue">Qualitative contribution</font></h3>
+<p>As in other deep learning papers, it was <strong>difficult for us to understand which decisions they made led to their results and advancement</strong>. For instance, they highlighted the larger training dataset and the larger model size. What was the measurable impact of each, and which one was more important? Similar to this, it would have been nice if they had some guidance on model tuning and hyperparameter selection to inform other researchers on model architecture design.</p>
+</section>
+<section id="reproducibility-and-novelty" class="level3">
+<h3 class="anchored" data-anchor-id="reproducibility-and-novelty"><font color="blue">Reproducibility and novelty</font></h3>
+<p>To be blunt, <strong>the main highlight of this paper seemed to be the scale</strong>. They were able to use bigger datasets with a bigger model. But let’s be honest, how many academic institutions or companies are able to afford to train a model with 12 billion parameters? Especially without proper model inspection, <strong>how can we understand the model properly when we can’t reproduce it easily?</strong> Although there were certain elements of novelty especially on their tricks of utilizing GPU resources to train the model, if the scale is the main factor of success, <strong>can we really call this as a novel invention?</strong></p>
+</section>
+</section>
+<section id="final-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
+<p>Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to <em>amuse</em> general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.</p>
 
 
 </section>

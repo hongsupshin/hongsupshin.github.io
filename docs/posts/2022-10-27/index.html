@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hongsup Shin">
-<meta name="dcterms.date" content="2024-10-05">
-<meta name="description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
+<meta name="dcterms.date" content="2022-10-27">
+<meta name="description" content="Garbage in, garbage out. It seems like a lot of people in the ML community still don’t understand this logic. We discuss poor data-handling practices and their critical ramifications.">
 
-<title>Building datasets for model benchmarking in production – Hongsup Shin</title>
+<title>“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI – Hongsup Shin</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,10 +72,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Building datasets for model benchmarking in production – Hongsup Shin">
-<meta property="og:description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
-<meta property="og:image" content="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png">
+<meta property="og:title" content="“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI – Hongsup Shin">
+<meta property="og:description" content="Garbage in, garbage out. It seems like a lot of people in the ML community still don’t understand this logic. We discuss poor data-handling practices and their critical ramifications.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI.png">
 <meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="718">
+<meta property="og:image:width" content="1472">
 </head>
 
 <body class="nav-fixed fullcontent">
@@ -124,15 +126,16 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Building datasets for model benchmarking in production</h1>
+      <h1 class="title">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</h1>
                   <div>
         <div class="description">
-          Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
+          Garbage in, garbage out. It seems like a lot of people in the ML community still don’t understand this logic. We discuss poor data-handling practices and their critical ramifications.
         </div>
       </div>
                           <div class="quarto-categories">
-                <div class="quarto-category">ML</div>
-                <div class="quarto-category">ML Ops</div>
+                <div class="quarto-category">paper</div>
+                <div class="quarto-category">governance</div>
+                <div class="quarto-category">responsible AI</div>
               </div>
                   </div>
   </div>
@@ -150,7 +153,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">October 5, 2024</p>
+        <p class="date">October 27, 2022</p>
       </div>
     </div>
     
@@ -169,31 +172,92 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.</p>
-<p>In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We’ll examine the practical considerations that arise when applying benchmarking to real-world applications.</p>
-<section id="data-preprocessing" class="level2">
-<h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
-<p>When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, experimentation demands raw data for optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.</p>
+<p>Many ML articles exist but few talk about how the sausage gets made. They are often based on toy or clean benchmark datasets, which are quite different from what we get in real world. That’s why I enjoy reading survey papers. They interview people in the field like us and try to address common pain points to find a broader picture.</p>
+<p>For the past several years, I have been noticing a trend in ML community. Many practitioners tend to ignore data quality but instead put all their efforts into models and algorithms. I find it very troubling because many problems in real-world ML are caused by data-related issues. <a href="https://research.google/pubs/pub49953/">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</a> talks about this pattern based on the interviews from dozens of ML practitioners all over the globe. I presented the paper in Austin ML Journal Club in Oct 2022.</p>
+<section id="data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascades">Data cascades</h2>
+<p>The paper focuses on “data cascades,” a series of compounding negative events due to data-related issues. The authors say the problems are wildly prevalent (92% reported experience at least one type of data cascades). <font color="blue">During the discussion, we thought about sampling bias because those who are ignorant of these problems may not be able to recognize them.</font> Indeed, they are often opaque because there are no clear indicators and often discovered later. Data cascades often lead to technical debt and harm to beneficiary communities. They can sour relationships between stakeholders and in extremely cases, force ML practitioners discard entire datasets. Figure 1 shows the schematic of the data cascades. <font color="blue">We thought the figure wasn’t particularly informative because too many arrows exist between the points. We hoped that the authors explained why there aren’t arrows between certain points.</font></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Data cascades in high-stakes AI full.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1. Data cascades in high-stakes AI</figcaption>
+</figure>
+</div>
 </section>
-<section id="data-split-and-reproducibility" class="level2">
-<h2 class="anchored" data-anchor-id="data-split-and-reproducibility">Data split and reproducibility</h2>
-<p>Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the <a href="https://www.tensorflow.org/datasets/catalog/imagenet2012">ImageNet dataset</a> on TensorFlow shows the <code>'train', 'validation', 'test'</code> splits. In contrast, tabular ML often uses cross-validation. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn’s <code>KFold</code>.</p>
+<section id="high-stake-domains" class="level2">
+<h2 class="anchored" data-anchor-id="high-stake-domains">High-stake domains</h2>
+<p>Data cascades are more critical in high stake domains such as landslide detection, suicide prevention, and cancer detection. There are several reasons:</p>
+<ul>
+<li>More ML applications are deployed in these domains where more direct humanitarian impact exists.</li>
+<li>This impact can be disproportionate towards vulnerable communities.</li>
+<li>It is often very challenging to acquire high quality data in these domains.</li>
+<li>The problems frequently require more multidisciplinary approach.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Summary of participant demographics.png" class="img-fluid figure-img"></p>
+<figcaption>Table 1. Summary of participant demographics; Domain</figcaption>
+</figure>
+</div>
+<p>The authors find that the problems are due to human factors. Unfortunately solutions have been focusing on other issues such as database, legal, or license. To gather firsthand experience in the field, the authors interviewed 50+ ML practitioners all over the world, ranging from the US to India and African countries, and from founders to developers. Table 1 summarizes various high-stake domains. <font color="blue">It was fascinating for us to learn that ML is used in areas as landslide detection, poaching prevention, or regenerative farming. It would have been more interesting to see how data cascades create specific negative consequences in some domains.</font></p>
 </section>
-<section id="data-curation" class="level2">
-<h2 class="anchored" data-anchor-id="data-curation">Data curation</h2>
-<p>While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply <em>bad</em>), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.</p>
+<section id="data-cascade-triggers" class="level2">
+<h2 class="anchored" data-anchor-id="data-cascade-triggers">Data cascade triggers</h2>
+<p>The authors introduce three triggers that cause data cascades.</p>
+<section id="physical-world-brittleness" class="level3">
+<h3 class="anchored" data-anchor-id="physical-world-brittleness">Physical world brittleness</h3>
+<p>Physical world changes over time and thus often ML systems can’t produce robust results. Data drifts due to hardware (measurements) and environmental changes are commonly mentioned in ML Ops literature. In high-stake domains, they become more pronounced because training data are very limited and policy or regulation changes can impact the ML systems in various ways.</p>
 </section>
-<section id="data-staleness" class="level2">
-<h2 class="anchored" data-anchor-id="data-staleness">Data staleness</h2>
-<p>In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of product lifecycle.</p>
+<section id="inadequate-application-domain-expertise" class="level3">
+<h3 class="anchored" data-anchor-id="inadequate-application-domain-expertise">Inadequate application-domain expertise</h3>
+<p>Most ML practitioners are not equipped with domain knowledge. <font color="blue">All of us admitted that our academic background does not match to the domain that we work in.</font> Even though close collaboration between domain experts and ML practitioners is always emphasized, in practice the authors find that domain experts are often detached from the larger impact of the applications. The authors explain two specific types of problems:</p>
+<p><strong>Subjectivity in ground truth:</strong> Areas such as insurance claim approval or medical imaging for cancer detection involve highly specialized and often subjective decision-making. To build a reliable and robust ML system, it is necessary to standardize the decision-making criteria and find consensus. However, ML practitioners are asked to rush through the development process, and thus do not have time to address it.</p>
+<p><strong>Poor domain expertise in finding representative data:</strong> ML practitioners often start building ML applications without involving domain experts much because the practitioners simply believe that data are reliable. However, because they lack domain knowledge, practitioners make incomplete assumptions, which results in disparity between data collection and deployment. This often leads to poor and unreliable model performance.</p>
 </section>
-<section id="overfitting-to-the-benchmark-data" class="level2">
-<h2 class="anchored" data-anchor-id="overfitting-to-the-benchmark-data">Overfitting to the benchmark data</h2>
-<p><a href="https://arxiv.org/abs/2405.00332">A recent paper</a> has showed the susceptibility of LLMs to overfitting for public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).</p>
+<section id="conflicting-reward-system" class="level3">
+<h3 class="anchored" data-anchor-id="conflicting-reward-system">Conflicting reward system</h3>
+<p>Data collection and any data-related work are often considered non-technical and undervalued. The situation gets worse for frontline workers because they are asked to collect and curate field data on top of their existing responsibilities but they are not well compensated.</p>
 </section>
-<section id="other-considerations" class="level2">
-<h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
-<p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.</p>
+<section id="poor-cross-organizational-documentation" class="level3">
+<h3 class="anchored" data-anchor-id="poor-cross-organizational-documentation">Poor cross-organizational documentation</h3>
+<p>Metadata about data collection, quality, and curation are also often missing. Some good practices the authors suggest involve keeping good documentation on reproducible assets such as data collection plan, data strategy handbooks, design documents, file conventions, field notes, and so on.</p>
+</section>
+</section>
+<section id="broader-context" class="level2">
+<h2 class="anchored" data-anchor-id="broader-context">Broader context</h2>
+<p>Data cascades discussion can be extended to bigger problems in ML community.</p>
+<section id="incentives-and-currency-in-ai" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-and-currency-in-ai">Incentives and currency in AI</h3>
+<p>Because of the low incentives, data-related work are not rewarded or even tracked. This makes us difficult to get buy-in from stakeholders. The situation is similar in academia as well. Most practitioners and researchers focus on developing algorithms but they rarely mention or work on data. <font color="blue">The title <em>“Everyone wants to do the model work, not the data work”</em> was a verbatim from an interviewee. Unfortunately, we were all able to relate to this quote.</font></p>
+</section>
+<section id="data-education" class="level3">
+<h3 class="anchored" data-anchor-id="data-education">Data education</h3>
+<p>Most ML or data science curricula lack any mention of data quality or ethics. They use toy datasets or very clean benchmark datasets. <font color="blue">As experience ML practitioners, we wholeheartedly agreed with this finding. We lamented that these courses do not prepare students with practical knowledge because one never works with clean datasets in real world. Some of us have experienced this pattern firsthand because we have been interviewing candidates for an ML practitioner position and found that the candidates who only worked with clean datasets (or primarily worked on algorithms) often lack basic practical ML knowledge.</font></p>
+</section>
+<section id="data-bootstrapping" class="level3">
+<h3 class="anchored" data-anchor-id="data-bootstrapping">Data bootstrapping</h3>
+<p>Data bootstrapping describes ML practitioners’ use of other data sources such as established data services or existing datasets to create their own dataset. <font color="blue">For most of us, it was surprising to learn that many ML practitioners in high-stake domains in countries from Global South had to collect data from scratch. We agreed that challenges in data collection and lack of access to quality data would create inequality between countries.</font></p>
+</section>
+</section>
+<section id="how-to-address-data-cascades" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-address-data-cascades">How to address data cascades</h2>
+<p>The authors introduce several ways of addressing the problem of data cascades. They introduce the concept of <em>“data excellence”</em>, an effort to <strong>“focus on the practices, politics, and values of humans of the data pipeline to improve the quality and sanctity of data, through the use of processes, standards, infrastructure and incentives”</strong>.</p>
+<section id="from-goodness-of-fit-to-goodness-of-data" class="level3">
+<h3 class="anchored" data-anchor-id="from-goodness-of-fit-to-goodness-of-data">From goodness-of-fit to goodness-of-data</h3>
+<p>The first is to use the right metric to evaluate data quality. Many ML practitioners use model performance metrics such as accuracy and RMSE to evaluate data quality. <font color="blue">Some of us had a similar experience. We had to argue that model metrics shouldn’t be used to make a decision on data-pipeline and data-quality features. We hope that the authors can introduce specific examples of goodness-of-data metrics in the future.</font></p>
+</section>
+<section id="incentives-for-data-excellence" class="level3">
+<h3 class="anchored" data-anchor-id="incentives-for-data-excellence">Incentives for data excellence</h3>
+<p>There are several ways to address the low incentives of data work. First, journals and conferences should require dataset documentation, provenance, and ethics as mandatory disclosure. Second, organizations should reward data-related work similar to how good software engineering is rewarded. Finally, partnership between stakeholders can nurture data excellence by sharing the reward on data-related work such as data collection, anomaly identification, and model verification.</p>
+</section>
+<section id="education-and-visibility" class="level3">
+<h3 class="anchored" data-anchor-id="education-and-visibility">Education and visibility</h3>
+<p>The authors argue for real-world data literacy in AI education, which includes training on data collection, infrastructure building, data documentation, data sense-making, and data ethics and responsible AI in general. Increasing the data visibility in ML lifecycle is important as well; implementing good monitoring system is one of the most important ML Ops practices anyway.</p>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Some of us found this paper vindicating because we have been advocating for data quality at work and had to fight for the attention it deserves. The paper helped us share our own practices at work that address data-related issues especially data collection, curation, and post-deployment data problems. Even though we generally agreed with authors’ suggestions, some of us wanted something more specific, like a case study. Overall, we found the paper interesting and insightful. We thought it would be beneficial to read the paper with our colleagues at work to start a discussion for data excellence.</p>
 
 
 </section>
