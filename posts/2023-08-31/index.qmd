@@ -5,7 +5,7 @@ author:
 date: 2023-08-31
 image: principle.png
 description: There is an arms race of large language models (LLMs) in industry where companies use different approaches and techniques. Anthropic claims to adopt a more cautious approach that minimizes harm by LLMs than others. Let's look into *constitutional AI*, the core  algorithm of their LLM, to understand how this harm mitigation works.
-categories: [paper, LLM, ML]
+categories: [paper, GenAI, LLM, ML]
 ---
 
 I've been interested in AI safety and responsible AI for several years, and the rise of LLMs has certainly increased stakes. Currently there is an intense arms race among several major tech companies and Anthropic is one of them. They recently published a paper about their LLM and claims to adopt a more cautious approach than others by designing their LLMs to minimize potential harm. They call this *constitutional AI (CAI)* because their LLMs follow a constitution of principles. I wanted to learn more about how they teach their algorithm to follow these principles. I presented the paper in Austin ML Journal Club in Aug 2023.

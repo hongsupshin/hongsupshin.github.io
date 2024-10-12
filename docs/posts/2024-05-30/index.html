@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hongsup Shin">
-<meta name="dcterms.date" content="2024-10-05">
-<meta name="description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
+<meta name="dcterms.date" content="2024-05-30">
+<meta name="description" content="Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the Synthetic Data Vault library in Python.">
 
-<title>Building datasets for model benchmarking in production – Hongsup Shin</title>
+<title>Modeling Tabular Data using Conditional GAN – Hongsup Shin</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -70,12 +70,43 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Building datasets for model benchmarking in production – Hongsup Shin">
-<meta property="og:description" content="Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.">
-<meta property="og:image" content="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png">
+<meta property="og:title" content="Modeling Tabular Data using Conditional GAN – Hongsup Shin">
+<meta property="og:description" content="Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the Synthetic Data Vault library in Python.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2024-05-30/Fig 1.png">
 <meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="426">
+<meta property="og:image:width" content="479">
 </head>
 
 <body class="nav-fixed fullcontent">
@@ -124,15 +155,16 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Building datasets for model benchmarking in production</h1>
+      <h1 class="title">Modeling Tabular Data using Conditional GAN</h1>
                   <div>
         <div class="description">
-          Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
+          Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the <a href="https://sdv.dev/"><em>Synthetic Data Vault</em></a> library in Python.
         </div>
       </div>
                           <div class="quarto-categories">
+                <div class="quarto-category">paper</div>
+                <div class="quarto-category">GenAI</div>
                 <div class="quarto-category">ML</div>
-                <div class="quarto-category">ML Ops</div>
               </div>
                   </div>
   </div>
@@ -150,7 +182,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">October 5, 2024</p>
+        <p class="date">May 30, 2024</p>
       </div>
     </div>
     
@@ -169,31 +201,50 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.</p>
-<p>In this post, I am focusing on ML model benchmarking, which primarily evaluates model performance and its robustness, and other factors such as training cost and inference latency. While the landscape of ML benchmarking is dominated by image and text datasets designed for deep learning research, I would like to focus on a less traversed yet equally critical domain: tabular benchmark datasets in production environments. We’ll examine the practical considerations that arise when applying benchmarking to real-world applications.</p>
-<section id="data-preprocessing" class="level2">
-<h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
-<p>When building benchmark datasets, data preprocessing is typically conducted so that the data are ready for model training, removing the computational burden of data preparation. Although this is a common practice, for data-centric AI, experimentation demands raw data for optimizing preprocessing pipelines or refining feature engineering methodologies. In this case, I propose saving fitted preprocessors within the benchmark itself to only spend compute on data transformation but not preprocessing.</p>
+<p>At work, I train models using tabular data with extreme class imbalance, which is often quite challenging. To tackle this, I have been looking into data augmentation techniques for tabular data, which is a relatively understudied domain compared to unstructured data. <a href="https://docs.sdv.dev/sdv">Synthetic Data Vault</a> is a popular python library for tabular data synthesis, and the main techniques originate from the paper above. Since class imbalance is a common problem in real-world data and most of us work with tabular data, I think this will be an interesting paper to discuss. I presented the paper in Austin ML Journal Club in May 2024.</p>
+<section id="paper-summary" class="level2">
+<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
+<p>Several challenges lie in tabular data synthesis. They often have mixed data types with non-Gaussian or multi-modal distributions. Categorical variables in a tabular dataset often have severe class imbalance and provide insufficient samples. The authors argue that GAN’s flexibility can address these problems. The authors introduce several techniques for their approach, conditional-tabular GAN (CT-GAN).</p>
+<section id="mode-specific-normalization" class="level3">
+<h3 class="anchored" data-anchor-id="mode-specific-normalization">Mode-specific normalization</h3>
+<p>The basic idea is mode-specific normalization is to convert a continuous-variable column into a set of columns where each column represents an estimated mode (like an indicator) and its value represents the weight of the corresponding mode. To estimate the number of the modes, they use variational Gaussian mixture (VGM) method.</p>
 </section>
-<section id="data-split-and-reproducibility" class="level2">
-<h2 class="anchored" data-anchor-id="data-split-and-reproducibility">Data split and reproducibility</h2>
-<p>Deep learning benchmarks, constrained by computational costs, typically employ a train-validation-test split. For instance, the <a href="https://www.tensorflow.org/datasets/catalog/imagenet2012">ImageNet dataset</a> on TensorFlow shows the <code>'train', 'validation', 'test'</code> splits. In contrast, tabular ML often uses cross-validation. Rather than redundantly storing multiple datasets for all folds, I suggest saving train-test index tuples, which can be easily converted to cross-validator iterator. This is also more direct and versatile than storing cross-validator parameters such as parameters of sklearn’s <code>KFold</code>.</p>
+<section id="conditional-generator-and-training-by-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="conditional-generator-and-training-by-sampling">Conditional generator and training-by-sampling</h3>
+<p>Traditional GANs have Gaussian assumption where a vector is sampled from a standard multivariate normal distribution. However, this doesn’t account for class imbalance, which is a problem in tabular data. So the goal here is to resample data so that all categories are sampled <em>evenly</em> during training, and to estimate the conditional distribution of rows given that particular value at that particular column.</p>
 </section>
-<section id="data-curation" class="level2">
-<h2 class="anchored" data-anchor-id="data-curation">Data curation</h2>
-<p>While having high-quality and unbiased benchmark datasets is important, the process of data curation in production environments requires a more thoughtful approach. Rather than simply dismissing outliers (and labeling them as simply <em>bad</em>), I suggest still including them while flagging them for separate analysis during benchmarking. This approach not only preserves the integrity of your dataset but also may discover new insights into your data.</p>
+<section id="ct-gan-model" class="level3">
+<h3 class="anchored" data-anchor-id="ct-gan-model">CT-GAN model</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Fig 2.png" class="img-fluid figure-img"></p>
+<figcaption>CT GAN model</figcaption>
+</figure>
+</div>
+<p>In the CT-GAN model, the data are represented Conditional vector where each discrete column is a one-hot vector. The mask vector is used to only represent a category of a single discrete column (in one-hot way, the rest is all zero). The generator loss is cross-entropy between <span class="math inline">\(m_{i^*}\)</span> (given by data) and <span class="math inline">\(\hat{d}_{i^*}\)</span> (produced by the generator) averaged over all rows in a batch. During the critic assessment stage, the model measures distance between learned conditional distribution and conditional distribution on real data <em>while exploring all possible values evenly</em>.</p>
 </section>
-<section id="data-staleness" class="level2">
-<h2 class="anchored" data-anchor-id="data-staleness">Data staleness</h2>
-<p>In research settings, benchmark datasets are static and rarely updated. In production environments, however, this can be a problem because of data staleness, leading to the decreased representativeness of the benchmark. Drawing inspiration from A/B testing, I recommend periodically refreshing benchmark datasets or building sufficiently diverse datasets that cover the wide spectrum of product lifecycle.</p>
+<section id="model-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="model-evaluation">Model evaluation</h3>
+<section id="baseline-models" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-models">Baseline models</h4>
+<p>The paper uses multiple baseline models for performance comparison. They use two Bayesian network models (CLBN and PrivBN), other GAN models (MedGAN, VeeGAN, TableGAN), and a tabular VAE (TVAE) model that they built. The TVAE model has multivariate Gaussian assumption.</p>
 </section>
-<section id="overfitting-to-the-benchmark-data" class="level2">
-<h2 class="anchored" data-anchor-id="overfitting-to-the-benchmark-data">Overfitting to the benchmark data</h2>
-<p><a href="https://arxiv.org/abs/2405.00332">A recent paper</a> has showed the susceptibility of LLMs to overfitting for public benchmark datasets because the benchmark datasets are repeatedly used when designing models. The iterative nature of ML development cycle creates a similar risk of information leakage through repeated test set exposure. To address this, I recommend a more strict test set isolation protocol or regular update to benchmark dataset (addressing data staleness as a bonus).</p>
+<section id="evaluation-metrics" class="level4">
+<h4 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h4>
+<p>For model comparison, the authors use two metrics. Likelihood fitness metric which estimates how well the synthetic data can fit the data oracle well. They also use <em>ML efficacy</em>, which measures whether ML model performance from synthetic data is comparable to that from using real data.</p>
 </section>
-<section id="other-considerations" class="level2">
-<h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
-<p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.</p>
+<section id="results" class="level4">
+<h4 class="anchored" data-anchor-id="results">Results</h4>
+<p>For model comparison, they used several different sets of data. First, they used multi-modal Gaussian-simulated data. Here, other GANs suffer from model collapse and the CT-GAN showed better performance. When simulated data from Bayesian networks were used, the Bayesian baseline models (CLBN and PrivBN) performed the best. With real-world data, TVAE and CTGAN performed the best although TVAE was often better.</p>
+</section>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Even though we were pleased to see good baseline comparison with multiple different datasets, we thought the authors should have did more thorough work on literature review such as comparing their work with <code>synthpop</code>, a widely-used data synthesis package in R. They also could have looked into other statistical models because data synthesis an active research area in statistics.</p>
+<p>We also questioned the validity of the VGM technique because it is the core of creating the embedding of continuous variables. The proposed model does not have checks that evaluate the fidelity of VGM estimation, and thus poor estimation of a multi-model distribution by it can further compromise model performance in general.</p>
+<p>We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the <em>ML efficacy</em> metric the authors proposed. Finally, the proposed models for the regression problem showed <em>negative</em> R scores, suggesting that the models performed quite poorly.</p>
+<p>Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.</p>
 
 
 </section>

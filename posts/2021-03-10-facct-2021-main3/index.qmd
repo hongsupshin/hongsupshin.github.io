@@ -8,7 +8,7 @@ categories:
     - journalism
     - measurement
     - education
-    - language models
+    - LLM
     - responsible AI
     - ML
 ---
