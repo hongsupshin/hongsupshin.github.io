@@ -214,6 +214,150 @@
   <media:content url="https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
+  <title>Constitutional AI: Harmlessness from AI Feedback</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2023-08-31/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>I’ve been interested in AI safety and responsible AI for several years, and the rise of LLMs has certainly increased stakes. Currently there is an intense arms race among several major tech companies and Anthropic is one of them. They recently published a paper about their LLM and claims to adopt a more cautious approach than others by designing their LLMs to minimize potential harm. They call this <em>constitutional AI (CAI)</em> because their LLMs follow a constitution of principles. I wanted to learn more about how they teach their algorithm to follow these principles. I presented the paper in Austin ML Journal Club in Aug 2023.</p>
+<section id="background-knowledge" class="level2">
+<h2 class="anchored" data-anchor-id="background-knowledge">Background knowledge</h2>
+<p>To understand this paper properly, it’s better to be familiar with AI alignment problem and reinforcement learning from human feedback (RLHF). AI alignment is about aligning AI systems’ design and values with humanity values such as honesty. Norbert Wiener, an AI researcher back in 1960s, described the AI alignment problem as following:</p>
+<blockquote class="blockquote">
+<p>“If we use, to achieve our purposes, a mechanical agency with whose operation we cannot interfere effectively (…) we had better be quite sure that the purpose put into the machine is the purpose which we really desire.”</p>
+</blockquote>
+<p>Regarding RLHF, I recommend <a href="https://huggingface.co/blog/rlhf">this great summary</a> from Hugging Face. At its core, RLHF is an attempt to distill human feedback into a model (often called <em>reward</em> or <em>preference</em> model) when training LLMs. This is because human feedback is often expensive to collect and difficult to generalize. An important thing to know is that to train this model, practitioners often use ranked preference modeling where human annotators are asked to rank generated text ouptuts from language models. The assumption here is that this approach may mimic human preference of certain responses over others. And because of this preference approach, RLHF papers use <a href="https://en.wikipedia.org/wiki/Elo_rating_system">Elo scores</a>, a rating system originated from chess to show a player’s winning rates, to evaluate model performance.</p>
+<p>In terms of the alignment values, Anthropic chose honesty, helpfulness, and harmlessness. The detailed definition of these concepts are described in one of their previous works:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<a href="https://arxiv.org/abs/2112.00861">Askell et al.&nbsp;2021</a>, What are Helpfulness, Honesty, and Harmlessness?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Helpful</strong></p>
+<ul>
+<li>The AI should make a clear attempt to perform the task or answer the question posed (as long as it isn’t harmful). It should do this as concisely and efficiently as possible.</li>
+<li>When more information is required, the AI should ask relevant follow-up questions and obtain necessary details. It should respond with appropriate levels of sensitivity, insight, and discretion.</li>
+<li>Ideally the AI will also re-direct ill-informed requests, e.g.&nbsp;if asked ‘how can I build a website in assembly language’ it might suggest a different approach.</li>
+</ul>
+<p><strong>Honest</strong></p>
+<ul>
+<li>At its most basic level, the AI should give accurate information. Moreover, it should be calibrated (e.g.&nbsp;it should be correct 80% of the time when it claims 80% confidence) and express appropriate levels of uncertainty. It should express its uncertainty without misleading human users.</li>
+<li>Crucially, the AI should be honest about its own capabilities and levels of knowledge – it is not sufficient for it to simply imitate the responses expected from a seemingly humble and honest expert.</li>
+<li>Ideally the AI would also be honest about itself and its own internal state, insofar as that information is available to it.</li>
+<li>Honesty is more objective than helpfulness and harmlessness, so more aspects of honesty training may be possible without human input. This might include calibration training on factual claims and claims about the internal state of the model, and the use of search to augment accuracy.</li>
+</ul>
+<p><strong>Harmless</strong></p>
+<ul>
+<li>The AI should not be offensive or discriminatory, either directly or through subtext or bias.</li>
+<li>When asked to aid in a dangerous act (e.g.&nbsp;building a bomb), the AI should politely refuse. Ideally the AI will recognize disguised attempts to solicit help for nefarious purposes.</li>
+<li>To the best of its abilities, the AI should recognize when it may be providing very sensitive or consequential advice and act with appropriate modesty and care.</li>
+<li>What behaviors are considered harmful and to what degree will vary across people and cultures. It will also be context-dependent, i.e.&nbsp;it will depend on the nature of the user query, who is using the AI assistant, and the time and place in which the assistant is being used.</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="motivations" class="level2">
+<h2 class="anchored" data-anchor-id="motivations">Motivations</h2>
+<p>The first motivation was scaling supervision. Given that LLMs require numerous examples, it’s better to automate the supervision process and use human annotators to get more curated and high quality answers. This is a similar idea behind the preference modeling in RLHF. The authors called theirs “reinforcement learning from AI Feedback” (RL<strong>AI</strong>F, not RL<strong>H</strong>F). A more interesting motivation was building a <em>non-evasive</em> and yet helpful AI assistant. Many currently available AI assistants often simply refuse to answer questions to harmful prompts (e.g., simply saying “I don’t know” or “I can’t answer that”). Their model was never evasive but tried to explain the reasoning behind their negative response to harmful questions. Finally, similar to the first point, they claimed that distilling human supervision into a model could help better understand general aspects of human feedback from many crowd-workers.</p>
+</section>
+<section id="the-constitutional-ai-approach" class="level2">
+<h2 class="anchored" data-anchor-id="the-constitutional-ai-approach">The Constitutional AI Approach</h2>
+<section id="supervised-stage" class="level3">
+<h3 class="anchored" data-anchor-id="supervised-stage">Supervised stage</h3>
+<p>Their constitutional AI (CAI) consisted of two stages: a supervised stage and a reinforcement learning stage. In the supervised stage, they used a pretrained LM (“Helpful RLHF model” from their previous work) as a starting point, and <a href="https://en.wikipedia.org/wiki/Red_team">red-teamed</a> the model by presenting harmful prompts (by human workers) and sampled the responses. Then, (this is the most interesting part in my opinion!) they used <em>natural language</em> to ask the model to critique and revise its own response based on certain principles. Here’s an example from the paper:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-08-31/appendixA.png" class="img-fluid figure-img"></p>
+<figcaption>Appendix A. Sample critiques and revisions. The first two revisions are shown in this screenshot.</figcaption>
+</figure>
+</div>
+<p>Appendix C contains a list of principles (constitution) they used to create the critique-revision requests. The paper doesn’t talk much about how they came up with the principles but according to <a href="https://www.anthropic.com/index/claudes-constitution">Anthropic’s website</a>, the principles were based on existing documents such as <a href="https://www.un.org/en/about-us/universal-declaration-of-human-rights">Universal Declaration of Human Rights</a> or Apple’s Terms of Service. As shown in the example above, a response can go through multiple critique-revision requests. The authors found that generally the more revisions mean less harmfulness although the first revision contributes most.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-08-31/fig5.png" class="img-fluid figure-img"></p>
+<figcaption>Fig. 5. Preference Model scores of responses and revisions from helpful RLHF models, evaluated on a set of red team prompts.</figcaption>
+</figure>
+</div>
+</section>
+<section id="reinforcement-learning-rl-stage" class="level3">
+<h3 class="anchored" data-anchor-id="reinforcement-learning-rl-stage">Reinforcement learning (RL) stage</h3>
+<p>The main idea behind this stage is identical to the RL stage in RLHF. The goal is to distill knowledge from a group of responses by training a reward model. The key difference is that <strong>these responses are now generated by a model not human</strong> (the supervised learning model from the previous stage). The authors called this reward model “feedback model” although it was a bit unclear which exact LMs they were referring to.</p>
+<p>Another interesting aspect they added here was a “chain-of-thought” approach. This was inspired by <a href="https://arxiv.org/abs/2305.20050">Let’s Verify Step by Step</a>, a paper we covered in <a href="https://austinmljournalclub.github.io/posts/20230622/">a previous journal club meeting</a>. Here, after getting a response, the authors added the natural-language phrase <strong>“Let’s think step by step”</strong> to generate richer intermediate responses from the model.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-08-31/appendixE.png" class="img-fluid figure-img"></p>
+<figcaption>An example from Appendix E.2. Chain-of-Thought Prompts for RL-CAI.</figcaption>
+</figure>
+</div>
+<p>In their final model (Reinforcement Learning-Constitutional AI with Chain of Thought, or <strong>RL-CAI w/ CoT</strong>), the authors found a major improvement in harmlessness Elo score without compromising the helpfulness Elo score much. Note that in the figure below, Elo score of 0 on the y axis (starting point of the RL model) represents the supervised learning model (SL-CAI), which means the SL-CAI model was used as initial base model for RL.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-08-31/fig8.png" class="img-fluid figure-img"></p>
+<figcaption>Fig. 8. Helpfulness (left) and harmlessness (right) Elo scores as a function of the total number of RL training sequences, as judged by crowd-workers via comparison tests.</figcaption>
+</figure>
+</div>
+<p>One interesting aspect of the RL model the authors shared was its behavior when the model was over-fitted. They found that in this case, the response often included <em>boilerplate</em> language such as “you are valid, valued, and cared for.”</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2023-08-31/4.3.png" class="img-fluid figure-img"></p>
+<figcaption>An example of over-trained RL-CAI model response showing boilerplate language as part of their response (e.g.&nbsp;“you are valid, valued, and cared for”).</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="broader-impacts" class="level2">
+<h2 class="anchored" data-anchor-id="broader-impacts">“Broader Impacts”</h2>
+<p>At the end of the paper, the authors emphasized that natural language feedback could change AI behavior and potentially increase robustness because red-teaming efforts could become more scalable (because feedback supervision can be generated by a model not humans). In section 6.2 Broader Impacts, they <em>briefly</em> mentioned the potential harm of the constitutional AI approach. Using natural language to change AI behavior means it will become much easier to train a malicious AI assistant especially given that this method reduces the need for human feedback.</p>
+</section>
+<section id="group-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="group-discussion"><font color="blue">Group discussion</font></h2>
+<p>First of all, compared to other on-average deep learning papers, we found this paper easier to read. We also appreciated that the authors provided numerous examples. We could see they also tried to do a better job at providing many details of the model although still not enough, especially when they were referring to their previous work.</p>
+<section id="harmlessness-as-an-easy-alignment" class="level3">
+<h3 class="anchored" data-anchor-id="harmlessness-as-an-easy-alignment">Harmlessness as an <em>easy</em> alignment</h3>
+<p>Some of us suspected that the authors might have chosen harmlessness as their main target of alignment perhaps because it was relatively easier to tackle than other alignment such as helpfulness. The authors did mention the tension between harmfulness and helpfulness in the paper in that an AI assistant could become harmful if it was too eager to be helpful (e.g., providing a detailed answer to a prompt about how to commit a crime). We talked about more nuanced alignments (such as humor) and whether it would be possible to use natural language to change model behavior. Some of us pointed out that harmlessness could be relatively easy because diametrically opposed examples could be easily found in languages.</p>
+</section>
+<section id="does-chain-of-thought-count-as-an-explanation" class="level3">
+<h3 class="anchored" data-anchor-id="does-chain-of-thought-count-as-an-explanation">Does chain-of-thought count as an explanation?</h3>
+<p>Many of us were skeptical of treating responses from the chain-of-thought approach as explanations. Most examples shown in the paper seemed reasonable but given that what the model did with a CoT request was nothing more than just generating more detailed responses, we agreed that we should not treat them as step-by-step deductive reasoning. We were interested in looking at CoT examples that might sound gibberish and redundant. I personally also thought this was one of the examples of ML practitioners anthropomorphizing a behavior of an ML model.</p>
+</section>
+<section id="no-more-efforts-to-understand-the-model" class="level3">
+<h3 class="anchored" data-anchor-id="no-more-efforts-to-understand-the-model">No more efforts to understand the model</h3>
+<p>Most of us were surprised that the approach of using natural language to critique and revise its own behavior seemed to have worked. Before I read the paper, I was very curious to know what constraints they came up with and how they tried to model complex social concepts such as justice and harm. The fact that their approach seemed to be working was interesting but this also meant that we are in an era where we are no longer trying to change the model behavior at a lower level, but rather we treat the language models as if they are something we don’t completely understand. This paper was completely missing explanations of why this approach actually worked. From my perspective, as other numerous deep learning papers, this paper was saying “we tried this, we don’t exactly know why it works, but it seems to work.”</p>
+</section>
+<section id="why-diminish-the-work-and-labor-of-human-annotators" class="level3">
+<h3 class="anchored" data-anchor-id="why-diminish-the-work-and-labor-of-human-annotators">Why diminish the work and labor of human annotators?</h3>
+<p>In the abstract and at the end of the paper, the authors kept saying their model was trained “without any human labels identifying harmful outputs.” All of us agreed that this was an exaggeration. To train the supervised model, they needed human annotators, and once the supervised model was ready, then they were able to generate <em>AI</em> feedback. Given that Anthropic is a for-profit company that sells AI assistant software, highlighting that the maintenance cost of their system is <em>cheaper</em> than others because human feedback can be replaced by AI feedback, could be a good marketing strategy, but at the cost of marginalizing human labor.</p>
+</section>
+<section id="how-did-you-come-up-with-the-principles" class="level3">
+<h3 class="anchored" data-anchor-id="how-did-you-come-up-with-the-principles">How did you come up with the principles?</h3>
+<p>In Appendix C, the authors provided a comprehensive list of all principles they used to generate critique-revision responses. These were the core principles that guided the model behavior but the authors didn’t mention much about how they curated the list. Some principles were general and others were more specific to particular types of harms such as racism and misogyny. We suspected that there had been an iterative curation process to narrow the list down to these 16 principles specifically. If these were the main drivers of changes in model behavior, we think they should have provided much more details.</p>
+</section>
+<section id="the-double-edged-sword" class="level3">
+<h3 class="anchored" data-anchor-id="the-double-edged-sword">The double-edged sword</h3>
+<p>Finally, some of us were disappointed that the authors didn’t elaborate much on the potential harm of their approach. They spent a lot of time talking about harmlessness of their algorithms and yet they really fell short when talking about social impacts of their model, especially regarding lowering the barrier for experimenting with LMs and automating supervision by removing human further out of the loop. Particularly for the former, we agreed that it wouldn’t be surprising to see, in near future bad actors take advantage of this approach and come up with a highly toxic, malicious, and harmful AI assistant.</p>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>LLM</category>
+  <category>ML</category>
+  <guid>https://hongsupshin.github.io/posts/2023-08-31/</guid>
+  <pubDate>Thu, 31 Aug 2023 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2023-08-31/principle.png" medium="image" type="image/png" height="156" width="144"/>
+</item>
+<item>
   <title>Interoperability testing for hyperparameter tuning: MLflow, LightGBM, sklearn, and dask-ml</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</link>
