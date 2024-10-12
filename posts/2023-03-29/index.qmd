@@ -5,7 +5,7 @@ date: "2023-03-29"
 image: fig10a.png
 description: This paper summarizes types of data visualization that we can use in Bayesian modeling and inference. It also provides a good overview of how to do Bayesian data analysis properly, including model validation such as prior and posterior predictive checks.
 
-categories: [paper, Bayesian, ML]
+categories: [paper, Bayesian, visualization, ML]
 ---
 
 This paper summarizes types of data visualization that we can use in Bayesian modeling and inference. This is also a good overview of how to do Bayesian modeling properly, including validating results. The fact that the main author is one of the maintainers of the [stan](https://mc-stan.org/) package, is another motivating factor. I presented the paper in Austin ML Journal Club in Mar 2023.

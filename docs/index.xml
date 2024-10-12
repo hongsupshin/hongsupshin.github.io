@@ -52,10 +52,76 @@
 
  ]]></description>
   <category>ML</category>
-  <category>MLOps</category>
+  <category>ML Ops</category>
   <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
   <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
   <media:content url="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png" medium="image" type="image/png"/>
+</item>
+<item>
+  <title>Modeling Tabular Data using Conditional GAN</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2024-05-30/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>At work, I train models using tabular data with extreme class imbalance, which is often quite challenging. To tackle this, I have been looking into data augmentation techniques for tabular data, which is a relatively understudied domain compared to unstructured data. <a href="https://docs.sdv.dev/sdv">Synthetic Data Vault</a> is a popular python library for tabular data synthesis, and the main techniques originate from the paper above. Since class imbalance is a common problem in real-world data and most of us work with tabular data, I think this will be an interesting paper to discuss. I presented the paper in Austin ML Journal Club in May 2024.</p>
+<section id="paper-summary" class="level2">
+<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
+<p>Several challenges lie in tabular data synthesis. They often have mixed data types with non-Gaussian or multi-modal distributions. Categorical variables in a tabular dataset often have severe class imbalance and provide insufficient samples. The authors argue that GAN’s flexibility can address these problems. The authors introduce several techniques for their approach, conditional-tabular GAN (CT-GAN).</p>
+<section id="mode-specific-normalization" class="level3">
+<h3 class="anchored" data-anchor-id="mode-specific-normalization">Mode-specific normalization</h3>
+<p>The basic idea is mode-specific normalization is to convert a continuous-variable column into a set of columns where each column represents an estimated mode (like an indicator) and its value represents the weight of the corresponding mode. To estimate the number of the modes, they use variational Gaussian mixture (VGM) method.</p>
+</section>
+<section id="conditional-generator-and-training-by-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="conditional-generator-and-training-by-sampling">Conditional generator and training-by-sampling</h3>
+<p>Traditional GANs have Gaussian assumption where a vector is sampled from a standard multivariate normal distribution. However, this doesn’t account for class imbalance, which is a problem in tabular data. So the goal here is to resample data so that all categories are sampled <em>evenly</em> during training, and to estimate the conditional distribution of rows given that particular value at that particular column.</p>
+</section>
+<section id="ct-gan-model" class="level3">
+<h3 class="anchored" data-anchor-id="ct-gan-model">CT-GAN model</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2024-05-30/Fig 2.png" class="img-fluid figure-img"></p>
+<figcaption>CT GAN model</figcaption>
+</figure>
+</div>
+<p>In the CT-GAN model, the data are represented Conditional vector where each discrete column is a one-hot vector. The mask vector is used to only represent a category of a single discrete column (in one-hot way, the rest is all zero). The generator loss is cross-entropy between <img src="https://latex.codecogs.com/png.latex?m_%7Bi%5E*%7D"> (given by data) and <img src="https://latex.codecogs.com/png.latex?%5Chat%7Bd%7D_%7Bi%5E*%7D"> (produced by the generator) averaged over all rows in a batch. During the critic assessment stage, the model measures distance between learned conditional distribution and conditional distribution on real data <em>while exploring all possible values evenly</em>.</p>
+</section>
+<section id="model-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="model-evaluation">Model evaluation</h3>
+<section id="baseline-models" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-models">Baseline models</h4>
+<p>The paper uses multiple baseline models for performance comparison. They use two Bayesian network models (CLBN and PrivBN), other GAN models (MedGAN, VeeGAN, TableGAN), and a tabular VAE (TVAE) model that they built. The TVAE model has multivariate Gaussian assumption.</p>
+</section>
+<section id="evaluation-metrics" class="level4">
+<h4 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h4>
+<p>For model comparison, the authors use two metrics. Likelihood fitness metric which estimates how well the synthetic data can fit the data oracle well. They also use <em>ML efficacy</em>, which measures whether ML model performance from synthetic data is comparable to that from using real data.</p>
+</section>
+<section id="results" class="level4">
+<h4 class="anchored" data-anchor-id="results">Results</h4>
+<p>For model comparison, they used several different sets of data. First, they used multi-modal Gaussian-simulated data. Here, other GANs suffer from model collapse and the CT-GAN showed better performance. When simulated data from Bayesian networks were used, the Bayesian baseline models (CLBN and PrivBN) performed the best. With real-world data, TVAE and CTGAN performed the best although TVAE was often better.</p>
+</section>
+</section>
+</section>
+<section id="journal-club-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
+<p>Even though we were pleased to see good baseline comparison with multiple different datasets, we thought the authors should have did more thorough work on literature review such as comparing their work with <code>synthpop</code>, a widely-used data synthesis package in R. They also could have looked into other statistical models because data synthesis an active research area in statistics.</p>
+<p>We also questioned the validity of the VGM technique because it is the core of creating the embedding of continuous variables. The proposed model does not have checks that evaluate the fidelity of VGM estimation, and thus poor estimation of a multi-model distribution by it can further compromise model performance in general.</p>
+<p>We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the <em>ML efficacy</em> metric the authors proposed. Finally, the proposed models for the regression problem showed <em>negative</em> R scores, suggesting that the models performed quite poorly.</p>
+<p>Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>paper</category>
+  <category>GenAI</category>
+  <category>ML</category>
+  <guid>https://hongsupshin.github.io/posts/2024-05-30/</guid>
+  <pubDate>Thu, 30 May 2024 05:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2024-05-30/Fig 1.png" medium="image" type="image/png" height="128" width="144"/>
 </item>
 <item>
   <title>Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
@@ -351,6 +417,7 @@
 
  ]]></description>
   <category>paper</category>
+  <category>GenAI</category>
   <category>LLM</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-08-31/</guid>
@@ -438,6 +505,7 @@
  ]]></description>
   <category>paper</category>
   <category>Bayesian</category>
+  <category>visualization</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-29/</guid>
   <pubDate>Wed, 29 Mar 2023 05:00:00 GMT</pubDate>
@@ -1493,8 +1561,7 @@ font-style: inherit;">'subsample'</span>])</span></code></pre></div>
 
  ]]></description>
   <category>ML</category>
-  <category>MLOps</category>
-  <category>MLflow</category>
+  <category>ML Ops</category>
   <category>Interoperability</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</guid>
   <pubDate>Fri, 17 Mar 2023 05:00:00 GMT</pubDate>
@@ -2631,6 +2698,8 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>paper</category>
+  <category>computer vision</category>
+  <category>GenAI</category>
   <guid>https://hongsupshin.github.io/posts/2022-12-15/</guid>
   <pubDate>Thu, 15 Dec 2022 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png" medium="image" type="image/png" height="124" width="144"/>
@@ -4089,7 +4158,7 @@ font-style: inherit;">1.03</span>)</span>
   <category>journalism</category>
   <category>measurement</category>
   <category>education</category>
-  <category>language models</category>
+  <category>LLM</category>
   <category>responsible AI</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/</guid>

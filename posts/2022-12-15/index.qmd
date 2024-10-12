@@ -4,7 +4,7 @@ author: "Hongsup Shin"
 date: "2022-12-15"
 image: "Fig 8.png"
 description: There is so much hype in generative AI. But how does it actually work? We discuss OpenAI's DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.
-categories: [paper]
+categories: [paper, computer vision, GenAI]
 ---
 
 Generative AI has a lot of hype in ML community these days. OpenAI's DALL·E, GPT-3, and ChatGPT are good examples. And there's also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI. 
