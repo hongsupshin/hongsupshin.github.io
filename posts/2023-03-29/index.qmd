@@ -5,17 +5,10 @@ date: "2023-03-29"
 image: fig10a.png
 description: This paper summarizes types of data visualization that we can use in Bayesian modeling and inference. It also provides a good overview of how to do Bayesian data analysis properly, including model validation such as prior and posterior predictive checks.
 
-categories: [paper]
+categories: [paper, Bayesian, ML]
 ---
 
-:::{.callout-note}
-- Paper: [*Visualization in Bayesian workflow*](https://arxiv.org/abs/1709.01449)
-- Presenter: [Hongsup](https://www.linkedin.com/in/hongsupshin/)
-- Attendees: [Kate](https://www.linkedin.com/in/kate-behrman/), [Saina](https://www.linkedin.com/in/saina199/)
-:::
-
-## Why this paper?
-This paper summarizes types of data visualization that we can use in Bayesian modeling and inference. This is also a good overview of how to do Bayesian modeling properly, including validating results. The fact that the main author is one of the maintainers of the [stan](https://mc-stan.org/) package, is another motivating factor.
+This paper summarizes types of data visualization that we can use in Bayesian modeling and inference. This is also a good overview of how to do Bayesian modeling properly, including validating results. The fact that the main author is one of the maintainers of the [stan](https://mc-stan.org/) package, is another motivating factor. I presented the paper in Austin ML Journal Club in Mar 2023.
 
 ## Paper summary
 Given a problem, we incorporate our scientific knowledge into a causal (generative) model to simulate how the relevant variables are produced (input and output). Researchers need more than null hypothesis because it doesn't talk about how your observation is generated. We can use a DAG as a scientific causal model and data generation process can be expressed in a generative model, which is often accompanied with Bayesian data analysis (BDA). BDA is particularly useful because we can simulate data from the model directly to design and debug during inference. To effectively estimate a posterior distribution, we need computational methods such as MCMC and others. One may say Bayesian might be an overkill but it's extremeley useful for typical modeling problems such as measurement error, missing data, latent variables, and regularization. Again, it's also generative!
@@ -58,7 +51,7 @@ When comparing models, Bayesian data analysis allows detailed examination of ind
 
 Similarly, we can compute $\hat{k}$ as well which represents degree of influence of a specific observation. High value means this data point is "unexpected", meaning that it is likely to be an outlier or the model struggles to make valid prediction for this data point.
 
-## <font color='blue'>Discussion</font>
+## Journal club discussion
 
 We had a lengthy discussion about the choice of prior and how tricky it can be. As the authors mentioned in conclusion, we were also slightly worried about double-dipping the data when running prior predictive checks and potential data leakage. It was also interesting to share our own experience on Bayesian inference ranging from dealing with prior assumptions, model comparison, to decision-making with uncertainty. But we all agreed that Bayesian data analysis is more empowering for us modellers compared to the typical top-down approach in ML where we often don't have any generative models about data. We also agreed that Bayesian data anlsysis is absolutely more powerful when we suffer from a small data problem.
 
