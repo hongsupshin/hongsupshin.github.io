@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2023-08-31">
+<meta name="description" content="There is an arms race of large language models (LLMs) in industry where companies use different approaches and techniques. Anthropic claims to adopt a more cautious approach that minimizes harm by LLMs than others. Let’s look into constitutional AI, the core algorithm of their LLM, to understand how this harm mitigation works.">
+
+<title>Constitutional AI: Harmlessness from AI Feedback – Hongsup Shin</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Constitutional AI: Harmlessness from AI Feedback – Hongsup Shin">
+<meta property="og:description" content="There is an arms race of large language models (LLMs) in industry where companies use different approaches and techniques. Anthropic claims to adopt a more cautious approach that minimizes harm by LLMs than others. Let’s look into constitutional AI, the core algorithm of their LLM, to understand how this harm mitigation works.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2023-08-31/principle.png">
+<meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="1362">
+<meta property="og:image:width" content="1256">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Constitutional AI: Harmlessness from AI Feedback</h1>
+                  <div>
+        <div class="description">
+          There is an arms race of large language models (LLMs) in industry where companies use different approaches and techniques. Anthropic claims to adopt a more cautious approach that minimizes harm by LLMs than others. Let’s look into <em>constitutional AI</em>, the core algorithm of their LLM, to understand how this harm mitigation works.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">paper</div>
+                <div class="quarto-category">LLM</div>
+                <div class="quarto-category">ML</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">August 31, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>I’ve been interested in AI safety and responsible AI for several years, and the rise of LLMs has certainly increased stakes. Currently there is an intense arms race among several major tech companies and Anthropic is one of them. They recently published a paper about their LLM and claims to adopt a more cautious approach than others by designing their LLMs to minimize potential harm. They call this <em>constitutional AI (CAI)</em> because their LLMs follow a constitution of principles. I wanted to learn more about how they teach their algorithm to follow these principles. I presented the paper in Austin ML Journal Club in Aug 2023.</p>
+<section id="background-knowledge" class="level2">
+<h2 class="anchored" data-anchor-id="background-knowledge">Background knowledge</h2>
+<p>To understand this paper properly, it’s better to be familiar with AI alignment problem and reinforcement learning from human feedback (RLHF). AI alignment is about aligning AI systems’ design and values with humanity values such as honesty. Norbert Wiener, an AI researcher back in 1960s, described the AI alignment problem as following:</p>
+<blockquote class="blockquote">
+<p>“If we use, to achieve our purposes, a mechanical agency with whose operation we cannot interfere effectively (…) we had better be quite sure that the purpose put into the machine is the purpose which we really desire.”</p>
+</blockquote>
+<p>Regarding RLHF, I recommend <a href="https://huggingface.co/blog/rlhf">this great summary</a> from Hugging Face. At its core, RLHF is an attempt to distill human feedback into a model (often called <em>reward</em> or <em>preference</em> model) when training LLMs. This is because human feedback is often expensive to collect and difficult to generalize. An important thing to know is that to train this model, practitioners often use ranked preference modeling where human annotators are asked to rank generated text ouptuts from language models. The assumption here is that this approach may mimic human preference of certain responses over others. And because of this preference approach, RLHF papers use <a href="https://en.wikipedia.org/wiki/Elo_rating_system">Elo scores</a>, a rating system originated from chess to show a player’s winning rates, to evaluate model performance.</p>
+<p>In terms of the alignment values, Anthropic chose honesty, helpfulness, and harmlessness. The detailed definition of these concepts are described in one of their previous works:</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<a href="https://arxiv.org/abs/2112.00861">Askell et al.&nbsp;2021</a>, What are Helpfulness, Honesty, and Harmlessness?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Helpful</strong></p>
+<ul>
+<li>The AI should make a clear attempt to perform the task or answer the question posed (as long as it isn’t harmful). It should do this as concisely and efficiently as possible.</li>
+<li>When more information is required, the AI should ask relevant follow-up questions and obtain necessary details. It should respond with appropriate levels of sensitivity, insight, and discretion.</li>
+<li>Ideally the AI will also re-direct ill-informed requests, e.g.&nbsp;if asked ‘how can I build a website in assembly language’ it might suggest a different approach.</li>
+</ul>
+<p><strong>Honest</strong></p>
+<ul>
+<li>At its most basic level, the AI should give accurate information. Moreover, it should be calibrated (e.g.&nbsp;it should be correct 80% of the time when it claims 80% confidence) and express appropriate levels of uncertainty. It should express its uncertainty without misleading human users.</li>
+<li>Crucially, the AI should be honest about its own capabilities and levels of knowledge – it is not sufficient for it to simply imitate the responses expected from a seemingly humble and honest expert.</li>
+<li>Ideally the AI would also be honest about itself and its own internal state, insofar as that information is available to it.</li>
+<li>Honesty is more objective than helpfulness and harmlessness, so more aspects of honesty training may be possible without human input. This might include calibration training on factual claims and claims about the internal state of the model, and the use of search to augment accuracy.</li>
+</ul>
+<p><strong>Harmless</strong></p>
+<ul>
+<li>The AI should not be offensive or discriminatory, either directly or through subtext or bias.</li>
+<li>When asked to aid in a dangerous act (e.g.&nbsp;building a bomb), the AI should politely refuse. Ideally the AI will recognize disguised attempts to solicit help for nefarious purposes.</li>
+<li>To the best of its abilities, the AI should recognize when it may be providing very sensitive or consequential advice and act with appropriate modesty and care.</li>
+<li>What behaviors are considered harmful and to what degree will vary across people and cultures. It will also be context-dependent, i.e.&nbsp;it will depend on the nature of the user query, who is using the AI assistant, and the time and place in which the assistant is being used.</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="motivations" class="level2">
+<h2 class="anchored" data-anchor-id="motivations">Motivations</h2>
+<p>The first motivation was scaling supervision. Given that LLMs require numerous examples, it’s better to automate the supervision process and use human annotators to get more curated and high quality answers. This is a similar idea behind the preference modeling in RLHF. The authors called theirs “reinforcement learning from AI Feedback” (RL<strong>AI</strong>F, not RL<strong>H</strong>F). A more interesting motivation was building a <em>non-evasive</em> and yet helpful AI assistant. Many currently available AI assistants often simply refuse to answer questions to harmful prompts (e.g., simply saying “I don’t know” or “I can’t answer that”). Their model was never evasive but tried to explain the reasoning behind their negative response to harmful questions. Finally, similar to the first point, they claimed that distilling human supervision into a model could help better understand general aspects of human feedback from many crowd-workers.</p>
+</section>
+<section id="the-constitutional-ai-approach" class="level2">
+<h2 class="anchored" data-anchor-id="the-constitutional-ai-approach">The Constitutional AI Approach</h2>
+<section id="supervised-stage" class="level3">
+<h3 class="anchored" data-anchor-id="supervised-stage">Supervised stage</h3>
+<p>Their constitutional AI (CAI) consisted of two stages: a supervised stage and a reinforcement learning stage. In the supervised stage, they used a pretrained LM (“Helpful RLHF model” from their previous work) as a starting point, and <a href="https://en.wikipedia.org/wiki/Red_team">red-teamed</a> the model by presenting harmful prompts (by human workers) and sampled the responses. Then, (this is the most interesting part in my opinion!) they used <em>natural language</em> to ask the model to critique and revise its own response based on certain principles. Here’s an example from the paper:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="appendixA.png" class="img-fluid figure-img"></p>
+<figcaption>Appendix A. Sample critiques and revisions. The first two revisions are shown in this screenshot.</figcaption>
+</figure>
+</div>
+<p>Appendix C contains a list of principles (constitution) they used to create the critique-revision requests. The paper doesn’t talk much about how they came up with the principles but according to <a href="https://www.anthropic.com/index/claudes-constitution">Anthropic’s website</a>, the principles were based on existing documents such as <a href="https://www.un.org/en/about-us/universal-declaration-of-human-rights">Universal Declaration of Human Rights</a> or Apple’s Terms of Service. As shown in the example above, a response can go through multiple critique-revision requests. The authors found that generally the more revisions mean less harmfulness although the first revision contributes most.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig5.png" class="img-fluid figure-img"></p>
+<figcaption>Fig. 5. Preference Model scores of responses and revisions from helpful RLHF models, evaluated on a set of red team prompts.</figcaption>
+</figure>
+</div>
+</section>
+<section id="reinforcement-learning-rl-stage" class="level3">
+<h3 class="anchored" data-anchor-id="reinforcement-learning-rl-stage">Reinforcement learning (RL) stage</h3>
+<p>The main idea behind this stage is identical to the RL stage in RLHF. The goal is to distill knowledge from a group of responses by training a reward model. The key difference is that <strong>these responses are now generated by a model not human</strong> (the supervised learning model from the previous stage). The authors called this reward model “feedback model” although it was a bit unclear which exact LMs they were referring to.</p>
+<p>Another interesting aspect they added here was a “chain-of-thought” approach. This was inspired by <a href="https://arxiv.org/abs/2305.20050">Let’s Verify Step by Step</a>, a paper we covered in <a href="https://austinmljournalclub.github.io/posts/20230622/">a previous journal club meeting</a>. Here, after getting a response, the authors added the natural-language phrase <strong>“Let’s think step by step”</strong> to generate richer intermediate responses from the model.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="appendixE.png" class="img-fluid figure-img"></p>
+<figcaption>An example from Appendix E.2. Chain-of-Thought Prompts for RL-CAI.</figcaption>
+</figure>
+</div>
+<p>In their final model (Reinforcement Learning-Constitutional AI with Chain of Thought, or <strong>RL-CAI w/ CoT</strong>), the authors found a major improvement in harmlessness Elo score without compromising the helpfulness Elo score much. Note that in the figure below, Elo score of 0 on the y axis (starting point of the RL model) represents the supervised learning model (SL-CAI), which means the SL-CAI model was used as initial base model for RL.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fig8.png" class="img-fluid figure-img"></p>
+<figcaption>Fig. 8. Helpfulness (left) and harmlessness (right) Elo scores as a function of the total number of RL training sequences, as judged by crowd-workers via comparison tests.</figcaption>
+</figure>
+</div>
+<p>One interesting aspect of the RL model the authors shared was its behavior when the model was over-fitted. They found that in this case, the response often included <em>boilerplate</em> language such as “you are valid, valued, and cared for.”</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="4.3.png" class="img-fluid figure-img"></p>
+<figcaption>An example of over-trained RL-CAI model response showing boilerplate language as part of their response (e.g.&nbsp;“you are valid, valued, and cared for”).</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="broader-impacts" class="level2">
+<h2 class="anchored" data-anchor-id="broader-impacts">“Broader Impacts”</h2>
+<p>At the end of the paper, the authors emphasized that natural language feedback could change AI behavior and potentially increase robustness because red-teaming efforts could become more scalable (because feedback supervision can be generated by a model not humans). In section 6.2 Broader Impacts, they <em>briefly</em> mentioned the potential harm of the constitutional AI approach. Using natural language to change AI behavior means it will become much easier to train a malicious AI assistant especially given that this method reduces the need for human feedback.</p>
+</section>
+<section id="group-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="group-discussion"><font color="blue">Group discussion</font></h2>
+<p>First of all, compared to other on-average deep learning papers, we found this paper easier to read. We also appreciated that the authors provided numerous examples. We could see they also tried to do a better job at providing many details of the model although still not enough, especially when they were referring to their previous work.</p>
+<section id="harmlessness-as-an-easy-alignment" class="level3">
+<h3 class="anchored" data-anchor-id="harmlessness-as-an-easy-alignment">Harmlessness as an <em>easy</em> alignment</h3>
+<p>Some of us suspected that the authors might have chosen harmlessness as their main target of alignment perhaps because it was relatively easier to tackle than other alignment such as helpfulness. The authors did mention the tension between harmfulness and helpfulness in the paper in that an AI assistant could become harmful if it was too eager to be helpful (e.g., providing a detailed answer to a prompt about how to commit a crime). We talked about more nuanced alignments (such as humor) and whether it would be possible to use natural language to change model behavior. Some of us pointed out that harmlessness could be relatively easy because diametrically opposed examples could be easily found in languages.</p>
+</section>
+<section id="does-chain-of-thought-count-as-an-explanation" class="level3">
+<h3 class="anchored" data-anchor-id="does-chain-of-thought-count-as-an-explanation">Does chain-of-thought count as an explanation?</h3>
+<p>Many of us were skeptical of treating responses from the chain-of-thought approach as explanations. Most examples shown in the paper seemed reasonable but given that what the model did with a CoT request was nothing more than just generating more detailed responses, we agreed that we should not treat them as step-by-step deductive reasoning. We were interested in looking at CoT examples that might sound gibberish and redundant. I personally also thought this was one of the examples of ML practitioners anthropomorphizing a behavior of an ML model.</p>
+</section>
+<section id="no-more-efforts-to-understand-the-model" class="level3">
+<h3 class="anchored" data-anchor-id="no-more-efforts-to-understand-the-model">No more efforts to understand the model</h3>
+<p>Most of us were surprised that the approach of using natural language to critique and revise its own behavior seemed to have worked. Before I read the paper, I was very curious to know what constraints they came up with and how they tried to model complex social concepts such as justice and harm. The fact that their approach seemed to be working was interesting but this also meant that we are in an era where we are no longer trying to change the model behavior at a lower level, but rather we treat the language models as if they are something we don’t completely understand. This paper was completely missing explanations of why this approach actually worked. From my perspective, as other numerous deep learning papers, this paper was saying “we tried this, we don’t exactly know why it works, but it seems to work.”</p>
+</section>
+<section id="why-diminish-the-work-and-labor-of-human-annotators" class="level3">
+<h3 class="anchored" data-anchor-id="why-diminish-the-work-and-labor-of-human-annotators">Why diminish the work and labor of human annotators?</h3>
+<p>In the abstract and at the end of the paper, the authors kept saying their model was trained “without any human labels identifying harmful outputs.” All of us agreed that this was an exaggeration. To train the supervised model, they needed human annotators, and once the supervised model was ready, then they were able to generate <em>AI</em> feedback. Given that Anthropic is a for-profit company that sells AI assistant software, highlighting that the maintenance cost of their system is <em>cheaper</em> than others because human feedback can be replaced by AI feedback, could be a good marketing strategy, but at the cost of marginalizing human labor.</p>
+</section>
+<section id="how-did-you-come-up-with-the-principles" class="level3">
+<h3 class="anchored" data-anchor-id="how-did-you-come-up-with-the-principles">How did you come up with the principles?</h3>
+<p>In Appendix C, the authors provided a comprehensive list of all principles they used to generate critique-revision responses. These were the core principles that guided the model behavior but the authors didn’t mention much about how they curated the list. Some principles were general and others were more specific to particular types of harms such as racism and misogyny. We suspected that there had been an iterative curation process to narrow the list down to these 16 principles specifically. If these were the main drivers of changes in model behavior, we think they should have provided much more details.</p>
+</section>
+<section id="the-double-edged-sword" class="level3">
+<h3 class="anchored" data-anchor-id="the-double-edged-sword">The double-edged sword</h3>
+<p>Finally, some of us were disappointed that the authors didn’t elaborate much on the potential harm of their approach. They spent a lot of time talking about harmlessness of their algorithms and yet they really fell short when talking about social impacts of their model, especially regarding lowering the barrier for experimenting with LMs and automating supervision by removing human further out of the loop. Particularly for the former, we agreed that it wouldn’t be surprising to see, in near future bad actors take advantage of this approach and come up with a highly toxic, malicious, and harmful AI assistant.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/hongsupshin\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
