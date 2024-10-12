@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2022-12-15">
+<meta name="description" content="There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.">
+
+<title>Zero-Shot Text-to-Image Generation – Hongsup Shin</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Zero-Shot Text-to-Image Generation – Hongsup Shin">
+<meta property="og:description" content="There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png">
+<meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="1350">
+<meta property="og:image:width" content="1568">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Zero-Shot Text-to-Image Generation</h1>
+                  <div>
+        <div class="description">
+          There is so much hype in generative AI. But how does it actually work? We discuss OpenAI’s DALL-E paper to understand model architecture but more importantly, whether their model validation is solid and reasonable.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">paper</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">December 15, 2022</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Paper: <a href="https://arxiv.org/abs/2102.12092"><em>Zero-Shot Text-to-Image Generation</em></a></li>
+<li>Presenter: <a href="https://www.linkedin.com/in/hongsupshin/">Hongsup</a></li>
+<li>Attendees: <a href="https://www.linkedin.com/in/hannah-peeler-a4751bb2/">Hannah</a>, <a href="https://www.linkedin.com/in/hongsupshin/">Hongsup</a>, <a href="https://www.linkedin.com/in/joelafriyie/">Joel</a>, and <a href="https://www.linkedin.com/in/steve-sebastian/">Steve</a></li>
+</ul>
+</div>
+</div>
+<section id="why-this-paper" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-paper">Why this paper</h2>
+<p>Generative AI has a lot of hype in ML community these days. OpenAI’s DALL·E, GPT-3, and ChatGPT are good examples. And there’s also stable diffusion. Since they all have public API, not just ML practitioners but general public can use the models to generate texts or images, which creates even bigger hype around generative AI.</p>
+<p>But whenever there is hype around something, I think we should be more curious about what’s going on behind the scene. Understanding how it works helps us see through the hype and that is why I chose this paper. We can understand how DALL·E’s text-to-image generative model works, what the authors did to make this happen, and how they validated the result.</p>
+<p>To understand this paper thoroughly, you need to know other deep learning model frameworks such as transformer, variational autoencoder, and OpenAI’s CLIP (Contrastive Language-Image Pre-training) model. I found these <a href="https://ml.berkeley.edu/blog/posts/vq-vae/">two</a> <a href="https://ml.berkeley.edu/blog/posts/dalle2/">articles</a> extremely useful, written by Charlie Snell at UC Berkeley. In this post, I will talk about a high-level summary and the interesting discussion we had as a group. If you are interested in more detailed summary of the paper itself, I recommend those two posts.</p>
+</section>
+<section id="big-picture" class="level2">
+<h2 class="anchored" data-anchor-id="big-picture">Big picture</h2>
+<p>The authors created a deep learning model which <strong>generate images from a text input</strong>. For instance, if you type “hands”, the model will generate images of hands. As the title says, this is done in <em>zero-shot</em> way, meaning that it can generate images that it hasn’t seen before. To be clear, the authors of this paper are not the first ones who created a model like this. There have been precedents but the authors say that the generated images from those still suffer from severe artifacts such as object distortion, illogical object placement, or unnatural blending of foreground and background elements. So the authors made improvements by adopting these two approaches: using a large set of training data and <strong>building a bigger model</strong>.</p>
+<p>Before we look into the results, let’s first talk about the model architecture. Their model consists of two parts: <strong>variational autoencoder (VAE)</strong> and <strong>transformer</strong>.</p>
+</section>
+<section id="variational-autoencoder-vae" class="level2">
+<h2 class="anchored" data-anchor-id="variational-autoencoder-vae">Variational autoencoder (VAE)</h2>
+<p>The VAE contributes to the generative nature of the model because VAEs have latent representation in the middle that is a probability distribution. Once trained, we can use this distribution to draw samples from it, providing a <em>generative</em> framework. To train the VAE, the authors assumed uniform prior over the latent space. The model can <strong>learn the actual prior from the transformer later</strong> to generate images that match to text input. To train the VAE, the authors used images with text captions from various sources such as Wikipedia images.</p>
+<p>What is interesting about the VAE they used is that it assumes <strong>discrete latent distribution</strong> instead of continuous. This variant of VAE is called <strong>vector-quantized VAE (VQ-VAE)</strong>. The motivation is that images and texts are discrete than continuous. But this assumption comes with a major complication: a discrete space is non-differentiable (i.e., can’t back-propagate). That’s why VQ-VAE has a <strong>codebook</strong>, which is essentially a look-up table where a discrete representation is associated with a codebook vector. To be accurate, this paper used a variant of VQ-VAE called <strong>dVAE</strong> where they made this look-up as a weighted average to further smooth out the space.</p>
+<p>This VAE also acts as a dimensionality reduction technique because the discrete latent space the authors used has a resolution of 32x32 instead of 256x256, the resolution of the original training images. This brings compression benefit so that the transformer doesn’t have to memorize extremely long sequence but a sequence of length 1024 (=32*32).</p>
+</section>
+<section id="transformer" class="level2">
+<h2 class="anchored" data-anchor-id="transformer">Transformer</h2>
+<p>Once the VAE is learned, <strong>we can abandon the uniform prior assumption and use transformer to learn the actual prior</strong>. Transformers help image generation by pixel-wise prediction in an autoregressive way. For instance, given the sequence of previous pixels, the transformer can predict what the next pixel would look like.</p>
+<p>Once the transformer is trained, when we give a text prompt to the model, the transformer makes predictions for the image latents (32x32 space) in an autoregressive way. Once we have all predictions, we use the dVAE codebook to lookup the vectors and generate the image. Since we can sample the sequence in a new way, we can generate multiple images. The authors used a <strong>top k approach</strong> to return the <em>best</em> images by ranking the generated images from a candidate pool based on the <strong>scores from OpenAI’s CLIP model</strong>, which represents how well the images match the caption.</p>
+<p>The transformer has <strong>12 billion parameters</strong> and a good chunk of the paper is dedicated to all the tricks the authors came up with to fit the model in GPU.</p>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion"><font color="blue">Discussion</font></h2>
+<section id="are-the-results-representative-enough" class="level3">
+<h3 class="anchored" data-anchor-id="are-the-results-representative-enough"><font color="blue">Are the results representative enough?</font></h3>
+<p>Most of us were somewhat <em>disappointed</em> by the authors’ model validation. Figures 3 and 4 in the paper gave some idea of how realistic the generated images are but we were <strong>not sure whether these were cherry-picked or not</strong> because the spectrum of images the model can generate is so wide. Figure 7 showed results from human evaluators. Most of them said the authors’ model was more realistic than the competitors’. Aside from the ethical issues surrounding hiring mturk workers, we thought <strong>the number of mturk workers was small</strong> (5 people) and the number of images they evaluated was small as well.</p>
+</section>
+<section id="why-not-investigate-model-failures" class="level3">
+<h3 class="anchored" data-anchor-id="why-not-investigate-model-failures"><font color="blue">Why not investigate model failures?</font></h3>
+<p>What was more interesting to us was Fig. 8, the CUB dataset which have images of birds. The example images here looked worse than others and the authors speculated that this was due to the detail-oriented text information of images, which might have been lost during the compression in dVAE. This was a plausible explanation but <strong>we wanted to see more in-depth investigation on model failures</strong>. There are numerous examples of terrifyingly looking images of hands generated by DALL·E because apparently it keeps failing at generating images of humans hands with five fingers.</p>
+<p>We also discussed the <strong>lack of investigation on model failure from an ethical and responsible AI perspective.</strong> If OpenAI was going to publish a public API for a model like this, which would have varying degrees of socio-technical impact (look at all the issues ChatGPT has been creating these days), it would have been more responsible for them to test the model’s capacity more thoroughly and rigorously before rolling it out.</p>
+<p>We found <a href="https://github.com/openai/DALL-E/blob/master/model_card.md">a model card</a> from their repository and it was <strong>disappointingly short and did not address any possible ethical and social ramifications</strong> that would be caused by the model.</p>
+</section>
+<section id="validity-of-the-scoring-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="validity-of-the-scoring-metrics"><font color="blue">Validity of the scoring metrics</font></h3>
+<p>The authors used FID and IS scores (generated by the CLIP model) to assess how well the images reflect the text input. The scores were used to rank a pool of candidate images and the model returned top k results. We questioned the validity of the decision behind using these scores because they are model-dependent, which means <strong>they are training-data-dependent</strong>. Plus, there was no mention of (at least) a qualitative comparison between the training datasets of this paper and the CLIP paper. This made us question the reliability of the CLIP model scores. It might have been interesting to see a batch of images that were ranked high (or low) so that we could judge the validity of the scores and understand the model behavior better.</p>
+</section>
+<section id="qualitative-contribution" class="level3">
+<h3 class="anchored" data-anchor-id="qualitative-contribution"><font color="blue">Qualitative contribution</font></h3>
+<p>As in other deep learning papers, it was <strong>difficult for us to understand which decisions they made led to their results and advancement</strong>. For instance, they highlighted the larger training dataset and the larger model size. What was the measurable impact of each, and which one was more important? Similar to this, it would have been nice if they had some guidance on model tuning and hyperparameter selection to inform other researchers on model architecture design.</p>
+</section>
+<section id="reproducibility-and-novelty" class="level3">
+<h3 class="anchored" data-anchor-id="reproducibility-and-novelty"><font color="blue">Reproducibility and novelty</font></h3>
+<p>To be blunt, <strong>the main highlight of this paper seemed to be the scale</strong>. They were able to use bigger datasets with a bigger model. But let’s be honest, how many academic institutions or companies are able to afford to train a model with 12 billion parameters? Especially without proper model inspection, <strong>how can we understand the model properly when we can’t reproduce it easily?</strong> Although there were certain elements of novelty especially on their tricks of utilizing GPU resources to train the model, if the scale is the main factor of success, <strong>can we really call this as a novel invention?</strong></p>
+</section>
+</section>
+<section id="final-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
+<p>Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to <em>amuse</em> general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/hongsupshin\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
