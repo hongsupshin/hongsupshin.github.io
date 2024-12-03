@@ -2,3 +2,6 @@
 /_site/
 *.code-workspace
 .ipynb_checkpoints
+.csv
+.zip
+__pycache__
