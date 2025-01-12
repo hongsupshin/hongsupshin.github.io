@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hongsup Shin">
-<meta name="dcterms.date" content="2024-05-30">
-<meta name="description" content="Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the Synthetic Data Vault library in Python.">
+<meta name="dcterms.date" content="2025-01-12">
+<meta name="description" content="Although ML has become ubiquitous, truly effective ML teams remain rare. With ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear - research excellence, strong technical vision, open culture, and thoughtful technical standards.">
 
-<title>Modeling Tabular Data using Conditional GAN – Hongsup Shin</title>
+<title>Building Effective ML Teams - Lessons from Industry – Hongsup Shin</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -70,43 +70,11 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Modeling Tabular Data using Conditional GAN – Hongsup Shin">
-<meta property="og:description" content="Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the Synthetic Data Vault library in Python.">
-<meta property="og:image" content="https://hongsupshin.github.io/posts/2024-05-30/Fig 1.png">
+<meta property="og:title" content="Building Effective ML Teams - Lessons from Industry – Hongsup Shin">
+<meta property="og:description" content="Although ML has become ubiquitous, truly effective ML teams remain rare. With ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear - research excellence, strong technical vision, open culture, and thoughtful technical standards.">
 <meta property="og:site_name" content="Hongsup Shin">
-<meta property="og:image:height" content="426">
-<meta property="og:image:width" content="479">
 </head>
 
 <body class="nav-fixed fullcontent">
@@ -155,15 +123,14 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Modeling Tabular Data using Conditional GAN</h1>
+      <h1 class="title">Building Effective ML Teams - Lessons from Industry</h1>
                   <div>
         <div class="description">
-          Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the <a href="https://sdv.dev/"><em>Synthetic Data Vault</em></a> library in Python.
+          Although ML has become ubiquitous, truly effective ML teams remain rare. With ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear - research excellence, strong technical vision, open culture, and thoughtful technical standards.
         </div>
       </div>
                           <div class="quarto-categories">
-                <div class="quarto-category">paper</div>
-                <div class="quarto-category">GenAI</div>
+                <div class="quarto-category">collaboration</div>
                 <div class="quarto-category">ML</div>
               </div>
                   </div>
@@ -182,7 +149,7 @@ window.Quarto = {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">May 30, 2024</p>
+        <p class="date">January 12, 2025</p>
       </div>
     </div>
     
@@ -201,50 +168,33 @@ window.Quarto = {
 
 
 
-<p>At work, I train models using tabular data with extreme class imbalance, which is often quite challenging. To tackle this, I have been looking into data augmentation techniques for tabular data, which is a relatively understudied domain compared to unstructured data. <a href="https://docs.sdv.dev/sdv">Synthetic Data Vault</a> is a popular python library for tabular data synthesis, and the main techniques originate from the paper above. Since class imbalance is a common problem in real-world data and most of us work with tabular data, I think this will be an interesting paper to discuss. I presented the paper in Austin ML Journal Club in May 2024.</p>
-<section id="paper-summary" class="level2">
-<h2 class="anchored" data-anchor-id="paper-summary">Paper summary</h2>
-<p>Several challenges lie in tabular data synthesis. They often have mixed data types with non-Gaussian or multi-modal distributions. Categorical variables in a tabular dataset often have severe class imbalance and provide insufficient samples. The authors argue that GAN’s flexibility can address these problems. The authors introduce several techniques for their approach, conditional-tabular GAN (CT-GAN).</p>
-<section id="mode-specific-normalization" class="level3">
-<h3 class="anchored" data-anchor-id="mode-specific-normalization">Mode-specific normalization</h3>
-<p>The basic idea is mode-specific normalization is to convert a continuous-variable column into a set of columns where each column represents an estimated mode (like an indicator) and its value represents the weight of the corresponding mode. To estimate the number of the modes, they use variational Gaussian mixture (VGM) method.</p>
+<p>After a decade as an ML practitioner in industry, I have noticed an interesting dichotomy in how ML is perceived in corporate settings. Senior stakeholders typically fall into two opposing camps.</p>
+<p>The Skeptics are interested in adopting ML, but they overestimate the risks of ML product developtment. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.</p>
+<p>The Believers view ML as a magical solution for any problem. They fully buy into AI hype and greenlight ML projects without understanding limitations or real business value. They also rush to production even when the solution is half-baked and needs validation.</p>
+<p>When it comes to ML discussion, the ML community often talks about state-of-the-art technology but rarely about how ML teams actually get things done. ML teams have to navigate between the two extremes, on the one hand building confidence in ML solutions, and on the other setting realistic expectations about capabilities and limitations. While working with the stakeholders, ML teams must also maintain their autonomy and technical integrity without sacrificing efficiency.</p>
+<section id="research-excellence-and-judgment" class="level2">
+<h2 class="anchored" data-anchor-id="research-excellence-and-judgment">Research Excellence and Judgment</h2>
+<p>Good research judgment is at the core of navigating these extremes. This goes beyond technical expertise and includes: - Intuition for distinguishing experimental approaches from proven solutions - Understanding when to invest in deep research versus applying established tools - Accurately evaluating when a problem is truly solved and whether it is usable and scalable</p>
+<p><a href="http://joschu.net/blog/opinionated-guide-ml-research.html">As John Schulman, an AI researcher at Anthropic has previously mentioned</a>, this is about developing research <em>taste</em>. I have seen teams spend months optimizing problems that could have been solved in a simple way with well-studied existing tools. At the other extreme I have seen teams scale solutions without proper evaluation.</p>
+<p>Good research judgment is invaluable when working with stakeholders. For Skeptics, it helps create rigorous validation processes that then build trust through small wins and case studies. For Believers, it helps set realistic technical expectations and encourage stakeholders to play an active role in product development.</p>
+<p>Good judgment also implies iterating quickly. Teams must constantly assess whether their approach solves the core problem, and if not, pivot quickly to an alternative solution that still delivers value.</p>
+<p>Pivoting sounds easy but in practice, it is not. People naturally become attached to their ideas, and they often get anxious about negative consequences of negative results. Therefore, it is important to have good judgment about how long to pursue an idea versus when to finally abandon it. I’ve seen brilliant colleagues try to force solutions to work despite a lack of evidence. True research maturity includes accepting and learning from negative results.</p>
 </section>
-<section id="conditional-generator-and-training-by-sampling" class="level3">
-<h3 class="anchored" data-anchor-id="conditional-generator-and-training-by-sampling">Conditional generator and training-by-sampling</h3>
-<p>Traditional GANs have Gaussian assumption where a vector is sampled from a standard multivariate normal distribution. However, this doesn’t account for class imbalance, which is a problem in tabular data. So the goal here is to resample data so that all categories are sampled <em>evenly</em> during training, and to estimate the conditional distribution of rows given that particular value at that particular column.</p>
+<section id="fostering-open-culture-with-clear-technical-vision" class="level2">
+<h2 class="anchored" data-anchor-id="fostering-open-culture-with-clear-technical-vision">Fostering Open Culture with Clear Technical Vision</h2>
+<p>Research excellence and team culture reinforce each other. Strong research judgment often results from meaningful technical discussions. Teams need a culture where open discussion is encouraged and civil discourse prevails. Without a culture of trust and respect, innovative ideas remain unspoken, and suboptimal solutions go uncontested.</p>
+<p>This is why teams need technical leaders with clear vision. A sense of working toward common goals boosts morale and nurtures healthy team dynamics. Clear vision in leaders requires them to have good research judgment, which is why having ML practitioners in management proves crucial. When organizations underestimate researchers’ leadership skills, and exclude them from strategic discussions, it creates a gulf between technical and business objectives in ML projects.</p>
+<p>Teams built with clear vision develop conviction when communicating with stakeholders. Clients and stakeholders without strong ML expertise often suggest unrealistic solutions. Instead of agreeing to everything, teams and their tech leads must discern the relevant demands while continuously proving value to the stakeholders. An especially critical role for good research judgment is to tell the stakeholders when ML is not needed. Doing so protects teams from overpromising, helps them establish autonomy, and eventually earns them more trust from stakeholders.</p>
 </section>
-<section id="ct-gan-model" class="level3">
-<h3 class="anchored" data-anchor-id="ct-gan-model">CT-GAN model</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="Fig 2.png" class="img-fluid figure-img"></p>
-<figcaption>CT GAN model</figcaption>
-</figure>
-</div>
-<p>In the CT-GAN model, the data are represented Conditional vector where each discrete column is a one-hot vector. The mask vector is used to only represent a category of a single discrete column (in one-hot way, the rest is all zero). The generator loss is cross-entropy between <span class="math inline">\(m_{i^*}\)</span> (given by data) and <span class="math inline">\(\hat{d}_{i^*}\)</span> (produced by the generator) averaged over all rows in a batch. During the critic assessment stage, the model measures distance between learned conditional distribution and conditional distribution on real data <em>while exploring all possible values evenly</em>.</p>
+<section id="establishing-technical-standards" class="level2">
+<h2 class="anchored" data-anchor-id="establishing-technical-standards">Establishing Technical Standards</h2>
+<p>Even teams with strong culture and technical excellence can collaborate inefficiently. A simple solution is to build clear technical standards. When a team shares a common understanding of technical quality, reviewing and critiquing work becomes less burdensome, and product quality improves quickly.</p>
+<p>Technical standards also include reproducibility, benchmarking, and rigorous evaluation. While staying current with new ideas is crucial in the fast-moving ML field, it shouldn’t come at the expense of product quality. Without clear standards, comparing different approaches becomes challenging, leading to technical debt.</p>
+<p>When developing standards, we should avoid rigid and overly complicated standards, which hinder innovation and slow down experiments. Knowing where to enforce stricter compliance also matters: the cost of neglecting model evaluation standards is higher than ignoring code style.</p>
 </section>
-<section id="model-evaluation" class="level3">
-<h3 class="anchored" data-anchor-id="model-evaluation">Model evaluation</h3>
-<section id="baseline-models" class="level4">
-<h4 class="anchored" data-anchor-id="baseline-models">Baseline models</h4>
-<p>The paper uses multiple baseline models for performance comparison. They use two Bayesian network models (CLBN and PrivBN), other GAN models (MedGAN, VeeGAN, TableGAN), and a tabular VAE (TVAE) model that they built. The TVAE model has multivariate Gaussian assumption.</p>
-</section>
-<section id="evaluation-metrics" class="level4">
-<h4 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h4>
-<p>For model comparison, the authors use two metrics. Likelihood fitness metric which estimates how well the synthetic data can fit the data oracle well. They also use <em>ML efficacy</em>, which measures whether ML model performance from synthetic data is comparable to that from using real data.</p>
-</section>
-<section id="results" class="level4">
-<h4 class="anchored" data-anchor-id="results">Results</h4>
-<p>For model comparison, they used several different sets of data. First, they used multi-modal Gaussian-simulated data. Here, other GANs suffer from model collapse and the CT-GAN showed better performance. When simulated data from Bayesian networks were used, the Bayesian baseline models (CLBN and PrivBN) performed the best. With real-world data, TVAE and CTGAN performed the best although TVAE was often better.</p>
-</section>
-</section>
-</section>
-<section id="journal-club-discussion" class="level2">
-<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
-<p>Even though we were pleased to see good baseline comparison with multiple different datasets, we thought the authors should have did more thorough work on literature review such as comparing their work with <code>synthpop</code>, a widely-used data synthesis package in R. They also could have looked into other statistical models because data synthesis an active research area in statistics.</p>
-<p>We also questioned the validity of the VGM technique because it is the core of creating the embedding of continuous variables. The proposed model does not have checks that evaluate the fidelity of VGM estimation, and thus poor estimation of a multi-model distribution by it can further compromise model performance in general.</p>
-<p>We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the <em>ML efficacy</em> metric the authors proposed. Finally, the proposed models for the regression problem showed <em>negative</em> R scores, suggesting that the models performed quite poorly.</p>
-<p>Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.</p>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>After a decade in industry, I’ve learned that technical excellence alone is insufficient for successful ML projects. As ML has become ubiquitous, technical standards have soared, yet truly effective ML teams remain rare. And with ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear: research excellence, strong technical vision, open culture, and thoughtful technical standards. Look for these elements to separate teams that merely dabble in ML from those that transform their organizations through it.</p>
 
 
 </section>

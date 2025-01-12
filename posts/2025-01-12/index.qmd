@@ -1,0 +1,51 @@
+---
+title: Building Effective ML Teams - Lessons from Industry
+author: Hongsup Shin
+date: 2025-01-12
+description: Although ML has become ubiquitous, truly effective ML teams remain rare. With ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear - research excellence, strong technical vision, open culture, and thoughtful technical standards. 
+categories: [collaboration, ML]
+---
+
+After a decade as an ML practitioner in industry, I have noticed an interesting dichotomy in how ML is perceived in corporate settings. Senior stakeholders typically fall into two opposing camps.
+
+The Skeptics are interested in adopting ML, but they overestimate the risks of ML product developtment. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.
+
+The Believers view ML as a magical solution for any problem. They fully buy into AI hype and greenlight ML projects without understanding limitations or real business value. They also rush to production even when the solution is half-baked and needs validation.
+
+When it comes to ML discussion, the ML community often talks about state-of-the-art technology but rarely about how ML teams actually get things done. ML teams have to navigate between the two extremes, on the one hand building confidence in ML solutions, and on the other setting realistic expectations about capabilities and limitations. While working with the stakeholders, ML teams must also maintain their autonomy and technical integrity without sacrificing efficiency.
+
+## Research Excellence and Judgment 
+
+Good research judgment is at the core of navigating these extremes. This goes beyond technical expertise and includes:
+- Intuition for distinguishing experimental approaches from proven solutions
+- Understanding when to invest in deep research versus applying established tools
+- Accurately evaluating when a problem is truly solved and whether it is usable and scalable
+
+[As John Schulman, an AI researcher at Anthropic has previously mentioned](http://joschu.net/blog/opinionated-guide-ml-research.html), this is about developing research *taste*. I have seen teams spend months optimizing problems that could have been solved in a simple way with well-studied existing tools. At the other extreme I have seen teams scale solutions without proper evaluation.
+
+Good research judgment is invaluable when working with stakeholders. For Skeptics, it helps create rigorous validation processes that then build trust through small wins and case studies. For Believers, it helps set realistic technical expectations and encourage stakeholders to play an active role in product development.
+
+Good judgment also implies iterating quickly. Teams must constantly assess whether their approach solves the core problem, and if not, pivot quickly to an alternative solution that still delivers value. 
+
+Pivoting sounds easy but in practice, it is not. People naturally become attached to their ideas, and they often get anxious about negative consequences of negative results. Therefore, it is important to have good judgment about how long to pursue an idea versus when to finally abandon it. I’ve seen brilliant colleagues try to force solutions to work despite a lack of evidence. True research maturity includes accepting and learning from negative results.
+
+## Fostering Open Culture with Clear Technical Vision
+
+Research excellence and team culture reinforce each other. Strong research judgment often results from meaningful technical discussions. Teams need a culture where open discussion is encouraged and civil discourse prevails. Without a culture of trust and respect, innovative ideas remain unspoken, and suboptimal solutions go uncontested.
+
+This is why teams need technical leaders with clear vision. A sense of working toward common goals boosts morale and nurtures healthy team dynamics. Clear vision in leaders requires them to have good research judgment, which is why having ML practitioners in management proves crucial. When organizations underestimate researchers’ leadership skills, and exclude them from strategic discussions, it creates a gulf between technical and business objectives in ML projects.
+
+Teams built with clear vision develop conviction when communicating with stakeholders. Clients and stakeholders without strong ML expertise often suggest unrealistic solutions. Instead of agreeing to everything, teams and their tech leads must discern the relevant demands while continuously proving value to the stakeholders. An especially critical role for good research judgment is to tell the stakeholders when ML is not needed. Doing so protects teams from overpromising, helps them establish autonomy, and eventually earns them more trust from stakeholders.
+
+## Establishing Technical Standards
+
+Even teams with strong culture and technical excellence can collaborate inefficiently. A simple solution is to build clear technical standards. When a team shares a common understanding of technical quality, reviewing and critiquing work becomes less burdensome, and product quality improves quickly.
+
+Technical standards also include reproducibility, benchmarking, and rigorous evaluation. While staying current with new ideas is crucial in the fast-moving ML field, it shouldn't come at the expense of product quality. Without clear standards, comparing different approaches becomes challenging, leading to technical debt.
+
+When developing standards, we should avoid rigid and overly complicated standards, which hinder innovation and slow down experiments. Knowing where to enforce stricter compliance also matters: the cost of neglecting model evaluation standards is higher than ignoring code style. 
+
+## Summary
+
+After a decade in industry, I’ve learned that technical excellence alone is insufficient for successful ML projects. As ML has become ubiquitous, technical standards have soared, yet truly effective ML teams remain rare. And with ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear: research excellence, strong technical vision, open culture, and thoughtful technical standards. Look for these elements to separate teams that merely dabble in ML from those that transform their organizations through it.
+ 
