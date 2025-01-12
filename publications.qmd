@@ -2,13 +2,20 @@
 title: Publications and Talks
 ---
 
+## 2024
+
+- [Robust Learning-to-Rank Algorithm for Bug Discovery in Hardware Verification](https://ieeexplore.ieee.org/abstract/document/10737744). The 37th IEEE International System-on-Chip (Dresden, Germany).
+- [Modeling Tabular Data using Conditional GAN](https://austinmljournalclub.github.io/posts/20240530/) (paper presentation). Austin ML Journal Club.
+- [Gorilla: Large Language Model Connected with Massive APIs](https://austinmljournalclub.github.io/posts/20240418/) (paper presentation). Austin ML Journal Club.
+- [Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations](https://austinmljournalclub.github.io/posts/20240328/) (paper presentation). Austin ML Journal Club.
+
 ## 2023
 - [Visualization in Bayesian workflow](https://austinmljournalclub.github.io/posts/20230329/) (paper presentation). Austin ML Journal Club.
 - [Data-centric ML pipeline for data drift and data preprocessing](https://zenodo.org/record/8136049). The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).
 - [Constitutional AI: Harmlessness from AI Feedback](https://austinmljournalclub.github.io/posts/20230831/) (paper presentation). Austin ML Journal Club.
 
 ## 2022
-- [Data-Centric Machine Learning Pipeline for Hardware Verification](https://ieeexplore.ieee.org/document/9908095/). The 35th IEEE International System-on-Chip.
+- [Data-Centric Machine Learning Pipeline for Hardware Verification](https://ieeexplore.ieee.org/document/9908095/). The 35th IEEE International System-on-Chip (Belfast, UK).
 - [“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI](https://austinmljournalclub.github.io/posts/20221027/) (paper presentation). Austin ML Journal Club.
 - [Zero-Shot Text-to-Image Generation](https://austinmljournalclub.github.io/posts/20221215/) (paper presentation). Austin ML Journal Club.
 
