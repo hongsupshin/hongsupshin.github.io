@@ -970,81 +970,88 @@
     "href": "publications.html",
     "title": "Publications and Talks",
     "section": "",
-    "text": "Visualization in Bayesian workflow (paper presentation). Austin ML Journal Club.\nData-centric ML pipeline for data drift and data preprocessing. The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).\nConstitutional AI: Harmlessness from AI Feedback (paper presentation). Austin ML Journal Club."
+    "text": "Robust Learning-to-Rank Algorithm for Bug Discovery in Hardware Verification. The 37th IEEE International System-on-Chip (Dresden, Germany).\nModeling Tabular Data using Conditional GAN (paper presentation). Austin ML Journal Club.\nGorilla: Large Language Model Connected with Massive APIs (paper presentation). Austin ML Journal Club.\nDissecting Racial Bias in an Algorithm Used to Manage the Health of Populations (paper presentation). Austin ML Journal Club."
   },
   {
     "objectID": "publications.html#section",
     "href": "publications.html#section",
     "title": "Publications and Talks",
     "section": "",
-    "text": "Visualization in Bayesian workflow (paper presentation). Austin ML Journal Club.\nData-centric ML pipeline for data drift and data preprocessing. The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).\nConstitutional AI: Harmlessness from AI Feedback (paper presentation). Austin ML Journal Club."
+    "text": "Robust Learning-to-Rank Algorithm for Bug Discovery in Hardware Verification. The 37th IEEE International System-on-Chip (Dresden, Germany).\nModeling Tabular Data using Conditional GAN (paper presentation). Austin ML Journal Club.\nGorilla: Large Language Model Connected with Massive APIs (paper presentation). Austin ML Journal Club.\nDissecting Racial Bias in an Algorithm Used to Manage the Health of Populations (paper presentation). Austin ML Journal Club."
   },
   {
     "objectID": "publications.html#section-1",
     "href": "publications.html#section-1",
     "title": "Publications and Talks",
-    "section": "2022",
-    "text": "2022\n\nData-Centric Machine Learning Pipeline for Hardware Verification. The 35th IEEE International System-on-Chip.\n“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI (paper presentation). Austin ML Journal Club.\nZero-Shot Text-to-Image Generation (paper presentation). Austin ML Journal Club."
+    "section": "2023",
+    "text": "2023\n\nVisualization in Bayesian workflow (paper presentation). Austin ML Journal Club.\nData-centric ML pipeline for data drift and data preprocessing. The 22nd annual meeting of the Scientific Computing Conference (SciPy 2023).\nConstitutional AI: Harmlessness from AI Feedback (paper presentation). Austin ML Journal Club."
   },
   {
     "objectID": "publications.html#section-2",
     "href": "publications.html#section-2",
     "title": "Publications and Talks",
-    "section": "2021",
-    "text": "2021\n\nData science volunteering for criminal justice. Austin Python Meetup."
+    "section": "2022",
+    "text": "2022\n\nData-Centric Machine Learning Pipeline for Hardware Verification. The 35th IEEE International System-on-Chip (Belfast, UK).\n“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI (paper presentation). Austin ML Journal Club.\nZero-Shot Text-to-Image Generation (paper presentation). Austin ML Journal Club."
   },
   {
     "objectID": "publications.html#section-3",
     "href": "publications.html#section-3",
     "title": "Publications and Talks",
-    "section": "2020",
-    "text": "2020\n\nEfficient Bug Discovery with Machine Learning for Hardware Verification. Arm Research Blog.\nExploiting while exploring: effective bug discovery in unit-level verification via supervised learning. The 57th Design Automation Conference.\nOfficer-involver shooting (OIS) in Texas (talk video). Texas Justice Initiative."
+    "section": "2021",
+    "text": "2021\n\nData science volunteering for criminal justice. Austin Python Meetup."
   },
   {
     "objectID": "publications.html#section-4",
     "href": "publications.html#section-4",
     "title": "Publications and Talks",
-    "section": "2019",
-    "text": "2019\n\nReflection on the Tech Policy Workshop event at USF Data Institute Center for Applied Data Ethics.\nCase study: Real-world machine learning application for hardware failure detection. Proc. of the 18th Python In Science Conf (Scipy 2019).\nFairness in ML. Arm Global Engineering Conference; Data & Diversity Workshop.\nIntroduction to Fairness in ML. Arm DS/ML Journal club."
+    "section": "2020",
+    "text": "2020\n\nEfficient Bug Discovery with Machine Learning for Hardware Verification. Arm Research Blog.\nExploiting while exploring: effective bug discovery in unit-level verification via supervised learning. The 57th Design Automation Conference.\nOfficer-involver shooting (OIS) in Texas (talk video). Texas Justice Initiative."
   },
   {
     "objectID": "publications.html#section-5",
     "href": "publications.html#section-5",
     "title": "Publications and Talks",
-    "section": "2018",
-    "text": "2018\n\nA Practical Guide to Machine Learning. Guest lecture at the Computer Architecture course at UT Austin.\nTalent, luck and success: simulating meritocracy and inequality with stochasticity. Medium."
+    "section": "2019",
+    "text": "2019\n\nReflection on the Tech Policy Workshop event at USF Data Institute Center for Applied Data Ethics.\nCase study: Real-world machine learning application for hardware failure detection. Proc. of the 18th Python In Science Conf (Scipy 2019).\nFairness in ML. Arm Global Engineering Conference; Data & Diversity Workshop.\nIntroduction to Fairness in ML. Arm DS/ML Journal club."
   },
   {
     "objectID": "publications.html#section-6",
     "href": "publications.html#section-6",
     "title": "Publications and Talks",
-    "section": "2017",
-    "text": "2017\n\nThe effects of delay duration on visual working memory for orientation. Journal of Vision.\nVisual short-term memory for oriented, colored objects. Journal of Vision."
+    "section": "2018",
+    "text": "2018\n\nA Practical Guide to Machine Learning. Guest lecture at the Computer Architecture course at UT Austin.\nTalent, luck and success: simulating meritocracy and inequality with stochasticity. Medium."
   },
   {
     "objectID": "publications.html#section-7",
     "href": "publications.html#section-7",
     "title": "Publications and Talks",
-    "section": "2016",
-    "text": "2016\n\nCrowdsourced single-trial probes of visual working memory for irrelevant features. Journal of Vision."
+    "section": "2017",
+    "text": "2017\n\nThe effects of delay duration on visual working memory for orientation. Journal of Vision.\nVisual short-term memory for oriented, colored objects. Journal of Vision."
   },
   {
     "objectID": "publications.html#section-8",
     "href": "publications.html#section-8",
     "title": "Publications and Talks",
-    "section": "2015",
-    "text": "2015\n\nVisual working memory of irrelevant features in multi-feature objects. Journal of Vision."
+    "section": "2016",
+    "text": "2016\n\nCrowdsourced single-trial probes of visual working memory for irrelevant features. Journal of Vision."
   },
   {
     "objectID": "publications.html#section-9",
     "href": "publications.html#section-9",
     "title": "Publications and Talks",
-    "section": "2013",
-    "text": "2013\n\nVisual short-term memory resource is not shared among features. Journal of Vision.\nContinuous resources and variable precision in working memory. Journal of Vision."
+    "section": "2015",
+    "text": "2015\n\nVisual working memory of irrelevant features in multi-feature objects. Journal of Vision."
   },
   {
     "objectID": "publications.html#section-10",
     "href": "publications.html#section-10",
+    "title": "Publications and Talks",
+    "section": "2013",
+    "text": "2013\n\nVisual short-term memory resource is not shared among features. Journal of Vision.\nContinuous resources and variable precision in working memory. Journal of Vision."
+  },
+  {
+    "objectID": "publications.html#section-11",
+    "href": "publications.html#section-11",
     "title": "Publications and Talks",
     "section": "2012",
     "text": "2012\n\nVariability in encoding precision accounts for visual short-term memory limitations. PNAS."
