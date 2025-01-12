@@ -19,7 +19,7 @@ website:
 format:
   html:
     theme: 
-      - journal
+      - cosmo
       - custom.scss
     css: styles.css
     # fontsize: 16px
