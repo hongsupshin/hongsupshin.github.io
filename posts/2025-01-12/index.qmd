@@ -17,6 +17,7 @@ When it comes to ML discussion, the ML community often talks about state-of-the-
 ## Research Excellence and Judgment 
 
 Good research judgment is at the core of navigating these extremes. This goes beyond technical expertise and includes:
+
 - Intuition for distinguishing experimental approaches from proven solutions
 - Understanding when to invest in deep research versus applying established tools
 - Accurately evaluating when a problem is truly solved and whether it is usable and scalable
