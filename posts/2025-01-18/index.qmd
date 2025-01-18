@@ -1,0 +1,70 @@
+---
+title: Thompson sampling 
+author: Hongsup Shin
+date: 2025-01-18
+description: None
+categories: [ML, verification]
+---
+
+I have been doing research and building ML application to increase efficiency of hardware verification process. My main project has been finding bugs efficiently while exploring the vast hardware design space. Naturally, this is often formulated as an exploration-exploitation problem. Recently, I had a discussion with a collegue, who suggested a multi-armed bandit (MAB) approach to balance the load between exploration and exploitation. I proposed Thompson sampling, as a first approach to investigate this further because its simple, straightforward, and handles the load balancing elegantly.
+
+## Premise
+
+As I described in my previous papers, we train a supervised learning model to recommend top-k test candidates that are more bug-prone. Our ML application powered by this model runs along with the default random-constraint verificaiton process, which randomly explores a bounded design space set by verification engineers. In short, the ML arm exploits historic data while the random arm continues exploration. Currently, the compute (load) allocated to the ML arm is fixed. An MAB approach can control the load based on model performance in a data-driven way.
+
+## Thompson sampling
+
+Thompson sampling uses probabilistic reward functions for choosing actions in a MAB setting. In a vanilla setup, we start with two Beta(1, 1) distribution (uniform) and draw a random sample from each distribution. We then select the arm with the higher value, and update the parameters based on the outcome. Thus, it naturally addresses the uncertainty through the probabilistic distribution update.
+
+If we have two arms with binary outcomes (successes and failures or bugs and no bugs), we can model each arm's reward as a beta distribution. In a beta distribution, $\alpha$ and $\beta$ represents the number of successes and failures (subtracted by 1), and thus the parameter update is straightforward.
+
+This helps maintain exploration (of arms) through probabilistic sampling, and the exploration gradually decreases as we sample more data (i.e., the distribution of both arms become narrower). It is simple to implement, and we don't have to manually control the number of times each arm should be pulled.
+
+```python
+class ThompsonSampling:
+    def __init__(self):
+        # Initialize the beta distribution for both arms (uniform)
+        self.alphas = [1, 1] 
+        self.betas = [1, 1] 
+    
+    def select_arm(self):
+        # Sample from both arms and return the index of the better arm
+        samples = [beta.rvs(a, b, size=1)[0] for a, b in zip(self.alphas, self.betas)]
+        return np.argmax(samples)
+
+    def action(self):
+        # Pull the chosen arm and collect the reward
+        chosen_arm = self.select_arm()
+        if chosen_arm == 0:
+            reward = PullArm0()
+        else:
+            reward = PullArm1()
+        return reward
+    
+    def update(self):
+        # Update the chosen arm's parameters based on the reward
+        chosen_arm = self.select_arm()
+        reward = self.action()        
+        if reward == 1:
+            self.alphas[chosen_arm] += 1
+        else:
+            self.betas[chosen_arm] += 1
+```
+
+Now let's discuss some modified versions of Thomson sampling to address practical challenges.
+
+## Preventing the dominance of a single arm
+
+When statistics literature refers to exploration-exploitation dillema in MAB, the exploration refers to exploring different arms. In our case, the supervised arm represents exploitation and the random arm represents exploration (of a design space). It is possible that the supervised arm starts dominating and most of our load is directed to this arm. This poses high risk especially in a setting where bugs are rare and we need to put more resources in exploration.
+
+One way to address is to set a *minimum exploration rate* in our flow:
+```python
+...
+def __init__(self, ..., min_explore_rate=0.2):
+    self.min_explore_rate = min_explore_rate
+
+def select_arm(self):
+    if np.random.random() < self.min_explore_rate:
+        return 1 # always return a specific arm index
+    ...
+```
