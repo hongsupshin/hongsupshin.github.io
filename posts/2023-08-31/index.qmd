@@ -1,5 +1,5 @@
 ---
-title: "Constitutional AI: Harmlessness from AI Feedback"
+title: "Constitutional AI: harmlessness from AI feedback"
 author: 
     - Hongsup Shin
 date: 2023-08-31

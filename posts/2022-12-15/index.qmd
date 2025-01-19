@@ -1,5 +1,5 @@
 ---
-title: "Zero-Shot Text-to-Image Generation"
+title: "Zero-shot text-to-image generation"
 author: "Hongsup Shin"
 date: "2022-12-15"
 image: "Fig 8.png"

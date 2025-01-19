@@ -1,5 +1,5 @@
 ---
-title: "Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)"
+title: "Algorithmic decision-making and fairness (Stanford Tech Ethics course, Week 1)"
 date: "2023-10-11"
 description: This week, we covered algorithmic decision-making, algorithmic accountability, and different definitions of fairness. We used the COMPAS case as an example to explore the challenges and problems in automated decision-making system driven by algorithms.
 image: https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg

@@ -877,7 +877,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <pubDate>Sat, 18 Jan 2025 06:00:00 GMT</pubDate>
 </item>
 <item>
-  <title>Building Effective ML Teams - Lessons from Industry</title>
+  <title>Building effective ML teams - lessons from industry</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2025-01-12/</link>
   <description><![CDATA[ 
@@ -975,7 +975,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <media:content url="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png" medium="image" type="image/png"/>
 </item>
 <item>
-  <title>Modeling Tabular Data using Conditional GAN</title>
+  <title>Modeling tabular data using conditional GAN</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2024-05-30/</link>
   <description><![CDATA[ 
@@ -1041,7 +1041,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <media:content url="https://hongsupshin.github.io/posts/2024-05-30/Fig 1.png" medium="image" type="image/png" height="128" width="144"/>
 </item>
 <item>
-  <title>Dissecting Racial Bias in an Algorithm Used to Manage the Health of Populations</title>
+  <title>Dissecting racial bias in an algorithm used to manage the health of populations</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2024-03-28/</link>
   <description><![CDATA[ 
@@ -1807,7 +1807,7 @@ font-style: inherit;">15</span>)</span>
   <media:content url="https://hongsupshin.github.io/posts/2024-03-28/Fig 1b.png" medium="image" type="image/png" height="151" width="144"/>
 </item>
 <item>
-  <title>Algorithmic Decision-Making and Fairness (Stanford Tech Ethics course, Week 1)</title>
+  <title>Algorithmic decision-making and fairness (Stanford Tech Ethics course, Week 1)</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/</link>
   <description><![CDATA[ 
@@ -1963,7 +1963,7 @@ font-style: inherit;">15</span>)</span>
   <media:content url="https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
-  <title>Constitutional AI: Harmlessness from AI Feedback</title>
+  <title>Constitutional AI: harmlessness from AI feedback</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2023-08-31/</link>
   <description><![CDATA[ 
@@ -4318,7 +4318,7 @@ empty &lt;class 'str'&gt;</code></pre>
   <pubDate>Thu, 02 Mar 2023 06:00:00 GMT</pubDate>
 </item>
 <item>
-  <title>Zero-Shot Text-to-Image Generation</title>
+  <title>Zero-shot text-to-image generation</title>
   <dc:creator>Hongsup Shin</dc:creator>
   <link>https://hongsupshin.github.io/posts/2022-12-15/</link>
   <description><![CDATA[ 

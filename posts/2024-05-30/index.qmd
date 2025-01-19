@@ -1,5 +1,5 @@
 ---
-title: Modeling Tabular Data using Conditional GAN
+title: Modeling tabular data using conditional GAN
 author: Hongsup Shin
 date: 2024-05-30
 image: Fig 1.png
