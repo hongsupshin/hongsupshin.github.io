@@ -10,7 +10,872 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.40</generator>
-<lastBuildDate>Sun, 12 Jan 2025 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 18 Jan 2025 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Thompson sampling in practice - modifications and limitations</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2025-01-18/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div id="a0c92056" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> scipy.stats <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> beta</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> seaborn <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> sns</span>
+<span id="cb1-5"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>config InlineBackend.figure_format<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'retina'</span></span>
+<span id="cb1-6">plt.style.use(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ggplot'</span>)</span></code></pre></div>
+</details>
+</div>
+<p>On the surface, hardware verification seems to be a pure exploration task because its goal is to reach near-perfect coverage while fixing bugs. However, efficient navigation of a vast design space requires informed decisions based on the past history of verification tests.</p>
+<p>My team has been building an ML application for efficient hardware verification that runs in parallel with existing methods. We recently had a discussion about introducing Thompson sampling, a multi-armed bandit (MAB) algorithm, popular among industry practitioners, to balance the load of the two methods. In this post, I will discuss practical challenges and limitations of Thompson sampling, and its potential use in hardware verification.</p>
+<section id="premise" class="level2">
+<h2 class="anchored" data-anchor-id="premise">Premise</h2>
+<p>In our application, we have two workflows (or arms). One is a supervised learning model that learns a function between the features and label of historic data. The other is the default (non-ML) simulation, which runs random tests with in a constrained design space set by verification engineers (also known as <em>constraint random verification (CRV)</em>).</p>
+<p>We can consider the ML model as an exploitative arm, and the random as an exploratory arm. By utilizing data from previous explorations, the model can identify bug-prone areas in a design and prioritize them in future simulations. At the same time, the random method continues exploration of a (potentially new) design space.</p>
+<p>It is crucial to finding a right balance of the load between the two arms. If we have a greedy policy for the ML model, it becomes increasingly challenging to find new bugs, and training data becomes stale. On the other extreme, the default random method creates numerous redundant and irrelevant tests. In this context, a MAB approach is useful to dynamically control the load based on simulation results from both arms.</p>
+</section>
+<section id="thompson-sampling" class="level2">
+<h2 class="anchored" data-anchor-id="thompson-sampling">Thompson sampling</h2>
+<p>Thompson sampling uses probabilistic reward functions to choose actions (arms) in a MAB setting. It’s also known as <em>posterior sampling</em> because as we observe more samples (by pulling the arms), we update our posterior distribution accordingly using Bayes’ rule. This way, it naturally addresses uncertainty through the probabilistic update.</p>
+<p>In a typical beta-Bernoulli example, we start with two Beta(1, 1) distributions which are uniform priors. We draw a random sample from each distribution of both arms, and select the arm with the higher value. The beta distribution parameters are updated based on the outcome (reward) of this action: in a beta distribution, <img src="https://latex.codecogs.com/png.latex?%5Calpha"> and <img src="https://latex.codecogs.com/png.latex?%5Cbeta"> represent the number of successes + 1, and failures + 1.</p>
+<p>The figures below show how beta distributions evolve as we get more successes (top) and failures (bottom):</p>
+<div id="04451404" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb2-2">failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb2-3">n_sim <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10000</span></span>
+<span id="cb2-4">additional_successes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.arange(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span>
+<span id="cb2-5">additional_failures <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.arange(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span></code></pre></div>
+</details>
+</div>
+<div id="44757453" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">fig, axes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(additional_successes), figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>), sharey<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb3-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> i, ax <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">enumerate</span>(axes):</span>
+<span id="cb3-3">    n_success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> additional_successes[i]</span>
+<span id="cb3-4">    sim <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> beta.rvs(n_success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_sim)</span>
+<span id="cb3-5">    sns.histplot(sim, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ax)</span>
+<span id="cb3-6">    ax.set_title(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Beta(</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>n_success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">)"</span>, fontsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span>
+<span id="cb3-7"></span>
+<span id="cb3-8">fig.tight_layout()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-4-output-1.png" width="690" height="190" class="figure-img"></p>
+<figcaption>Histograms of samples from beta distributions with increasing number of successes</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="b626a6f7" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">fig, axes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(additional_successes), figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>), sharey<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb4-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> i, ax <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">enumerate</span>(axes):</span>
+<span id="cb4-3">    n_failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> additional_failures[i]</span>
+<span id="cb4-4">    sim <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> beta.rvs(success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, n_failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_sim)</span>
+<span id="cb4-5">    sns.histplot(sim, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ax)</span>
+<span id="cb4-6">    ax.set_title(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Beta(</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>n_failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">)"</span>, fontsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span>
+<span id="cb4-7"></span>
+<span id="cb4-8">fig.tight_layout()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-5-output-1.png" width="691" height="190" class="figure-img"></p>
+<figcaption>Histograms of samples from beta distributions with increasing number of failures</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Thompson sampling’s probabilistic approach helps maintain exploration of <em>arms</em>. The exploration is gradually more optimized and the uncertainty decreases as we gather more samples. How often to pull which arms (i.e., optimal allocation of load across all arms) is adjusted dynamically without manual control.</p>
+<p>A simple python version of Thompson sampling can be implemented like this:</p>
+<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> ThompsonSampling:</span>
+<span id="cb5-2">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb5-3">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Initialize the beta distribution for both arms (uniform)</span></span>
+<span id="cb5-4">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] </span>
+<span id="cb5-5">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] </span>
+<span id="cb5-6">    </span>
+<span id="cb5-7">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> select_arm(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb5-8">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Sample from both arms and return the index of the better arm</span></span>
+<span id="cb5-9">        samples <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [beta.rvs(a, b, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> a, b <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">zip</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas)]</span>
+<span id="cb5-10">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> np.argmax(samples)</span>
+<span id="cb5-11"></span>
+<span id="cb5-12">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> action(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, chosen_arm):</span>
+<span id="cb5-13">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Pull the chosen arm and collect the reward</span></span>
+<span id="cb5-14">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>:</span>
+<span id="cb5-15">            reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> PullArm0()</span>
+<span id="cb5-16">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb5-17">            reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> PullArm1()</span>
+<span id="cb5-18">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> reward</span>
+<span id="cb5-19">    </span>
+<span id="cb5-20">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> update(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb5-21">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Update the chosen arm's parameters based on the reward</span></span>
+<span id="cb5-22">        chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.select_arm()</span>
+<span id="cb5-23">        reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.action(chosen_arm)        </span>
+<span id="cb5-24">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb5-25">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas[chosen_arm] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb5-26">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb5-27">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas[chosen_arm] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span></code></pre></div>
+</section>
+<section id="reducing-overconfidence-of-arms" class="level2">
+<h2 class="anchored" data-anchor-id="reducing-overconfidence-of-arms">Reducing overconfidence of arms</h2>
+<p>While the idea is simple, implementing Thompson sampling in practice requires many considerations. One of the most common issues is that a subset of arms may become too dominant, resulting in <em>greedy exploitation</em>.</p>
+<p>The simplest way to address is to set a <em>minimum exploration rate</em>, which guarantees a fixed amount of load dedicated to specific arms.</p>
+<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> ThompsonWithMinExplore:</span>
+<span id="cb6-2">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, ..., min_explore_rate<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.2</span>):</span>
+<span id="cb6-3">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.min_explore_rate <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> min_explore_rate</span>
+<span id="cb6-4"></span>
+<span id="cb6-5">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> select_arm(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb6-6"></span>
+<span id="cb6-7">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> np.random.random() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.min_explore_rate:            </span>
+<span id="cb6-8">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># always return a specific arm index</span></span>
+<span id="cb6-9"></span>
+<span id="cb6-10">        samples <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [beta.rvs(a, b, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> a, b <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">zip</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas)]</span>
+<span id="cb6-11">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> np.argmax(samples)        </span></code></pre></div>
+<p>In the verification scenario, this is a must because design exploration is crucial in verification. By allocating a minimum amount of load to exploration, we ensure that the random method continues to explore new design spaces, preventing the ML model from becoming overly greedy and missing potential new bugs.</p>
+<p>Another approach is to adjust the probability distribution of dominant arms. Setting upper bounds of its parameters prevents their updates once they reach a threshold.</p>
+<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> ThompsonWithUpperBound:</span>
+<span id="cb7-2"></span>
+<span id="cb7-3">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> update(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, alpha_upper_bound, beta_upper_bound):</span>
+<span id="cb7-4">        chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.select_arm()</span>
+<span id="cb7-5">        reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.action(chosen_arm)        </span>
+<span id="cb7-6">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb7-7">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> alpha_upper_bound:</span>
+<span id="cb7-8">                <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb7-9">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb7-10">                <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb7-11">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb7-12">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> beta_upper_bound:</span>
+<span id="cb7-13">                <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb7-14">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb7-15">                <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span></code></pre></div>
+<p>Similarly, setting a time-decay on the parameters prevents arms from becoming too dominant.</p>
+<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> ThompsonWithTimeDecay:</span>
+<span id="cb8-2">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, decay_rate):</span>
+<span id="cb8-3">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.decay_rate <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> decay_rate</span>
+<span id="cb8-4">        </span>
+<span id="cb8-5">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> update(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb8-6">        chosen_arm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.select_arm()</span>
+<span id="cb8-7">        reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.action(chosen_arm)        </span>
+<span id="cb8-8"></span>
+<span id="cb8-9">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Decay before update</span></span>
+<span id="cb8-10">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.decay_rate <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> a <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas]</span>
+<span id="cb8-11">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.decay_rate <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> b <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas]        </span>
+<span id="cb8-12">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb8-13">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alphas[chosen_arm] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb8-14">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb8-15">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.betas[chosen_arm] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span></code></pre></div>
+<p>We can consider the time-decay modification as gradually reducing the influence of older rewards. In addition to the general idea of old data becoming stale, the decay may represent bug fixes. In other words, since bugs found in the past are now fixed in the current design, executing the exact action will not produce a reward (i.e., bug).</p>
+</section>
+<section id="dealing-with-rare-events" class="level2">
+<h2 class="anchored" data-anchor-id="dealing-with-rare-events">Dealing with rare events</h2>
+<p>Another common issue arises when reward frequency is too low. This poses two important challenges. First, in a beta-Bernoulli setup, a low frequency of events produces a beta distribution that is highly compressed towards zero with a long tail on the right side. In a situation like this where <img src="https://latex.codecogs.com/png.latex?%5Calpha"> is much smaller than <img src="https://latex.codecogs.com/png.latex?%5Cbeta">, we have an asymmetrical probability distribution update, meaning the probability distribution is much more sensitive to a single success than a single failure.</p>
+<div id="d4823ab4" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb9-2">failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">98</span></span>
+<span id="cb9-3">n_sim <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span></span>
+<span id="cb9-4">sim0 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> beta.rvs(success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_sim)</span>
+<span id="cb9-5">sim1 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> beta.rvs(success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_sim)</span>
+<span id="cb9-6">sim2 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> beta.rvs(success <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, failure <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_sim)</span>
+<span id="cb9-7"></span>
+<span id="cb9-8">fig, ax <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>))</span>
+<span id="cb9-9">sns.kdeplot(sim0, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ax, clip<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Baseline: Beta(2, 98)'</span>)</span>
+<span id="cb9-10">sns.kdeplot(sim1, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ax, clip<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'+1 Success'</span>)</span>
+<span id="cb9-11">sns.kdeplot(sim2, ax<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ax, clip<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>], label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'+1 Failure'</span>)</span>
+<span id="cb9-12">ax.legend()</span>
+<span id="cb9-13">fig.tight_layout()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-6-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="491" height="290"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Another challenge is that the low frequency pushes the time horizon much further because we must collect a sizable number of samples to have good probability estimates on positive events. Depending on the time horizon limit, we may not be able to use Thompson sampling at all if the update is too slow.</p>
+<p>With these challenges, we can first test several heuristic-based methods. First, we can start with a more optimistic prior to force early exploration of certain arms. The main downside is that wrong initial guesses are costly, and at the same time the forced-exploration effect will disappear soon without rewards.</p>
+<p>Second, we can consider batch-based update of parameters instead of instance-based. This can stabilize the distribution update at the price of slower learning. Literature also suggests using contextual bandit to make a more informed decision, or using a hierarchical approach to allow groups of arms share information (prior). This approach is also useful when the number of arms is large, and the cost of exploration becomes too high.</p>
+<p>The hierarchical approach is useful in hardware verification if we have a model per design unit or test configuration, or when arms have different verification strategies such as coverage, bug hunting, soak/flood optimization, and a group of arms share a strategy. It’s even possible to have two different layers of beta distributions, one at the individual level and the other at the group level, and take weighted average.</p>
+<p>In hardware verification, the batch-based approach can have an additional edge because the tests are usually generated in batches. The fact that a typical verification process requires a huge number of tests, the issue of slower learning due to batch update might not become a huge tradeoff.</p>
+</section>
+<section id="prior-knowledge-and-continuous-reward" class="level2">
+<h2 class="anchored" data-anchor-id="prior-knowledge-and-continuous-reward">Prior knowledge and continuous reward</h2>
+<p>In a typical Thompson sampling example, we often start with a uniform prior (e.g., Beta(1, 1)). If we already have knowledge about an arm, we can start with an informative prior. For instance, in a medical setting, if we want to compare treatment options and we already have preliminary data for certain treatments from clinical trials, we can use this to build a non-uniform prior.</p>
+<p>If the arms have continuous rewards, gamma distribution is a good candidate because it’s well-suited for modeling skewed distributions of positive rewards. The distribution has two parameters, <img src="https://latex.codecogs.com/png.latex?%5Calpha">, a shape parameter, and <img src="https://latex.codecogs.com/png.latex?%5Clambda">, a rate parameter. Using the fact that <img src="https://latex.codecogs.com/png.latex?%5Cmu=%5Cfrac%7B%5Calpha%7D%7B%5Clambda%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Csigma%5E2=%5Cfrac%7B%5Calpha%7D%7B%5Clambda%5E2%7D">, we can calculate and update both parameters using the mean and variance from our samples:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%20%5Cfrac%7B%5Cmu%5E2%7D%7B%5Csigma%5E2%7D"> <img src="https://latex.codecogs.com/png.latex?%5Clambda%20=%20%5Cfrac%7B%5Cmu%7D%7B%5Csigma%5E2%7D"></p>
+<p>Defining a right reward function might be the most challenging part in hardware verification because the definition of verification success is often complex and based on many heuristics and factors. First, we track the novelty of bugs, often represented as the cardinality of the set of captured bugs. Second, given multiple tests with an identical bug signature, we prefer tests with shorter runtime to save compute. Finally, the origin of a bug, whether it’s from the design or other sources such as a test bench or infrastructure matters a lot.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>Because of its simplicity, Thompson sampling is highly versatile. However, there are situations where alternative methods might be preferred. An important factor is that Thompson sampling is desirable in a situation that requires both exploration and exploitation, not just one.</p>
+<p>For instance, if we can get an accurate estimate from historic data, it’s better to take a greed approach by eliminating low-reward arms, and stick with the best option. This is particularly important in a low-resource environment where exploration is very costly.</p>
+<p>Other common limitations, as previously mentioned, are often about how one deals with time horizon limitations and how much information we have about the arms so that we can have good priors instead of uniform.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>We can formulate hardware verification as an MAB problem because it address the exploitation-exploration tradeoff. However, it poses a unique challenge because even if we have an oracle ML model, a greedy policy is not optimal. Ongoing exploration is still required both for pure exploration and for the model update. Hence, striking a right balance between the exploitation and exploration arms to optimize the test load remains a difficult problem.</p>
+<p>In this post, I explored Thompson sampling, a simple and straightforward MAB algorithm that can be applied to the verification problem. Regardless of its limitations, given the method’s solid theoretical foundation and its versatility, I think it provides a great starting point for estimating the tradeoff between exploration and exploitation in hardware verification.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>verification</category>
+  <guid>https://hongsupshin.github.io/posts/2025-01-18/</guid>
+  <pubDate>Sat, 18 Jan 2025 06:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Building Effective ML Teams - Lessons from Industry</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -5363,61 +6228,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/</guid>
   <pubDate>Tue, 24 Nov 2020 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_reviewer_screenshot.png" medium="image" type="image/png" height="79" width="144"/>
-</item>
-<item>
-  <title>Efficient bug discovery with ML for hardware verification</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>Imagine designing a highly complex machine. In order to be certain that it functions as its design specifies and does not have any bugs, you would need to test every aspect of the design exhaustively. If the machine is controlled by a set of knobs that can be turned on and off, this verification process can get exponentially complex. For instance, with a machine that has 100 binary on-off knobs, then 2<sup>100</sup> tests need to be run to cover all possible combinations. If we assume that a single test takes one second to run, this equates to 1022 years of testing. For present-day microprocessors, it is even more challenging. There can be thousands or tens of thousands of two-state flip-flops in a single microprocessor. Therefore, it is <strong>impossible to verify microprocessor designs exhaustively</strong>.</p>
-<p>To work around this problem, hardware verification engineers use a method called <strong>random-constraint testing</strong>. This is more sophisticated than simple random adjustment of knobs – it is <strong>a hybrid approach of manual control and randomization</strong>. Engineers can direct the test behavior to a degree by setting constraints for the tests using adjustable knobs. Once constraints are set, the rest of the verification process depends on randomization; the knobs start subsequent processes that are stochastic, which stimulates various parts of the design. This way, engineers can explore the design randomly under the constraints they have set.</p>
-<p>This method works well when engineers have not explored the design much. As engineers start exploring a design, they find and fix bugs, and the more they explore, the fewer bugs are left to be fixed. <strong>Eventually, it becomes very difficult to detect these rare bugs by random probing</strong>. Most of the hardware verification effort goes into finding the few remaining bugs in the design. In fact, this process is so time-consuming that <strong>60-70% of the compute time spent on hardware development goes into verification</strong>.</p>
-<p>If the random-constraint testing is not good at specifically targeting bugs in the design, what are the alternatives? My team in <a href="https://www.arm.com/resources/research">Arm Research</a> has been working on this problem since last year. We have analyzed our CPU verification data and successfully trained machine learning (ML) models to solve this problem. We deployed an ML application with these models in collaboration with production engineers at Arm, <a href="https://www.linkedin.com/in/markkoob/">Mark Koob</a> and <a href="https://www.linkedin.com/in/ramachandranswati/">Swati Ramachandran</a>. Our application <strong>uses ML to flag tests that are likely to find bugs</strong>. Verification engineers can feed a large group of prospective tests to our application, and then the application returns a subset of them that are likely to find bugs. This way, <strong>engineers can focus on these tests only, and reduce the number of tests to run, which eventually saves compute costs.</strong></p>
-<p>Currently, our application is being <strong>used consistently by Arm verification engineers as a complementary tool to their existing workflow</strong>. On average, it has been shown to be <strong>25% more efficient</strong> than the default verification workflow in terms of finding bugs, and <strong>1.33x more efficient</strong> at finding unique bugs. Through our application, engineers were able to find more unique bugs per test run when compared to their existing verification workflow.</p>
-<section id="filtering-prospective-tests-using-ml" class="level2">
-<h2 class="anchored" data-anchor-id="filtering-prospective-tests-using-ml">Filtering prospective tests using ML</h2>
-<p><img src="https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/2020-09-22-random-constraint-testing-diagram.png" title="Schematic of random-constraint testing in hardware verification" class="img-fluid"></p>
-<p>Now let us take a deeper look at how our application works. The main challenge of using ML for hardware verification is that everything revolves around random-constraint testing. Not only is the data collected by this method, but also the testing infrastructure is built to optimize this process. The problem is that random-constraint testing consists of two very different parts:</p>
-<ul>
-<li><strong>Deterministic knob-control</strong> by verification engineers, and;</li>
-<li><strong>Non-deterministic subsequent processes</strong> that are random and intractable.</li>
-</ul>
-<p>This means two things. Firstly, the only source of the usable data is the knobs. Secondly, we cannot guide tests directly to explore new design space because the whole process is non-deterministic.</p>
-<p>Let’s first look at the knob data. Here, each sample is a test that was run in the past. It has <strong>several hundred knob values (input) and a binary output; bug or bug-free</strong>. In our data, bugs were extremely rare (less than 1%). To address this <strong>severe class imbalance</strong>, we adopt two approaches. Firstly, we train a <strong>supervised learning</strong> model that computes a probability of having a bug based on a set of knob values. This model detects tests that may expose bugs similar to the previous ones. Secondly, we train an <strong>unsupervised learning</strong> model that estimates similarity between a new test and the previous tests. If the similarity is low, the test is likely to be novel. Novel knob combinations can probe unexplored design areas and are more likely to expose bugs. In our <a href="http://conference.scipy.org/proceedings/scipy2019/pdfs/Hongsup_Shin.pdf">preliminary results</a>, we found that these models can detect different types of bugs. Since our main goal is to capture as many bugs as possible, we flag a test as a bug provided one of the two models predicts it will be.</p>
-<p>To avoid the difficulty in guiding test behavior, we choose a <strong>filtering approach</strong>. We leave the knob values to be generated randomly from the testing infrastructure and filter them afterwards based on ML prediction scores. To do so, we need to provide the ML models with a large group of knob values (test candidates) first. Luckily, this process is computationally cheap. Then, the ML models compute prediction scores (the probability of having a bug) of the candidates. Based on the scores, we select a subset of the candidates that are more likely to find bugs than others.</p>
-</section>
-<section id="deploying-ml-within-existing-random-constraint-testing-infrastructure" class="level2">
-<h2 class="anchored" data-anchor-id="deploying-ml-within-existing-random-constraint-testing-infrastructure">Deploying ML within existing random-constraint testing infrastructure</h2>
-<p>Now that we have trained ML models ready, can we completely replace our existing random-constraint testing flow with our application? The answer is no. <strong>The filtering approach, even with the unsupervised learning model, does not completely solve the exploration problem</strong>. That is why the existing flow (random-constraint testing) should remain. The random probing can still be useful for exploration to a degree, and can provide new training data for model update. Thus, we propose two parallel pathways; one with the default randomized testing and the other with ML models, where an additional set of test candidates are provided and then only the tests flagged by the models are filtered and run. This way, it is possible to continue collecting novel data from the default flow for exploration while exploiting the data from previous tests via the ML application.</p>
-<p>Some may think that our job is done when the models are delivered, and deployment finally happens. This is not true. For the models, a new journey begins when they are deployed in the production environment, because it is likely that unexpected events are waiting for them. For instance, we have learned that design and testing infrastructure go through daily changes, so test behavior and data generation process may change frequently. This means the models deployed in the beginning do not guarantee good performance as time goes by.</p>
-<p>To address this, we have <strong>conducted research into the optimization of model retraining</strong>. We identified how often models need to be retrained and how much data should be used for training. Using this information, we’ve built a retraining module that is automatically invoked periodically or upon verification engineers’ request. During the retraining process, we compare a variety of different models and tune their hyperparameters. This allows for flexibility across changes in data generation processes and various microprocessor designs.</p>
-</section>
-<section id="towards-end-to-end-ml" class="level2">
-<h2 class="anchored" data-anchor-id="towards-end-to-end-ml">Towards end-to-end ML</h2>
-<p>When we talk about ML, the focus is often on algorithms. As I mentioned, however, <strong>when it comes to building ML products, the algorithms are only a small part of a much larger pipeline</strong>. Especially with scalable deployment in consideration. Starting from data acquisition all the way to deployment and assessment, every step requires attention of data scientists and ML researchers. It is because developing ML products is different from typical software development. A lot of processes are interconnected and data-dependent, which makes them more challenging to test and evaluate.</p>
-<p>Admittedly, we initially approached the development of this ML application as a “throw it over the wall” type of engagement. After developing the core ML modules (data preprocessing and models), we delivered them to production engineers without much engagement afterwards. After the application was deployed in several projects, we occasionally needed to intervene to deal with unexpected model behavior. We soon realized that not engaging in the deployment process makes it very difficult to solve any issues that happen after model deployment.</p>
-<p>Recently, in collaboration with our colleagues, it has been made easier to make direct contributions to packages. They have developed a Python package for data science and ML, which has become a core part of our ML application. This allowed us to directly contribute to the ML application easily, and also enabled scalable Python in Arm’s internal compute platform. Our new team member, <a href="https://www.linkedin.com/in/kate-behrman/">Kathrine (Kate) Behrman</a> has already built a new module to fix an existing problem in model validation. With this momentum, we are more engaged in deployment to make our ML application perform better and more reliable, while exploring new research ideas.</p>
-<p>Through this process, we learned that <strong>getting more involved in ML product development provides many benefits to researchers</strong>. First, it makes <strong>tech transfer much easier</strong> because making direct contributions to deployed products is more frictionless. This also means that we can <strong>test our new research ideas easily</strong> and measure the effect quickly. In addition, it helps us <strong>fix problems efficiently</strong> because we have better understanding of how the models are served in deployment. <strong>ML products benefit from an evolutionary approach</strong> because there is no absolute guarantee that the data or surrounding infrastructure stays the same. Finally, this process naturally <strong>brings automation and scalability</strong>, which makes our work easily applicable and more impactful.</p>
-</section>
-<section id="next-steps" class="level2">
-<h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
-<p>We are currently working on launching a new version of our ML application to accommodate a new CPU project that has launched recently. We expect that the new version can be used in the early stage of verification, which is new territory to us. At the same time, we are exploring various research areas. For example, explainable AI for feature assessment and counterfactuals, various unsupervised learning techniques to target novel bugs more effectively, methods to design ML-friendly test benches, and other verification-related problems such as assessing coverage. We are also putting efforts into standardizing our workflow and automating existing features. We anticipate that our work will bring more consistent and reliable model performance over time. We also expect that it will showcase a successful tech transfer example for ML deployment that can be applied to solving other engineering problems inside Arm with ML.</p>
-<p>Learn more about our research in our paper presented at <a href="https://www.dac.com/">DAC (Design Automation Conference) 2020</a>, and please do reach out to me if you have any questions!</p>
-
-
-</section>
-
- ]]></description>
-  <category>ML</category>
-  <category>verification</category>
-  <guid>https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/</guid>
-  <pubDate>Tue, 22 Sep 2020 05:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/2020-09-22-random-constraint-testing-diagram.png" medium="image" type="image/png" height="85" width="144"/>
 </item>
 </channel>
 </rss>
