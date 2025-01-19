@@ -838,7 +838,8 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-6-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="491" height="290"></p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-6-output-1.png" width="491" height="290" class="figure-img"></p>
+<figcaption>A right-skewed beta distribution (Beta(2, 98), red) is more sensitive to an additional success (blue) then an additional failure (purple)</figcaption>
 </figure>
 </div>
 </div>
@@ -847,20 +848,20 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <p>With these challenges, we can first test several heuristic-based methods. First, we can start with a more optimistic prior to force early exploration of certain arms. The main downside is that wrong initial guesses are costly, and at the same time the forced-exploration effect will disappear soon without rewards.</p>
 <p>Second, we can consider batch-based update of parameters instead of instance-based. This can stabilize the distribution update at the price of slower learning. Literature also suggests using contextual bandit to make a more informed decision, or using a hierarchical approach to allow groups of arms share information (prior). This approach is also useful when the number of arms is large, and the cost of exploration becomes too high.</p>
 <p>The hierarchical approach is useful in hardware verification if we have a model per design unit or test configuration, or when arms have different verification strategies such as coverage, bug hunting, soak/flood optimization, and a group of arms share a strategy. It’s even possible to have two different layers of beta distributions, one at the individual level and the other at the group level, and take weighted average.</p>
-<p>In hardware verification, the batch-based approach can have an additional edge because the tests are usually generated in batches. The fact that a typical verification process requires a huge number of tests, the issue of slower learning due to batch update might not become a huge tradeoff.</p>
+<p>In hardware verification, the batch-based approach can have an additional edge because the tests are usually generated in batches. Since a typical verification process requires a huge number of tests, the issue of slower learning due to batch update might not become a huge tradeoff.</p>
 </section>
 <section id="prior-knowledge-and-continuous-reward" class="level2">
 <h2 class="anchored" data-anchor-id="prior-knowledge-and-continuous-reward">Prior knowledge and continuous reward</h2>
-<p>In a typical Thompson sampling example, we often start with a uniform prior (e.g., Beta(1, 1)). If we already have knowledge about an arm, we can start with an informative prior. For instance, in a medical setting, if we want to compare treatment options and we already have preliminary data for certain treatments from clinical trials, we can use this to build a non-uniform prior.</p>
+<p>In a typical Thompson sampling example, we often start with a non-informative uniform prior (e.g., Beta(1, 1)). If we already have knowledge about an arm, we can start with an informative prior. For instance, in a medical setting, if we want to compare treatment options and we already have preliminary data for certain treatments from clinical trials, we can use this to build a non-uniform prior.</p>
 <p>If the arms have continuous rewards, gamma distribution is a good candidate because it’s well-suited for modeling skewed distributions of positive rewards. The distribution has two parameters, <img src="https://latex.codecogs.com/png.latex?%5Calpha">, a shape parameter, and <img src="https://latex.codecogs.com/png.latex?%5Clambda">, a rate parameter. Using the fact that <img src="https://latex.codecogs.com/png.latex?%5Cmu=%5Cfrac%7B%5Calpha%7D%7B%5Clambda%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Csigma%5E2=%5Cfrac%7B%5Calpha%7D%7B%5Clambda%5E2%7D">, we can calculate and update both parameters using the mean and variance from our samples:</p>
 <p><img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%20%5Cfrac%7B%5Cmu%5E2%7D%7B%5Csigma%5E2%7D"> <img src="https://latex.codecogs.com/png.latex?%5Clambda%20=%20%5Cfrac%7B%5Cmu%7D%7B%5Csigma%5E2%7D"></p>
-<p>Defining a right reward function might be the most challenging part in hardware verification because the definition of verification success is often complex and based on many heuristics and factors. First, we track the novelty of bugs, often represented as the cardinality of the set of captured bugs. Second, given multiple tests with an identical bug signature, we prefer tests with shorter runtime to save compute. Finally, the origin of a bug, whether it’s from the design or other sources such as a test bench or infrastructure matters a lot.</p>
+<p>Defining a right reward function might be the most challenging part in hardware verification because the definition of verification success is often complex and based on many heuristics and factors. Here are some examples. First, we should consider the novelty of bugs, often represented as the cardinality of the set of captured bugs. Second, given multiple tests with an identical bug signature, we prefer tests with shorter runtime to save compute. Finally, the origin of a bug should be considered such as whether a bug is from the design or other sources such as a test bench or infrastructure.</p>
 </section>
 <section id="limitations" class="level2">
 <h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
 <p>Because of its simplicity, Thompson sampling is highly versatile. However, there are situations where alternative methods might be preferred. An important factor is that Thompson sampling is desirable in a situation that requires both exploration and exploitation, not just one.</p>
 <p>For instance, if we can get an accurate estimate from historic data, it’s better to take a greed approach by eliminating low-reward arms, and stick with the best option. This is particularly important in a low-resource environment where exploration is very costly.</p>
-<p>Other common limitations, as previously mentioned, are often about how one deals with time horizon limitations and how much information we have about the arms so that we can have good priors instead of uniform.</p>
+<p>Other common limitations, as previously mentioned, are often about how one deals with time horizon limitations and how much information we have about the arms, i.e., choosing the right priors in the beginning.</p>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
