@@ -1,5 +1,5 @@
 ---
-title: Building effective ML teams - lessons from industry
+title: "Building effective ML teams: lessons from industry"
 author: Hongsup Shin
 date: 2025-01-12
 description: Although ML has become ubiquitous, truly effective ML teams remain rare. With ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear - research excellence, strong technical vision, open culture, and thoughtful technical standards. 
