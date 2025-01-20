@@ -114,7 +114,11 @@ font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">7</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">2</span>), sharey<span class="op" style="color: #5E5E5E;
+font-style: inherit;">2</span>), sharex<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, sharey<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
@@ -182,7 +186,7 @@ font-style: inherit;">10</span>)</span>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-4-output-1.png" width="690" height="190" class="figure-img"></p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-4-output-1.png" width="691" height="190" class="figure-img"></p>
 <figcaption>Histograms of samples from beta distributions with increasing number of successes</figcaption>
 </figure>
 </div>
@@ -203,7 +207,11 @@ font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">7</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">2</span>), sharey<span class="op" style="color: #5E5E5E;
+font-style: inherit;">2</span>), sharex<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, sharey<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;

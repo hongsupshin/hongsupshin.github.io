@@ -271,7 +271,7 @@ window.Quarto = {
 <div id="44757453" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="bu">len</span>(additional_successes), figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">2</span>), sharey<span class="op">=</span><span class="va">True</span>)</span>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="bu">len</span>(additional_successes), figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">2</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    n_success <span class="op">=</span> success <span class="op">+</span> additional_successes[i]</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    sim <span class="op">=</span> beta.rvs(n_success <span class="op">+</span> <span class="dv">1</span>, failure <span class="op">+</span> <span class="dv">1</span>, size<span class="op">=</span>n_sim)</span>
@@ -283,7 +283,7 @@ window.Quarto = {
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="index_files/figure-html/cell-4-output-1.png" width="690" height="190" class="figure-img"></p>
+<p><img src="index_files/figure-html/cell-4-output-1.png" width="691" height="190" class="figure-img"></p>
 <figcaption>Histograms of samples from beta distributions with increasing number of successes</figcaption>
 </figure>
 </div>
@@ -292,7 +292,7 @@ window.Quarto = {
 <div id="b626a6f7" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="bu">len</span>(additional_successes), figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">2</span>), sharey<span class="op">=</span><span class="va">True</span>)</span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="bu">len</span>(additional_successes), figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">2</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes):</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    n_failure <span class="op">=</span> success <span class="op">+</span> additional_failures[i]</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    sim <span class="op">=</span> beta.rvs(success <span class="op">+</span> <span class="dv">1</span>, n_failure <span class="op">+</span> <span class="dv">1</span>, size<span class="op">=</span>n_sim)</span>
