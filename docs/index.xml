@@ -876,6 +876,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <category>verification</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-18/</guid>
   <pubDate>Sat, 18 Jan 2025 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2025-01-18/Fig.png" medium="image" type="image/png" height="85" width="144"/>
 </item>
 <item>
   <title>Building effective ML teams: lessons from industry</title>
@@ -928,6 +929,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-12/</guid>
   <pubDate>Sun, 12 Jan 2025 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2025-01-12/Fig.png" medium="image" type="image/png" height="129" width="144"/>
 </item>
 <item>
   <title>Building datasets for model benchmarking in production</title>
@@ -973,7 +975,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
   <category>ML Ops</category>
   <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
   <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
-  <media:content url="https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png" medium="image" type="image/png"/>
+  <media:content url="https://hongsupshin.github.io/posts/2024-10-05/GPTbenchmark.png" medium="image" type="image/png" height="128" width="144"/>
 </item>
 <item>
   <title>Modeling tabular data using conditional GAN</title>
@@ -4317,6 +4319,7 @@ empty &lt;class 'str'&gt;</code></pre>
   <category>data preprocessing</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</guid>
   <pubDate>Thu, 02 Mar 2023 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/Fig.png" medium="image" type="image/png" height="87" width="144"/>
 </item>
 <item>
   <title>Zero-shot text-to-image generation</title>

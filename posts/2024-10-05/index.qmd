@@ -2,7 +2,7 @@
 title: Building datasets for model benchmarking in production
 date: 2024-10-05
 description: Benchmarking is critical to developing and evaluating ML models in both research and development settings. In production, we can use benchmarking to evaluate new features on historic data, similar to A/B testing. In this post, I discuss practical considerations when building custom benchmark datasets for ML models in production.
-image: https://datavizproject.com/wp-content/uploads/types/Bar-Chart-Vertical.png
+image: GPTbenchmark.png
 author: Hongsup Shin
 categories: 
     - ML
