@@ -8,7 +8,7 @@ about:
   image: profile.png
 ---
 
-I'm Hongsup/홍섭 and I am an ML practitioner in Austin, TX. I currently work as a Principal ML Research Engineer at Arm, and volunteer as a co-chair of the Proceedings Committee of the SciPy conference. In the past, I volunteered at [Texas Justice Initiative](https://texasjusticeinitiative.org/), a local criminal justice non-profit in Austin, and other organizations such as DataKind, NeurIPS, and SciPy as grant and paper reviewers. I run an in-person [ML journal club](https://austinmljournalclub.github.io/) in Austin, TX.
+I'm Hongsup/홍섭 and I am an ML practitioner in Austin, TX. I currently work as a Principal ML Research Engineer at Arm, and volunteer as a co-chair of the SciPy conference Proceedings Committee. In the past, I volunteered at [Texas Justice Initiative](https://texasjusticeinitiative.org/), a local criminal justice non-profit in Austin, and other organizations such as DataKind, NeurIPS, and SciPy as grant and paper reviewers. I run an in-person [ML journal club](https://austinmljournalclub.github.io/) in Austin, TX.
 
 My background is computational neuroscience (PhD) and behavioral ecology (MSc). My general interests are ML Ops, AI ethics, responsible AI, and ML in hardware. Feel free to reach out to me on [Linkedin](https://www.linkedin.com/in/hongsupshin/) and check out some of my work:
 
