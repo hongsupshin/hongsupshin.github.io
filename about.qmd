@@ -19,9 +19,3 @@ My background is computational neuroscience (PhD) and behavioral ecology (MSc). 
 - [Scipy 2019 paper on ML Ops case study of building ML apps for hardware verification](https://conference.scipy.org/proceedings/scipy2019/Hongsup_Shin.html)
 - [Medium post on simulationg relationship between talent, luck, and meritocracy](https://medium.com/@hongsupshin/talent-luck-and-success-simulating-meritocracy-and-inequality-with-stochasticity-501e0c1b4969)
 - [PNAS paper on human visual short-term memory from my PhD thesis](https://www.pnas.org/doi/abs/10.1073/pnas.1117465109)
-
-I participate in volunteering whenever I can. Until recently, I was a volunteer data scientist at [Texas Justice Initiative](https://texasjusticeinitiative.org/), a criminal justice non-profit in Austin, TX. I also volunteered as a reviwer for [SciPy](https://conference.scipy.org/), [DataKind](https://www.datakind.org/), and [NeurIPS](https://neurips.cc/). In 2024, I am volunteering as a co-chair of the [Scipy](https://www.scipy2024.scipy.org/) [Proceedings](https://github.com/scipy-conference/scipy_proceedings) Committee.
-
-I love sharing ideas with others and I am interested in building communities. I've oragnized [Austin ML Journal Club](https://austinmljournalclub.github.io/) where local ML practitioners read ML papers every month and discuss in person. I also participated in local meetups such as [Women in Data Science-ATX](https://www.meetup.com/Women-in-Data-Science-ATX/) and [Austin Python Meetup](https://www.meetup.com/austinpython/).
-
-Please feel free to reach out to me on [LinkedIn](https://www.linkedin.com/in/hongsupshin/) if you have any questions!
