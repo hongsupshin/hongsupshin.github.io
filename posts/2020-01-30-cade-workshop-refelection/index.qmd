@@ -4,7 +4,7 @@ date: "2020-01-30"
 image: "2020-01-30-presentation.png"
 author: Hongsup Shin
 description: A reflection piece about the USF tech ethics and policy workshop focusing on data ethics as a tech worker myself
-categories: ethics
+categories: [ethics, ML]
 ---
 
 ![](2020-01-30-presentation.png)

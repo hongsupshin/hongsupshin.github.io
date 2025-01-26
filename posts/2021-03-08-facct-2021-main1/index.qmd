@@ -6,8 +6,6 @@ image: "data dev cycle.png"
 author: Hongsup Shin
 categories: 
     - conference
-    - governance
-    - explainability
     - responsible AI
     - ML
 ---

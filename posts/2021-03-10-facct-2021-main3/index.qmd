@@ -5,9 +5,6 @@ description: Summary of Day 3 at FAccT 2021. Julian Anguin's Markup, language mo
 author: Hongsup Shin
 categories: 
     - conference
-    - journalism
-    - measurement
-    - education
     - LLM
     - responsible AI
     - ML

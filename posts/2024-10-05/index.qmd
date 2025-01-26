@@ -7,6 +7,7 @@ author: Hongsup Shin
 categories: 
     - ML
     - ML Ops
+    - data
 ---
 
 At its core, benchmarking serves as a systematic methodology for objectively evaluating techniques or products through carefully curated test samples. In ML, this practice has traditionally been used in academic research, enabling rigorous comparison of various deep learning models. However, its utility extends beyond research, and it becomes an invaluable tool in production environments, similar to A/B testing for new feature evaluation. Here, we can construct benchmark datasets from historical data, tailoring the evaluation process to our own needs in real-world scenarios.

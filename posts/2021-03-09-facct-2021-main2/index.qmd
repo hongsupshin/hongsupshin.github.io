@@ -6,9 +6,6 @@ image: "toolkit.png"
 author: Hongsup Shin
 categories: 
     - conference
-    - explainability
-    - causality
-    - robustness
     - responsible AI
     - ML
 ---
