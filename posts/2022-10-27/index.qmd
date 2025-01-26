@@ -4,7 +4,7 @@ author: "Hongsup Shin"
 date: "2022-10-27"
 image: "Data cascades in high-stakes AI.png"
 description: Garbage in, garbage out. It seems like a lot of people in the ML community still don't understand this logic. We discuss poor data-handling practices and their critical ramifications.
-categories: [paper, governance, responsible AI]
+categories: [paper, data, responsible AI]
 ---
 
 Many ML articles exist but few talk about how the sausage gets made. They are often based on toy or clean benchmark datasets, which are quite different from what we get in real world. That's why I enjoy reading survey papers. They interview people in the field like us and try to address common pain points to find a broader picture.

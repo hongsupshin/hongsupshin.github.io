@@ -5,9 +5,7 @@ description: FAccT 2021 (virtual) tutorial summary. Causal analysis, XAI, and al
 author: Hongsup Shin
 categories: 
     - conference
-    - causality
     - fairness
-    - explainability
     - responsible AI
     - ML
 ---

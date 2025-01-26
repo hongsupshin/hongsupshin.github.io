@@ -10,7 +10,925 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.40</generator>
-<lastBuildDate>Sat, 18 Jan 2025 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 25 Jan 2025 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Model tuning with Weights &amp; Biases, Ray Tune, and LightGBM</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2025-01-25/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p><em>All healthy models are alike; each failing model fails in its own way.</em></p>
+<p>There are many different ways that an ML model can fail and this is what makes model debugging challenging. For comprehensive understanding of model behavior, we log various metrics during model training. Unfortunately, because of their sheer volume, we need tools for logging, data mining, and visualization: MLflow, Neptune, Comet ML, Weights and Biases, and so on (see this <a href="https://neptune.ai/vs/wandb-mlflow">blog post</a> by Neptune about a thorough side-by-side comparison among Neptune, MLflow, and Weights and Biases).</p>
+<p>With the increasing complexity of models, their hyperparameter spaces and the challenge of understanding their impact and interaction grow at the same time. In this post, I demonstrate how to use Weights and Biases for monitoring hyperparameter tuning of LightGBM models conducted by Ray Tune. I will also discuss how we can share the Weights and Biases reports publicly.</p>
+<section id="weights-and-biases-ray-tune" class="level2">
+<h2 class="anchored" data-anchor-id="weights-and-biases-ray-tune">Weights and Biases + Ray Tune</h2>
+<p><a href="https://wandb.ai/">Weights and Biases (WandB)</a> is an ML model development platform that provides various services such as experiment monitoring, model tuning, model registry management, and workflow automation. In this post, I am focusing on the first two elements: monitoring and tuning. Even though WandB’s <a href="https://wandb.ai/site/sweeps/">Sweeps</a> provides hyperparameter search and optimization, in this post, I am using <a href="https://docs.ray.io/en/latest/tune/index.html">Ray Tune</a> for model tuning and Sweeps for monitoring and visualization. Ray Tune is more frequently used for model tuning in ML community than WandB because it is an open source framework.</p>
+<p>Ray’s <a href="https://docs.ray.io/en/latest/tune/examples/tune-wandb.html">documentation</a> describes three ways to interact with WandB via its API, <code>WandbLoggerCallback</code> and <code>setup_wandb</code>:</p>
+<ol type="1">
+<li>Use <code>WandbLoggerCallback</code> in <code>Train.RunConfig</code> (shown in this post)</li>
+<li>Set up <code>setup_wandb</code> in a trainable function with <code>wandb.log</code></li>
+<li>Set up <code>setup_wandb</code> in a <code>Trainable</code> class with <code>wandb.log</code></li>
+</ol>
+<p>Although this documentation is excellent, it only shows iteration-level logging where logs (or metrics) are generated at every iteration (or epoch) and passed to WandB. This isn’t applicable to many existing models like the LightGBM ones. A callback is required to have the models return logged metrics during model training and tuning.</p>
+<p>According to <a href="https://wandb.ai/authors/RayTune-dcgan/reports/Ray-Tune-Distributed-Hyperparameter-Optimization-at-Scale--VmlldzoyMDEwNDY">a WandB report</a>, one can use <code>WandbLogger</code> (available in PyTorch Lightning, TorchTune, etc.) or <code>@wandb_mixin</code> decorator. I haven’t tried these methods because the report seems outdated (referring to ray 0.8.7), and they are not described in the Ray documentation.</p>
+</section>
+<section id="model-tuning-setup" class="level2">
+<h2 class="anchored" data-anchor-id="model-tuning-setup">Model tuning setup</h2>
+<p>To demonstrate WandB and Ray Tune integration with LightGBM models, I prepared the following setup:</p>
+<ul>
+<li>Data: Synthetic dataset with a 80:20 train-validation split</li>
+<li>Objective: Binary classification with class imbalance</li>
+<li>Model API: LightGBM native</li>
+<li>Training metrics: Cross entropy, AUROC (<code>auc</code>), and average precision for both training and validation data</li>
+<li>Tunable hyperparameters:</li>
+<li>Number of training epochs: 100</li>
+</ul>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"num_leaves"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">31</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">63</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">127</span>]),</span>
+<span id="cb1-2">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"learning_rate"</span>: tune.loguniform(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e-3</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e-1</span>),</span>
+<span id="cb1-3">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"min_data_in_leaf"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>]),</span>
+<span id="cb1-4">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"max_depth"</span>: tune.choice([<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>]),</span>
+<span id="cb1-5">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"boosting_type"</span>: tune.choice([<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gbdt"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dart"</span>]),</span>
+<span id="cb1-6">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"bagging_fraction"</span>: tune.uniform(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>),</span>
+<span id="cb1-7">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"bagging_freq"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>])</span></code></pre></div>
+<ul>
+<li>Model selection metric (tuning): Cross entropy of the validation set</li>
+<li>Number of searches: 8</li>
+</ul>
+<section id="module-import-and-ray-initialization" class="level3">
+<h3 class="anchored" data-anchor-id="module-import-and-ray-initialization">Module import and ray initialization</h3>
+<div id="cell-5" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> os</span>
+<span id="cb2-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> IPython.display <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> IFrame</span>
+<span id="cb2-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> sklearn.datasets <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> make_classification</span>
+<span id="cb2-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> sklearn.model_selection <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> train_test_split</span>
+<span id="cb2-5"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> lightgbm <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> lgb</span>
+<span id="cb2-6"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ray</span>
+<span id="cb2-7"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> ray <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> train, tune</span>
+<span id="cb2-8"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> ray.tune.integration.lightgbm <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> TuneReportCheckpointCallback</span>
+<span id="cb2-9"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> ray.tune.schedulers <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ASHAScheduler</span>
+<span id="cb2-10"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> ray.air.integrations.wandb <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> WandbLoggerCallback</span>
+<span id="cb2-11"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> wandb</span>
+<span id="cb2-12"></span>
+<span id="cb2-13">os.environ[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"WANDB_SILENT"</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span></span>
+<span id="cb2-14"></span>
+<span id="cb2-15">seed <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span></span></code></pre></div>
+</div>
+<div id="cell-6" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">ray.init(num_cpus<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-01-26 10:57:00,944 INFO worker.py:1812 -- Started a local Ray instance. View the dashboard at http://127.0.0.1:8265 </code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"4bc71992fa7a416c9af9b929ea210a27","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+</div>
+</section>
+<section id="training-data" class="level3">
+<h3 class="anchored" data-anchor-id="training-data">Training data</h3>
+<div id="cell-8" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">X, y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> make_classification(</span>
+<span id="cb5-2">    n_samples<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, n_features<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, n_classes<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, weights<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.9</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>], random_state<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>seed</span>
+<span id="cb5-3">)</span>
+<span id="cb5-4"></span>
+<span id="cb5-5">X_train, X_test, y_train, y_test <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> train_test_split(</span>
+<span id="cb5-6">    X, y, test_size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.2</span>, random_state<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>seed)</span>
+<span id="cb5-7"></span>
+<span id="cb5-8">data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'X_train'</span>: X_train, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'y_train'</span>: y_train, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'X_test'</span>: X_test, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'y_test'</span>: y_test} </span></code></pre></div>
+</div>
+</section>
+<section id="training-config-parameter-space" class="level3">
+<h3 class="anchored" data-anchor-id="training-config-parameter-space">Training config (parameter space)</h3>
+<div id="cell-10" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">config <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb6-2">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"objective"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"binary"</span>,</span>
+<span id="cb6-3">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"metric"</span>: [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"binary_logloss"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"auc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"average_precision"</span>],</span>
+<span id="cb6-4">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"verbose"</span>: <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,</span>
+<span id="cb6-5">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"n_estimators"</span>: <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>,</span>
+<span id="cb6-6">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"num_leaves"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">15</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">31</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">63</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">127</span>]),</span>
+<span id="cb6-7">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"learning_rate"</span>: tune.loguniform(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e-4</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e-1</span>),</span>
+<span id="cb6-8">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"min_data_in_leaf"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">40</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">60</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">80</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>]),</span>
+<span id="cb6-9">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"max_depth"</span>: tune.choice([<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>]),</span>
+<span id="cb6-10">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"boosting_type"</span>: tune.choice([<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gbdt"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dart"</span>]),</span>
+<span id="cb6-11">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bagging_fraction"</span>: tune.uniform(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>),</span>
+<span id="cb6-12">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bagging_freq"</span>: tune.choice([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>]),    </span>
+<span id="cb6-13">}</span></code></pre></div>
+</div>
+</section>
+<section id="training-function" class="level3">
+<h3 class="anchored" data-anchor-id="training-function">Training function</h3>
+<p>Here I am using <code>ray.tune.integration.lightgbm.TuneReportCheckpointCallback</code> with <code>frequency=1</code> (every iteration) as a main callback function to log the metrics defined in <code>config</code> (<code>["binary_logloss", "auc", "average_precision"]</code>). Both training and validation dataset metrics are tracked: note that the metric names in the callback have a format of <code>"{valid_names[i]}-{metric[i]}"</code>.</p>
+<p>The training function below takes two inputs: config and data. Inside the function, <code>lightgbm.Dataset</code> objects are constructed and the native <code>lightgbm.train</code> is called. Training data (<code>data</code>) can be later passed to the Tune wrapper via <code>tune.with_parameters</code>.</p>
+<div id="cell-12" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> train_function(config, data):</span>
+<span id="cb7-2">    train_set <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> lgb.Dataset(data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'X_train'</span>], data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'y_train'</span>])</span>
+<span id="cb7-3">    val_set <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> lgb.Dataset(data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'X_test'</span>], data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'y_test'</span>], reference<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>train_set)</span>
+<span id="cb7-4"></span>
+<span id="cb7-5">    model <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> lgb.train(</span>
+<span id="cb7-6">        config,</span>
+<span id="cb7-7">        train_set,</span>
+<span id="cb7-8">        valid_sets<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[train_set, val_set],</span>
+<span id="cb7-9">        valid_names<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val"</span>],</span>
+<span id="cb7-10">        callbacks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[</span>
+<span id="cb7-11">            TuneReportCheckpointCallback(</span>
+<span id="cb7-12">                frequency<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,</span>
+<span id="cb7-13">                metrics<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{</span>
+<span id="cb7-14">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train_loss"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train-binary_logloss"</span>,</span>
+<span id="cb7-15">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train_auc"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train-auc"</span>,</span>
+<span id="cb7-16">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train_average_precision"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"train-average_precision"</span>,</span>
+<span id="cb7-17">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val_loss"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val-binary_logloss"</span>,</span>
+<span id="cb7-18">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val_auc"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val-auc"</span>,</span>
+<span id="cb7-19">                    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val_average_precision"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val-average_precision"</span>,</span>
+<span id="cb7-20">                },</span>
+<span id="cb7-21">            )</span>
+<span id="cb7-22">        ],</span>
+<span id="cb7-23">    )</span></code></pre></div>
+</div>
+</section>
+<section id="tuner" class="level3">
+<h3 class="anchored" data-anchor-id="tuner">Tuner</h3>
+<p><code>WandbLoggerCallback</code> is used with a project name to send logs to WandB’s server. Like <code>train_function</code>, the tuner accepts <code>config</code> and <code>data</code> arguments. Following Ray’s best practices, datasets are passed through the <code>data</code> argument with <code>tune.with_parameters</code> rather than the config.</p>
+<div id="cell-15" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">n_searches <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span></span>
+<span id="cb8-2"></span>
+<span id="cb8-3"></span>
+<span id="cb8-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> tune_with_callback(config, data):</span>
+<span id="cb8-5">    tuner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tune.Tuner(</span>
+<span id="cb8-6">        tune.with_parameters(train_function, data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>data),</span>
+<span id="cb8-7">        param_space<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>config,</span>
+<span id="cb8-8">        tune_config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>tune.TuneConfig(</span>
+<span id="cb8-9">            metric<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val_loss"</span>, mode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"min"</span>, num_samples<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_searches</span>
+<span id="cb8-10">        ),</span>
+<span id="cb8-11">        run_config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>train.RunConfig(</span>
+<span id="cb8-12">            callbacks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[WandbLoggerCallback(project<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"WandB-RayTune-LightGBM"</span>)]</span>
+<span id="cb8-13">        ),</span>
+<span id="cb8-14">    )</span>
+<span id="cb8-15">    tuner.fit()</span></code></pre></div>
+</div>
+</section>
+<section id="wandb-setup" class="level3">
+<h3 class="anchored" data-anchor-id="wandb-setup">WandB setup</h3>
+<p><code>WandB</code> requires sign-up. Their <a href="https://wandb.ai/site/pricing/">free tier</a> offers limited storage and support but includes core functionality. Follow their <a href="https://docs.wandb.ai/quickstart/">quickstart page</a> for setup.</p>
+<div id="cell-18" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">wandb.login()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="cell-19" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">tune_with_callback(config, data)</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<div class="tuneStatus">
+  <div style="display: flex;flex-direction: row">
+    <div style="display: flex;flex-direction: column;">
+      <h3 class="anchored">Tune Status</h3>
+      
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<tbody>
+<tr class="odd">
+<td>Current time:</td>
+<td>2025-01-26 10:57:34</td>
+</tr>
+<tr class="even">
+<td>Running for:</td>
+<td>00:00:19.66</td>
+</tr>
+<tr class="odd">
+<td>Memory:</td>
+<td>12.6/16.0 GiB</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+    <div class="vDivider"></div>
+    <div class="systemInfo">
+      <h3 class="anchored">System Info</h3>
+      Using FIFO scheduling algorithm.<br>Logical resource usage: 1.0/4 CPUs, 0/0 GPUs
+    </div>
+    
+  </div>
+  <div class="hDivider"></div>
+  <div class="trialStatus">
+    <h3 class="anchored">Trial Status</h3>
+    
+<table class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Trial name</th>
+<th data-quarto-table-cell-role="th">status</th>
+<th data-quarto-table-cell-role="th">loc</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bagging_fraction</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">bagging_freq</th>
+<th data-quarto-table-cell-role="th">boosting_type</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">learning_rate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">max_depth</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">min_data_in_leaf</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">num_leaves</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">iter</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">total time (s)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">train_loss</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">train_auc</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">train_average_precis ion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>train_function_97fa2_00000</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83708</td>
+<td style="text-align: right;">0.878482</td>
+<td style="text-align: right;">1</td>
+<td>gbdt</td>
+<td style="text-align: right;">0.0409389</td>
+<td style="text-align: right;">-1</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.417227</td>
+<td style="text-align: right;">0.0631622</td>
+<td style="text-align: right;">0.997799</td>
+<td style="text-align: right;">0.982008</td>
+</tr>
+<tr class="even">
+<td>train_function_97fa2_00001</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83706</td>
+<td style="text-align: right;">0.658912</td>
+<td style="text-align: right;">5</td>
+<td>dart</td>
+<td style="text-align: right;">0.0170101</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.392265</td>
+<td style="text-align: right;">0.241471</td>
+<td style="text-align: right;">0.967141</td>
+<td style="text-align: right;">0.770121</td>
+</tr>
+<tr class="odd">
+<td>train_function_97fa2_00002</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83705</td>
+<td style="text-align: right;">0.837067</td>
+<td style="text-align: right;">1</td>
+<td>dart</td>
+<td style="text-align: right;">0.0775392</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.443744</td>
+<td style="text-align: right;">0.102647</td>
+<td style="text-align: right;">0.992724</td>
+<td style="text-align: right;">0.945557</td>
+</tr>
+<tr class="even">
+<td>train_function_97fa2_00003</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83707</td>
+<td style="text-align: right;">0.622214</td>
+<td style="text-align: right;">0</td>
+<td>gbdt</td>
+<td style="text-align: right;">0.000216889</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.37126</td>
+<td style="text-align: right;">0.323874</td>
+<td style="text-align: right;">0.93965</td>
+<td style="text-align: right;">0.554631</td>
+</tr>
+<tr class="odd">
+<td>train_function_97fa2_00004</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83838</td>
+<td style="text-align: right;">0.821865</td>
+<td style="text-align: right;">5</td>
+<td>gbdt</td>
+<td style="text-align: right;">0.00415785</td>
+<td style="text-align: right;">-1</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.41642</td>
+<td style="text-align: right;">0.232447</td>
+<td style="text-align: right;">0.960898</td>
+<td style="text-align: right;">0.734143</td>
+</tr>
+<tr class="even">
+<td>train_function_97fa2_00005</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83837</td>
+<td style="text-align: right;">0.8452</td>
+<td style="text-align: right;">0</td>
+<td>dart</td>
+<td style="text-align: right;">0.0109837</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.54864</td>
+<td style="text-align: right;">0.266188</td>
+<td style="text-align: right;">0.974223</td>
+<td style="text-align: right;">0.853426</td>
+</tr>
+<tr class="odd">
+<td>train_function_97fa2_00006</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83839</td>
+<td style="text-align: right;">0.574684</td>
+<td style="text-align: right;">0</td>
+<td>gbdt</td>
+<td style="text-align: right;">0.00362588</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.412159</td>
+<td style="text-align: right;">0.238196</td>
+<td style="text-align: right;">0.962041</td>
+<td style="text-align: right;">0.730329</td>
+</tr>
+<tr class="even">
+<td>train_function_97fa2_00007</td>
+<td>TERMINATED</td>
+<td>127.0.0.1:83836</td>
+<td style="text-align: right;">0.698182</td>
+<td style="text-align: right;">0</td>
+<td>gbdt</td>
+<td style="text-align: right;">0.0277846</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.466146</td>
+<td style="text-align: right;">0.0752791</td>
+<td style="text-align: right;">0.99627</td>
+<td style="text-align: right;">0.972842</td>
+</tr>
+</tbody>
+</table>
+
+  </div>
+</div>
+<style>
+.tuneStatus {
+  color: var(--jp-ui-font-color1);
+}
+.tuneStatus .systemInfo {
+  display: flex;
+  flex-direction: column;
+}
+.tuneStatus td {
+  white-space: nowrap;
+}
+.tuneStatus .trialStatus {
+  display: flex;
+  flex-direction: column;
+}
+.tuneStatus h3 {
+  font-weight: bold;
+}
+.tuneStatus .hDivider {
+  border-bottom-width: var(--jp-border-width);
+  border-bottom-color: var(--jp-border-color0);
+  border-bottom-style: solid;
+}
+.tuneStatus .vDivider {
+  border-left-width: var(--jp-border-width);
+  border-left-color: var(--jp-border-color0);
+  border-left-style: solid;
+  margin: 0.5em 1em 0.5em 1em;
+}
+</style>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2025-01-26 10:57:14,965 INFO wandb.py:319 -- Already logged into W&amp;B.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1737910636.174542 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:51265: Got goaway [2] err=UNAVAILABLE:GOAWAY received; Error code: 2; Debug Text: Cancelling all calls {grpc_status:14, http2_error:2, created_time:"2025-01-26T10:57:16.17454-06:00", file_line:1171, file:"external/com_github_grpc_grpc/src/core/ext/transport/chttp2/transport/chttp2_transport.cc"}
+I0000 00:00:1737910636.176357 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:51256: Got goaway [2] err=UNAVAILABLE:GOAWAY received; Error code: 2; Debug Text: Cancelling all calls {grpc_status:14, http2_error:2, created_time:"2025-01-26T10:57:16.176356-06:00", file_line:1171, file:"external/com_github_grpc_grpc/src/core/ext/transport/chttp2/transport/chttp2_transport.cc"}
+I0000 00:00:1737910645.637782 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:51511: Got goaway [2] err=UNAVAILABLE:GOAWAY received; Error code: 2; Debug Text: Cancelling all calls {grpc_status:14, http2_error:2, created_time:"2025-01-26T10:57:25.637779-06:00", file_line:1171, file:"external/com_github_grpc_grpc/src/core/ext/transport/chttp2/transport/chttp2_transport.cc"}
+I0000 00:00:1737910645.648876 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:51523: Got goaway [2] err=UNAVAILABLE:GOAWAY received; Error code: 2; Debug Text: Cancelling all calls {grpc_status:14, http2_error:2, created_time:"2025-01-26T10:57:25.648874-06:00", file_line:1171, file:"external/com_github_grpc_grpc/src/core/ext/transport/chttp2/transport/chttp2_transport.cc"}
+2025-01-26 10:57:34,623 INFO tune.py:1009 -- Wrote the latest version of all result files and experiment state to '/Users/hongsupshin/ray_results/train_function_2025-01-26_10-57-14' in 0.0332s.
+2025-01-26 10:57:49,893 INFO tune.py:1041 -- Total run time: 34.95 seconds (19.62 seconds for the tuning loop).
+(train_function pid=83708) /opt/homebrew/Caskroom/miniforge/base/envs/wandb/lib/python3.12/site-packages/lightgbm/engine.py:204: UserWarning: Found `n_estimators` in params. Will use it instead of argument
+(train_function pid=83708)   _log_warning(f"Found `{alias}` in params. Will use it instead of argument")
+(train_function pid=83708) Checkpoint successfully created at: Checkpoint(filesystem=local, path=/Users/hongsupshin/ray_results/train_function_2025-01-26_10-57-14/train_function_97fa2_00000_0_bagging_fraction=0.8785,bagging_freq=1,boosting_type=gbdt,learning_rate=0.0409,max_depth=-1,min_data__2025-01-26_10-57-14/checkpoint_000000)
+(train_function pid=83706) /opt/homebrew/Caskroom/miniforge/base/envs/wandb/lib/python3.12/site-packages/lightgbm/engine.py:204: UserWarning: Found `n_estimators` in params. Will use it instead of argument [repeated 3x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)
+(train_function pid=83706)   _log_warning(f"Found `{alias}` in params. Will use it instead of argument") [repeated 3x across cluster]
+(train_function pid=83708) Checkpoint successfully created at: Checkpoint(filesystem=local, path=/Users/hongsupshin/ray_results/train_function_2025-01-26_10-57-14/train_function_97fa2_00000_0_bagging_fraction=0.8785,bagging_freq=1,boosting_type=gbdt,learning_rate=0.0409,max_depth=-1,min_data__2025-01-26_10-57-14/checkpoint_000046) [repeated 190x across cluster]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(raylet) WARNING: 16 PYTHON worker processes have been started on node: 0c8a8cbf6029ce14f7fb87978d96c38f57da4534a8d65e705f6940a9 with address: 127.0.0.1. This could be a result of using a large number of actors, or due to tasks blocked in ray.get() calls (see https://github.com/ray-project/ray/issues/3644 for some discussion of workarounds).</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>(raylet) WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+(raylet) I0000 00:00:1737910645.636949 19552110 chttp2_transport.cc:1182] ipv4:127.0.0.1:51511: Got goaway [2] err=UNAVAILABLE:GOAWAY received; Error code: 2; Debug Text: Cancelling all calls {grpc_status:14, http2_error:2, created_time:"2025-01-26T10:57:25.636948-06:00", file_line:1171, file:"external/com_github_grpc_grpc/src/core/ext/transport/chttp2/transport/chttp2_transport.cc"}
+(train_function pid=83837) /opt/homebrew/Caskroom/miniforge/base/envs/wandb/lib/python3.12/site-packages/lightgbm/engine.py:204: UserWarning: Found `n_estimators` in params. Will use it instead of argument [repeated 4x across cluster]
+(train_function pid=83837)   _log_warning(f"Found `{alias}` in params. Will use it instead of argument") [repeated 4x across cluster]
+(train_function pid=83836) Checkpoint successfully created at: Checkpoint(filesystem=local, path=/Users/hongsupshin/ray_results/train_function_2025-01-26_10-57-14/train_function_97fa2_00007_7_bagging_fraction=0.6982,bagging_freq=0,boosting_type=gbdt,learning_rate=0.0278,max_depth=5,min_data_i_2025-01-26_10-57-15/checkpoint_000000) [repeated 212x across cluster]
+(train_function pid=83837) Checkpoint successfully created at: Checkpoint(filesystem=local, path=/Users/hongsupshin/ray_results/train_function_2025-01-26_10-57-14/train_function_97fa2_00005_5_bagging_fraction=0.8452,bagging_freq=0,boosting_type=dart,learning_rate=0.0110,max_depth=10,min_data__2025-01-26_10-57-14/checkpoint_000067) [repeated 265x across cluster]</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="sweeps-visualization-with-ray-tune-runs" class="level2">
+<h2 class="anchored" data-anchor-id="sweeps-visualization-with-ray-tune-runs">Sweeps visualization with Ray Tune runs</h2>
+<p>After tuning completes, WandB’s dashboard displays all search runs. I can access visualizations through either the Sweeps sidebar panel or by selecting runs and clicking “New Sweeps.”</p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-25/Fig2.png" class="img-fluid"></p>
+<p>The Sweep Configuration page shows an auto-generated YAML file that may need correction. For example, the optimization metric incorrectly shows “Relative Time (Process)” instead of “val_loss”.</p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-25/Fig3.png" class="img-fluid"></p>
+<p>While WandB’s <a href="https://docs.wandb.ai/guides/sweeps/">Sweeps</a> offers hyperparameter optimization, its primary strength lies in visualization capabilities. Below is an interactive report showing results from the above tuning run.</p>
+<div id="cell-21" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">IFrame(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://wandb.ai/auth0-1wgih-hs/WandB-RayTune-LightGBM/reports/Tuning-trial-1--VmlldzoxMTA5NDQxMg"</span>, style<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"border:none"</span>, height<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1024</span>, width<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"100%"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+
+        <iframe width="100%" height="1024" src="https://wandb.ai/auth0-1wgih-hs/WandB-RayTune-LightGBM/reports/Tuning-trial-1--VmlldzoxMTA5NDQxMg?style=border%3Anone" frameborder="0" allowfullscreen=""></iframe>
+        
+</div>
+</div>
+<p>The Sweeps visualization offers two key plots: the <strong>hyperparameter importance</strong> plot and the <strong>parallel coordinates</strong> plot. The importance plot (top) reveals that learning rate has the strongest influence on validation loss in this run. Users can analyze different metrics via the drop-down menu and add comparative plots for training and validation scores. The parallel coordinates plot visualizes hyperparameter interactions. Mouse-over highlighting and <code>val_loss</code> color gradients help identify optimal parameter combinations, with darker colors indicating lower (better) scores.</p>
+</section>
+<section id="sharing-sweeps-results-publicly" class="level2">
+<h2 class="anchored" data-anchor-id="sharing-sweeps-results-publicly">Sharing Sweeps results publicly</h2>
+<p>An existing WandB result (report, Sweeps, etc.) can be shown in a Jupyter notebook by using <code>%wandb</code> magic (<a href="https://docs.wandb.ai/guides/track/jupyter/">documentation</a>):</p>
+<div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Display a project workspace</span></span>
+<span id="cb16-2"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>wandb USERNAME<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>PROJECT</span>
+<span id="cb16-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Display a single run</span></span>
+<span id="cb16-4"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>wandb USERNAME<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>PROJECT<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>runs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>RUN_ID</span>
+<span id="cb16-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Display a sweep</span></span>
+<span id="cb16-6"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>wandb USERNAME<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>PROJECT<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>sweeps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>SWEEP_ID</span>
+<span id="cb16-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Display a report</span></span>
+<span id="cb16-8"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>wandb USERNAME<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>PROJECT<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>reports<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>REPORT_ID</span>
+<span id="cb16-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Specify the height of embedded iframe</span></span>
+<span id="cb16-10"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>wandb USERNAME<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>PROJECT <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>h <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2048</span></span></code></pre></div>
+<p>To share the interactive plots shown above, I used a different method: creating and sharing a WandB report. In a report, users can results, visualizations, text, imaged, etc. as if it is a Jupyter notebook. After creating a report, I embedded my report’s iframe output to enable Quarto rendering (the publishing tool I am currently using). To generate a public report, change the visibility to “Public” in the <em>project</em> settings page:</p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-25/Fig4.png" class="img-fluid" style="width:50.0%"></p>
+</section>
+<section id="model-tuning-with-asha-scheduler" class="level2">
+<h2 class="anchored" data-anchor-id="model-tuning-with-asha-scheduler">Model tuning with ASHA scheduler</h2>
+<p>To optimize tuning efficiency, in the next example, I added <code>ASHAScheduler</code> (Asynchronous Successive Halving Algorithm) in <code>tune.TuneConfig</code> and increased the number of searches to 128.</p>
+<div id="cell-26" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1">n_searches <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">128</span></span>
+<span id="cb17-2"></span>
+<span id="cb17-3"></span>
+<span id="cb17-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> tune_with_asha(config, data):</span>
+<span id="cb17-5">    tuner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tune.Tuner(</span>
+<span id="cb17-6">        tune.with_parameters(train_function, data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>data),</span>
+<span id="cb17-7">        param_space<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>config,</span>
+<span id="cb17-8">        tune_config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>tune.TuneConfig(</span>
+<span id="cb17-9">            metric<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"val_loss"</span>,</span>
+<span id="cb17-10">            mode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"min"</span>,</span>
+<span id="cb17-11">            num_samples<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>n_searches,</span>
+<span id="cb17-12">            scheduler<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>ASHAScheduler(),</span>
+<span id="cb17-13">        ),</span>
+<span id="cb17-14">        run_config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>train.RunConfig(</span>
+<span id="cb17-15">            callbacks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[WandbLoggerCallback(project<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"WandB-RayTune-LightGBM"</span>)]</span>
+<span id="cb17-16">        ),</span>
+<span id="cb17-17">    )</span>
+<span id="cb17-18">    tuner.fit()</span>
+<span id="cb17-19">    </span>
+<span id="cb17-20">tune_with_asha(config, data)    </span></code></pre></div>
+</div>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-25/Fig5.png" class="img-fluid"></p>
+<p>The parallel coordinates plot includes a <code>Step</code> to visualize <code>ASHAScheduler</code>’s behavior. The dark purple curves represent trials that ran longer (higher <code>Step</code> values) and achieved lower <code>val_loss</code>. This demonstrates ASHA’s effectiveness at pruning unpromising trials through early stopping. With more searches, hyperparameter impacts are more clear here. For example, lower learning rates consistently lead to poorer model performance in this run.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>This post demonstrated how to combine Weights &amp; Biases visualization capabilities with Ray Tune’s hyperparameter optimization for LightGBM models. Ray Tune provides flexible and scalable hyperparameter tuning machinery, while WandB offers detailed visualization tools for analyzing results. Even though WandB offers model tuning service, Ray Tune is still one of the main model tuning frameworks in ML community, and thus it is valuable to understand their integration. Among WandB’s visualization tools, the parallel coordinates and hyperparameter importance plots provide valuable insights into parameter relationships and their impact on model performance.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>ML Ops</category>
+  <category>visualization</category>
+  <guid>https://hongsupshin.github.io/posts/2025-01-25/</guid>
+  <pubDate>Sat, 25 Jan 2025 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2025-01-25/Fig.png" medium="image" type="image/png" height="139" width="144"/>
+</item>
 <item>
   <title>Thompson sampling in practice: modifications and limitations</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -186,7 +1104,7 @@ font-style: inherit;">10</span>)</span>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-4-output-1.png" width="691" height="190" class="figure-img"></p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-5-output-1.png" width="691" height="190" class="figure-img"></p>
 <figcaption>Histograms of samples from beta distributions with increasing number of successes</figcaption>
 </figure>
 </div>
@@ -279,7 +1197,7 @@ font-style: inherit;">10</span>)</span>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-5-output-1.png" width="691" height="190" class="figure-img"></p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-6-output-1.png" width="691" height="190" class="figure-img"></p>
 <figcaption>Histograms of samples from beta distributions with increasing number of failures</figcaption>
 </figure>
 </div>
@@ -846,7 +1764,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-6-output-1.png" width="491" height="290" class="figure-img"></p>
+<p><img src="https://hongsupshin.github.io/posts/2025-01-18/index_files/figure-html/cell-7-output-1.png" width="491" height="290" class="figure-img"></p>
 <figcaption>A right-skewed beta distribution (Beta(2, 98), red) is more sensitive to an additional success (blue) than an additional failure (purple).</figcaption>
 </figure>
 </div>
@@ -882,6 +1800,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
  ]]></description>
   <category>ML</category>
   <category>verification</category>
+  <category>Bayesian</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-18/</guid>
   <pubDate>Sat, 18 Jan 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-01-18/Fig.png" medium="image" type="image/png" height="85" width="144"/>
@@ -933,8 +1852,8 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 </section>
 
  ]]></description>
-  <category>collaboration</category>
   <category>ML</category>
+  <category>collaboration</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-12/</guid>
   <pubDate>Sun, 12 Jan 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-01-12/Fig.png" medium="image" type="image/png" height="129" width="144"/>
@@ -981,6 +1900,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
  ]]></description>
   <category>ML</category>
   <category>ML Ops</category>
+  <category>data</category>
   <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
   <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2024-10-05/GPTbenchmark.png" medium="image" type="image/png" height="128" width="144"/>
@@ -3256,7 +4176,6 @@ font-style: inherit;">'subsample'</span>])</span></code></pre></div>
  ]]></description>
   <category>ML</category>
   <category>ML Ops</category>
-  <category>Interoperability</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</guid>
   <pubDate>Fri, 17 Mar 2023 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" medium="image" type="image/png" height="109" width="144"/>
@@ -4324,7 +5243,7 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>ML</category>
-  <category>data preprocessing</category>
+  <category>data</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</guid>
   <pubDate>Thu, 02 Mar 2023 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/Fig.png" medium="image" type="image/png" height="87" width="144"/>
@@ -4393,7 +5312,6 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>paper</category>
-  <category>computer vision</category>
   <category>GenAI</category>
   <guid>https://hongsupshin.github.io/posts/2022-12-15/</guid>
   <pubDate>Thu, 15 Dec 2022 06:00:00 GMT</pubDate>
@@ -4501,7 +5419,7 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>paper</category>
-  <category>governance</category>
+  <category>data</category>
   <category>responsible AI</category>
   <guid>https://hongsupshin.github.io/posts/2022-10-27/</guid>
   <pubDate>Thu, 27 Oct 2022 05:00:00 GMT</pubDate>
@@ -4617,7 +5535,6 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>volunteering</category>
-  <category>journalism</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/</guid>
   <pubDate>Tue, 25 May 2021 05:00:00 GMT</pubDate>
@@ -5911,9 +6828,7 @@ font-style: inherit;">1.03</span>)</span>
  ]]></description>
   <category>criminal justice</category>
   <category>visualization</category>
-  <category>EDA</category>
   <category>volunteering</category>
-  <category>journalism</category>
   <guid>https://hongsupshin.github.io/posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html</guid>
   <pubDate>Mon, 24 May 2021 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2021-05-24-ds-volunteering-part1/index.png" medium="image" type="image/png" height="101" width="144"/>
@@ -5958,9 +6873,6 @@ font-style: inherit;">1.03</span>)</span>
 
  ]]></description>
   <category>conference</category>
-  <category>journalism</category>
-  <category>measurement</category>
-  <category>education</category>
   <category>LLM</category>
   <category>responsible AI</category>
   <category>ML</category>
@@ -6005,9 +6917,6 @@ font-style: inherit;">1.03</span>)</span>
 
  ]]></description>
   <category>conference</category>
-  <category>explainability</category>
-  <category>causality</category>
-  <category>robustness</category>
   <category>responsible AI</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/</guid>
@@ -6061,8 +6970,6 @@ font-style: inherit;">1.03</span>)</span>
 
  ]]></description>
   <category>conference</category>
-  <category>governance</category>
-  <category>explainability</category>
   <category>responsible AI</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/</guid>
@@ -6121,125 +7028,11 @@ font-style: inherit;">1.03</span>)</span>
 
  ]]></description>
   <category>conference</category>
-  <category>causality</category>
   <category>fairness</category>
-  <category>explainability</category>
   <category>responsible AI</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/</guid>
   <pubDate>Thu, 04 Mar 2021 06:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Markdown and GitHub for scientific writing</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>Last year, I was fortunate to have an opportunity to do a poster presentation at the <a href="https://www.scipy2019.scipy.org/">Scientific Computing in Python (SciPy) conference</a>. Every presenter has an option to submit a written proceedings and I decided to participate. I’ve never had a chance to present my ML work as a paper in industry, and so I thought it would be a good experience.</p>
-<p>I was a bit intimated when the conference committees said authors should submit their manuscripts as <strong>pull requests</strong> in their proceedings repository in GitHub. They also said manuscripts should be written in <a href="https://en.wikipedia.org/wiki/ReStructuredText">reStructuredText</a>. I have used git for many years but I have limited experience in collaborating with others on GitHub. Plus, I’ve never used reStructuredText (I’ve only used Markdown) and also have never written an academic manuscript in markup languages.</p>
-<p>In short, I eventually became to really enjoy the process of using markup languages for writing manuscripts and using GitHub for review. I will briefly talk about my experience at the SciPy and talk about why I think you should give it a try.</p>
-<section id="scientific-writing-in-markup-languages" class="level2">
-<h2 class="anchored" data-anchor-id="scientific-writing-in-markup-languages">Scientific writing in markup languages</h2>
-<p>There was a bit of learning curve but it wasn’t too difficult to get used to the reStructuredText syntax because there were some similarities between Markdown and reStructuredText (<code>rst</code>). The conference committee also provided <a href="https://raw.githubusercontent.com/hongsups/scipy_proceedings/2019/papers/00_bibderwalt/00_bibderwalt.rst">examples</a>. They also provided me with <a href="https://github.com/hongsups/scipy_proceedings/tree/2019/publisher">a PDF builder</a> that I could run locally. This helped me preview the final version of the PDF when it’s fully rendered. This was useful especially to decide the location of figures. There was a custom LaTeX builder in their repository too, which was invaluable.</p>
-<p>Compared with existing word processor softwares such as MS Word or Google Docs, using markup languages pose some challenges to the first-time users. First, you need to learn the syntax. There are some limitations on styling because not everything is rendered automatically (e.g., LaTeX) and sometimes you need to play with html and css files to get a more complex page layout.</p>
-<p>However, there are many benefits as well:</p>
-<ul>
-<li>Every styling is written explicitly (e.g., <code>**</code> for bold in Markdown) and thus it is easily discoverable.</li>
-<li>Code snippets can be automatically rendered in a standardized way.</li>
-<li>It’s easy and fast to publish the manuscript online, which makes it easy to share.</li>
-<li>Finally, with a right document builder, the above-mentioned pain points can be mitigated.</li>
-<li>It is much easier and convenient to review the manuscript (see below).</li>
-</ul>
-</section>
-<section id="using-github-for-submission-and-review" class="level2">
-<h2 class="anchored" data-anchor-id="using-github-for-submission-and-review">Using GitHub for submission and review</h2>
-<p><img src="https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_author_screenshot.png" title="Screenshot of my pull request at the SciPy 2019" class="img-fluid"></p>
-<p><img src="https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_reviewer_screenshot.png" title="Screenshot of the review conversation of a pull request I reviewed at the SciPy 2020" class="img-fluid"></p>
-<p>Once I finished writing the manuscript, I submitted the main document and image files as a pull request. It was pretty straightforward because I was working alone in my own branch (you can find my pull request <a href="https://github.com/scipy-conference/scipy_proceedings/pull/468">here</a>). A few weeks later, two reviewers started commenting on my pull request. The whole process was quite simple and very similar to a typical review process in academia: reviewers left comments on certain parts of the manuscript and I responded. It also reminded me of a code review process. This year, I volunteered at the SciPy 2020 as a reviewer. I <a href="https://github.com/scipy-conference/scipy_proceedings/pull/550">reviewed a paper that was submitted as a pull request</a>.</p>
-</section>
-<section id="benefits-of-github-for-reviewing-manuscripts" class="level2">
-<h2 class="anchored" data-anchor-id="benefits-of-github-for-reviewing-manuscripts">Benefits of GitHub for reviewing manuscripts</h2>
-<p>With these experiences, I learned that markup language with GitHub review process provides many benefits for scientific writing, compared with MS Word or Google Docs which are used in typical (academic) review process:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 16%">
-<col style="width: 54%">
-</colgroup>
-<thead>
-<tr class="header">
-<th></th>
-<th>Markup + GitHub review</th>
-<th>MS Word or Google Docs + Academic review</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Discover exact changes</strong></td>
-<td>Yes</td>
-<td>Possible but can be confusing when many changes occur in one place</td>
-</tr>
-<tr class="even">
-<td><strong>Change versions easily</strong></td>
-<td>Yes</td>
-<td>May need multiple versions (separate files)</td>
-</tr>
-<tr class="odd">
-<td><strong>Track communications</strong></td>
-<td>Yes</td>
-<td>Challenging because comments happen in the margin, which has a very limited space. Otherwise, they are addressed in a separate space (like a letter).</td>
-</tr>
-<tr class="even">
-<td><strong>Text override or unauthorized edits</strong></td>
-<td>No (permission needed)</td>
-<td>Can happen if tracking option is off or multiple files exist</td>
-</tr>
-<tr class="odd">
-<td><strong>Group communication</strong></td>
-<td>Yes</td>
-<td>No.&nbsp;Normally reviewers don’t talk to each other. Reviewers communicate individually with authors.</td>
-</tr>
-<tr class="even">
-<td><strong>Immediate responsiveness</strong></td>
-<td>High (online comments)</td>
-<td>Low. Letters or emails need to be exchanged, which can take months.</td>
-</tr>
-<tr class="odd">
-<td><strong>Communication transparency</strong></td>
-<td>High</td>
-<td>Almost none (academic review). Normally double-blind. A reviewer can’t normally read other reviews during the review process.</td>
-</tr>
-<tr class="even">
-<td><strong>Public transparency</strong></td>
-<td>Yes (public repositories)</td>
-<td>Almost none. Very rare to publish the whole conversation between reviewers and authors.</td>
-</tr>
-<tr class="odd">
-<td><strong>One place for everything</strong></td>
-<td>Yes</td>
-<td>No.&nbsp;Normally non-document type files exist in a different place.</td>
-</tr>
-</tbody>
-</table>
-<p>In short, the main benefit of using GitHub for reviewing manuscript comes from that <strong>GitHub is an excellent version control tool</strong>. It prevents reviews (new changes) and the manuscript (original file) from getting mixed up and allows us to track changes meticulously.</p>
-<p>Another huge benefit is <strong>transparency</strong>. If our repository and pull requests are public, the entire review process can be seen by anyone. This way, every decision making process is tracked and stays public, which minimizes potential dispute or abuse between authors and reviewers. Given that academia is not capable of perfect self-governance and some academic disciplines have reproducibility problems, transparent review process like this can become a solution.</p>
-</section>
-<section id="final-thoughts" class="level2">
-<h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
-<p>It is true that markup languages may not always be perfect for writing a manuscript. Some people are more familiar with traditional word processing softwares where styles are immediately rendered and more style options are available. However, based on my experience with the SciPy conference, especially, being at the both ends of the review process, I can say the benefits of using markup language for scientific writing and using GitHub for review outweighs its caveats. Manuscripts written in markup languages can be easily reviewed in GitHub where we can utilize its excellent built-in tools to achieve <strong>better tracking, communication, and transparency.</strong></p>
-
-
-</section>
-
- ]]></description>
-  <category>collaboration</category>
-  <guid>https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/</guid>
-  <pubDate>Tue, 24 Nov 2020 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/2020-11-24-HS_scipy_example_reviewer_screenshot.png" medium="image" type="image/png" height="79" width="144"/>
 </item>
 </channel>
 </rss>

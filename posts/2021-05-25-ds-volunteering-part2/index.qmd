@@ -6,7 +6,6 @@ image: "datakind.png"
 author: Hongsup Shin
 categories: 
     - volunteering
-    - journalism
     - ML
 ---
 
