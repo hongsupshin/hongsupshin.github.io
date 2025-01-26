@@ -212,7 +212,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p><em>All healthy models are alike; each failing model fails in its own way.</em></p>
 <p>There are many different ways that an ML model can fail and this is what makes model debugging challenging. For comprehensive understanding of model behavior, we log various metrics during model training. Unfortunately, because of their sheer volume, we need tools for logging, data mining, and visualization: MLflow, Neptune, Comet ML, Weights and Biases, and so on (see this <a href="https://neptune.ai/vs/wandb-mlflow">blog post</a> by Neptune about a thorough side-by-side comparison among Neptune, MLflow, and Weights and Biases).</p>
-<p>With the increasing complexity of models, their hyperparameter spaces and the challenge of understanding their impact and interaction grow at the same time. In this post, I demonstrate how to use Weights and Biases for monitoring hyperparameter tuning of LightGBM models conducted by Ray Tune. I will also discuss how we can share the Weights and Biases reports publicly.</p>
+<p>With the increasing complexity of models, their hyperparameter spaces and the challenge of understanding their impact and interaction grow at the same time. In this post, I demonstrate how to use Weights and Biases for monitoring LightGBM model tuning by Ray Tune. I will also discuss how we can share the Weights and Biases reports publicly.</p>
 <section id="weights-and-biases-ray-tune" class="level2">
 <h2 class="anchored" data-anchor-id="weights-and-biases-ray-tune">Weights and Biases + Ray Tune</h2>
 <p><a href="https://wandb.ai/">Weights and Biases (WandB)</a> is an ML model development platform that provides various services such as experiment monitoring, model tuning, model registry management, and workflow automation. In this post, I am focusing on the first two elements: monitoring and tuning. Even though WandB’s <a href="https://wandb.ai/site/sweeps/">Sweeps</a> provides hyperparameter search and optimization, in this post, I am using <a href="https://docs.ray.io/en/latest/tune/index.html">Ray Tune</a> for model tuning and Sweeps for monitoring and visualization. Ray Tune is more frequently used for model tuning in ML community than WandB because it is an open source framework.</p>
@@ -232,9 +232,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Data: Synthetic dataset with a 80:20 train-validation split</li>
 <li>Objective: Binary classification with class imbalance</li>
 <li>Model API: LightGBM native</li>
-<li>Training metrics: Cross entropy, AUROC (<code>auc</code>), and average precision for both training and validation data</li>
-<li>Tunable hyperparameters:</li>
+<li>Training metrics: Cross entropy, AUROC, and average precision for both training and validation data</li>
 <li>Number of training epochs: 100</li>
+<li>Tunable hyperparameters:</li>
 </ul>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">"num_leaves"</span>: tune.choice([<span class="dv">31</span>, <span class="dv">63</span>, <span class="dv">127</span>]),</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"learning_rate"</span>: tune.loguniform(<span class="fl">1e-3</span>, <span class="fl">1e-1</span>),</span>
@@ -312,7 +312,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="training-function" class="level3">
 <h3 class="anchored" data-anchor-id="training-function">Training function</h3>
 <p>Here I am using <code>ray.tune.integration.lightgbm.TuneReportCheckpointCallback</code> with <code>frequency=1</code> (every iteration) as a main callback function to log the metrics defined in <code>config</code> (<code>["binary_logloss", "auc", "average_precision"]</code>). Both training and validation dataset metrics are tracked: note that the metric names in the callback have a format of <code>"{valid_names[i]}-{metric[i]}"</code>.</p>
-<p>The training function below takes two inputs: config and data. Inside the function, <code>lightgbm.Dataset</code> objects are constructed and the native <code>lightgbm.train</code> is called. Training data (<code>data</code>) can be later passed to the Tune wrapper via <code>tune.with_parameters</code>.</p>
+<p>The training function below takes two inputs: <code>config</code> and <code>data</code>. Inside the function, <code>lightgbm.Dataset</code> objects are constructed and the native <code>lightgbm.train</code> is called. Training data (<code>data</code>) can be later passed to the Tune wrapper via <code>tune.with_parameters</code>.</p>
 <div id="cell-12" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train_function(config, data):</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    train_set <span class="op">=</span> lgb.Dataset(data[<span class="st">'X_train'</span>], data[<span class="st">'y_train'</span>])</span>
@@ -341,7 +341,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="tuner" class="level3">
 <h3 class="anchored" data-anchor-id="tuner">Tuner</h3>
-<p><code>WandbLoggerCallback</code> is used with a project name to send logs to WandB’s server. Like <code>train_function</code>, the tuner accepts <code>config</code> and <code>data</code> arguments. Following Ray’s best practices, datasets are passed through the <code>data</code> argument with <code>tune.with_parameters</code> rather than the config.</p>
+<p><code>WandbLoggerCallback</code> is used with a project name to send logs to WandB’s server. Like <code>train_function</code>, the tuner accepts <code>config</code> and <code>data</code> arguments. Following Ray’s best practices, datasets are passed through the <code>data</code> argument via <code>tune.with_parameters</code> rather than the config.</p>
 <div id="cell-15" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>n_searches <span class="op">=</span> <span class="dv">8</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -633,7 +633,7 @@ I0000 00:00:1737910645.648876 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:
 <h2 class="anchored" data-anchor-id="sweeps-visualization-with-ray-tune-runs">Sweeps visualization with Ray Tune runs</h2>
 <p>After tuning completes, WandB’s dashboard displays all search runs. I can access visualizations through either the Sweeps sidebar panel or by selecting runs and clicking “New Sweeps.”</p>
 <p><img src="Fig2.png" class="img-fluid"></p>
-<p>The Sweep Configuration page shows an auto-generated YAML file that may need correction. For example, the optimization metric incorrectly shows “Relative Time (Process)” instead of “val_loss”.</p>
+<p>This leads to the Sweep Configuration page, which shows an auto-generated YAML file that may need correction. For example, the optimization metric incorrectly shows “Relative Time (Process)” instead of “val_loss”.</p>
 <p><img src="Fig3.png" class="img-fluid"></p>
 <p>While WandB’s <a href="https://docs.wandb.ai/guides/sweeps/">Sweeps</a> offers hyperparameter optimization, its primary strength lies in visualization capabilities. Below is an interactive report showing results from the above tuning run.</p>
 <div id="cell-21" class="cell" data-execution_count="9">
@@ -644,7 +644,7 @@ I0000 00:00:1737910645.648876 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:
         
 </div>
 </div>
-<p>The Sweeps visualization offers two key plots: the <strong>hyperparameter importance</strong> plot and the <strong>parallel coordinates</strong> plot. The importance plot (top) reveals that learning rate has the strongest influence on validation loss in this run. Users can analyze different metrics via the drop-down menu and add comparative plots for training and validation scores. The parallel coordinates plot visualizes hyperparameter interactions. Mouse-over highlighting and <code>val_loss</code> color gradients help identify optimal parameter combinations, with darker colors indicating lower (better) scores.</p>
+<p>The Sweeps visualization offers two key plots: the <strong>hyperparameter importance</strong> plot and the <strong>parallel coordinates</strong> plot. The importance plot (top) reveals that learning rate has the strongest influence on validation loss in this run. Users can analyze different metrics via the drop-down menu and add comparative plots for training and validation scores. The parallel coordinates plot (bottom) visualizes hyperparameter interactions. Mouse-over highlights individual runs, and <code>val_loss</code> color gradient helps identify optimal parameter combinations, with darker colors indicating lower (better) scores.</p>
 </section>
 <section id="sharing-sweeps-results-publicly" class="level2">
 <h2 class="anchored" data-anchor-id="sharing-sweeps-results-publicly">Sharing Sweeps results publicly</h2>
@@ -659,12 +659,12 @@ I0000 00:00:1737910645.648876 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:
 <span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>wandb USERNAME<span class="op">/</span>PROJECT<span class="op">/</span>reports<span class="op">/</span>REPORT_ID</span>
 <span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify the height of embedded iframe</span></span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>wandb USERNAME<span class="op">/</span>PROJECT <span class="op">-</span>h <span class="dv">2048</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>To share the interactive plots shown above, I used a different method: creating and sharing a WandB report. In a report, users can results, visualizations, text, imaged, etc. as if it is a Jupyter notebook. After creating a report, I embedded my report’s iframe output to enable Quarto rendering (the publishing tool I am currently using). To generate a public report, change the visibility to “Public” in the <em>project</em> settings page:</p>
+<p>To share the interactive plots shown above, I used a different method: creating and sharing a WandB report. In a report, users can add results, visualizations, text, imaged, etc. as if it is a Jupyter notebook. After creating a report, I embedded my report’s iframe output to enable Quarto rendering (the publishing tool I am currently using). To generate a public report, change the visibility to “Public” in the <em>project</em> settings page:</p>
 <p><img src="Fig4.png" class="img-fluid" style="width:50.0%"></p>
 </section>
 <section id="model-tuning-with-asha-scheduler" class="level2">
 <h2 class="anchored" data-anchor-id="model-tuning-with-asha-scheduler">Model tuning with ASHA scheduler</h2>
-<p>To optimize tuning efficiency, in the next example, I added <code>ASHAScheduler</code> (Asynchronous Successive Halving Algorithm) in <code>tune.TuneConfig</code> and increased the number of searches to 128.</p>
+<p>To optimize tuning efficiency, in the example below, I added <code>ASHAScheduler</code> (Asynchronous Successive Halving Algorithm) in <code>tune.TuneConfig</code> and increased the number of searches to 128.</p>
 <div id="cell-26" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>n_searches <span class="op">=</span> <span class="dv">128</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -688,7 +688,7 @@ I0000 00:00:1737910645.648876 19552148 chttp2_transport.cc:1182] ipv4:127.0.0.1:
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>tune_with_asha(config, data)    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="Fig5.png" class="img-fluid"></p>
-<p>The parallel coordinates plot includes a <code>Step</code> to visualize <code>ASHAScheduler</code>’s behavior. The dark purple curves represent trials that ran longer (higher <code>Step</code> values) and achieved lower <code>val_loss</code>. This demonstrates ASHA’s effectiveness at pruning unpromising trials through early stopping. With more searches, hyperparameter impacts are more clear here. For example, lower learning rates consistently lead to poorer model performance in this run.</p>
+<p>The parallel coordinates plot from this run includes a <code>Step</code> axis (second from the right) that visualizes <code>ASHAScheduler</code>’s behavior. The dark purple curves represent trials that ran longer (higher <code>Step</code> values) and achieved lower <code>val_loss</code>. This demonstrates ASHA’s effectiveness at pruning unpromising trials through early stopping. With more searches, hyperparameter impacts are more clear here. For example, lower learning rates consistently lead to poorer model performance in this run.</p>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
