@@ -2,7 +2,7 @@
 title: "Learning-to-rank for hardware bug discovery"
 author: Hongsup Shin
 date: 2025-02-01
-description: The mainstream hardware research for bug discovery uses reinforcement learning (RL) algorithms, but productionizing RL applications still face many challenges. As an alternative, I propose a deployment-friendly approach using learning-to-rank algorithms that improves bug discovery rate.
+description: The mainstream hardware research for bug discovery uses reinforcement learning (RL) algorithms, but productionizing RL applications still face many challenges. As an alternative, I propose a deployment-friendly approach using learning-to-rank algorithm that improves bug discovery rate.
 image: Fig1.png
 categories: [ML, verification, Learning-to-rank]
 ---
