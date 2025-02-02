@@ -10,7 +10,236 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.40</generator>
-<lastBuildDate>Sat, 25 Jan 2025 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 01 Feb 2025 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Learning-to-rank for hardware bug discovery</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2025-02-01/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<section id="ml-for-efficient-hardware-verification" class="level2">
+<h2 class="anchored" data-anchor-id="ml-for-efficient-hardware-verification">ML for efficient hardware verification</h2>
+<p>One of the main challenges of hardware verification is finding bugs efficiently in a design. Since verification is resource-intensive in hardware engineering, ML for hardware verification is an active area of research. The mainstream idea in research is using reinforcement learning (RL) even though it is challenging to productionize RL.</p>
+<p>Instead, my team at Arm developed an ML application based on a simpler approach: supervised learning with recommendation (Figure&nbsp;1). The model uses binary fail/pass labels during training, and predicts the probability of a test candidate being a bug. In production, the application makes batch prediction of a set of candidates and ranks the prediction scores so that engineers run only a subset (top-K) while discovering similar number of bugs.</p>
+<div id="fig-1" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-01/Fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="450">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Schematics of the default constraint random verification (CRV) flow (left) and the ML application (right) that recommends test candidates based on model prediction.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>Since verification is an exploration problem, its success is measured by the number of <em>novel</em> bugs discovered. Each verification test returns a binary label: fail or pass. When a test fails, it returns a failure signature (often called a <em>unique fail signature</em>, or <strong>UFS</strong>), which summarizes the cause of the failure. The business objective of bug discovery can be expressed mathematically as maximizing cardinality of the fail signature set <img src="https://latex.codecogs.com/png.latex?%5C%7Bs_i%5C%7D"> from <img src="https://latex.codecogs.com/png.latex?K"> test candidates:</p>
+<p><span id="eq-ufs"><img src="https://latex.codecogs.com/png.latex?%0A%5Cleft%7C%5Cbigcup_%7Bi=1%7D%5E%7BK%7D%20%5C%7Bs_i%5C%7D%5Cright%7C%0A%5Ctag%7B1%7D"></span></p>
+<p>So far we have been addressing this in a binary classification framework where we use the fail (1) and pass (0) labels. This is based on empirical findings which suggest positive correlation between the number of failures and the number of UFS. In other words, in the binary classifier, we aim to maximize the number of failures given <img src="https://latex.codecogs.com/png.latex?K"> test candidates:</p>
+<p><span id="eq-fail"><img src="https://latex.codecogs.com/png.latex?%0A%5Csum_%7Bi=1%7D%5E%7BK%7D%20%5Cmathbb%7B1%7D_%7By_i%20=%201%7D%0A%5Ctag%7B2%7D"></span></p>
+</section>
+<section id="shortcomings-of-binary-classification" class="level2">
+<h2 class="anchored" data-anchor-id="shortcomings-of-binary-classification">Shortcomings of binary classification</h2>
+<p>Once we deployed the classifier, we unfortunately started observing frequent fluctuations in model performance, often with suboptimal outcomes. After model inspection, we learned that the training process was often dominated by frequently-occurring failures. It turns out the fail signature frequency distribution has a long tail, indicating that only a small number of fail signatures dominate the failure-label space. Therefore, the model learned patterns from a small number of failure signatures.</p>
+<p>From business perspective, this is problematic because frequently-occurring failures are already well known to verification engineers. These bugs are also not caused by design but other factors such as testing infrastructures. In other words, when the model focuses on these failures, our application delivers low value and may even risk misclassifying rare (more valuable) failures as passes, failing to prioritize them.</p>
+</section>
+<section id="learning-to-rank-bugs-by-their-rarity" class="level2">
+<h2 class="anchored" data-anchor-id="learning-to-rank-bugs-by-their-rarity">Learning to rank bugs by their rarity</h2>
+<p>When I was looking into ways to fix this model behavior and have it focus on rare failures (bugs), I learned about <strong>learning-to-rank (LTR)</strong> algorithms, a family of supervised learning algorithms that learn to generalize the ranking of samples. In a typical LTR dataset, labels are often integers that represent relative relevance of samples in a dataset. Their loss function usually focuses on the top-K elements, and tries to optimize an information retrieval (IR) metric. One of the most widely used IR metric is normalized discounted cumulative gain (NDCG), the normalized version of DCG, which is defined as:</p>
+<p><span id="eq-dcg"><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7BDCG%7D_K%20=%20%5Csum_%7Bi=1%7D%5E%7BK%7D%20%5Cfrac%7B2%5E%7Brel_i%7D%20-%201%7D%7B%5Clog_2(i%20+%201)%7D%0A%5Ctag%7B3%7D"></span></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?rel_i"> represents the relevance label of the <img src="https://latex.codecogs.com/png.latex?i">th sample.</p>
+<p>Inspired by this, I formulated our objective as a ranking problem. I created a new labeling function that returns integer relevance labels by thresholding fail signature frequency. Failed tests whose signature frequency is less than <img src="https://latex.codecogs.com/png.latex?M"> times were considered <strong>rare</strong>. Other failed tests were considered <strong>common</strong> failures, and passing tests <strong>irrelevant</strong>. The LTR model learns to rank samples based on these relevance labels. It prioritizes rare fail signatures first, then common failures, and lastly passing tests. An <em>important modeling assumption</em> here is that there might be a learnable pattern among rare failures.</p>
+<p>I soon realized that the gap between optimization metric (model loss) and target metric (Equation&nbsp;1) is reduced with the LTR model compared to the binary classifier (Table&nbsp;1). In addition to not incorporating failure signatures, the binary classifier neither learns ranking directly nor only focuses on top-K during training. The LTR model address both and can return higher cardinality by prioritizing rare signatures.</p>
+<div id="tbl-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Loss comparison between the classification and the LTR regarding the target metric (KPI).
+</figcaption>
+<div aria-describedby="tbl-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Target metric key characteristics</th>
+<th style="text-align: left;">Target metric addressed by classifier loss?</th>
+<th style="text-align: left;">Target metric addressed by LTR loss?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Cardinality</td>
+<td style="text-align: left;"><strong>No</strong></td>
+<td style="text-align: left;"><strong>Partially Yes</strong>: Rarity prioritization leads to higher cardinality</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fail signatures</td>
+<td style="text-align: left;"><strong>No</strong>: Uses binary labels</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ranking</td>
+<td style="text-align: left;"><strong>No</strong></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Top-K</td>
+<td style="text-align: left;"><strong>No</strong>: Uses all samples</td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="data-augmentation-with-simulated-ltr-groups" class="level2">
+<h2 class="anchored" data-anchor-id="data-augmentation-with-simulated-ltr-groups">Data augmentation with simulated LTR groups</h2>
+<p>A typical LTR dataset has a <strong>group</strong> (or query) variable that indicates the group membership of a given sample row. During LTR model training, the loss is calculated per group, and its aggregate is used for model updates. It’s like we want to teach a search query model to prioritize similar types of items across multiple different queries. It is technically possible to create a single group that contains the entire training dataset. However, this is much more challenging in terms of both loss optimization and compute. Besides, sometimes it’s not supported by model libraries. For instance, the <a href="https://github.com/microsoft/LightGBM/blob/master/src/metric/dcg_calculator.cpp#L17">lightgbm</a> package limits the group size to 10k.</p>
+<p>In the verification training data, there are a few candidate features to group the samples. However, I decided to adopt a simpler approach: bootstrapping. I created an augmented training dataset with <img src="https://latex.codecogs.com/png.latex?m"> groups where each group contains <strong>ALL rare failures, a subset of common failures, and a subset of passes</strong> where the subsets are bootstrapped independently across all groups. I chose this particular method of guaranteeing every group to have all rare failures because the model should learn to prioritize these over the rest. The details of this process is shown below:</p>
+<section id="input" class="level4">
+<h4 class="anchored" data-anchor-id="input">Input</h4>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A&amp;%20D_%7Btrain%7D:%20%5Ctext%7BOriginal%20training%20dataset%7D%20%5C%5C%0A&amp;%20F_%7Brare%7D%20%5Csubset%20D_%7Btrain%7D:%20%5Ctext%7BSet%20of%20rare%20failures%7D%20%5C%5C%0A&amp;%20F_%7Bcommon%7D%20%5Csubset%20D_%7Btrain%7D:%20%5Ctext%7BSet%20of%20common%20failures%7D%20%5C%5C%0A&amp;%20P%20%5Csubset%20D_%7Btrain%7D:%20%5Ctext%7BSet%20of%20passes%7D%20%5C%5C%0A&amp;%20k_%7Bcommon%7D:%20%5Ctext%7BSampling%20size%20of%20common%20failures%7D%20%5C%5C%0A&amp;%20k_%7Bpass%7D:%20%5Ctext%7BSampling%20size%20of%20passes%7D%20%5C%5C%0A&amp;%20m:%20%5Ctext%7BNumber%20of%20groups%7D%20%5C%5C%0A&amp;%20s:%20%5Ctext%7BFixed%20size%20for%20each%20group%20where%20%7D%20s%20=%20F_%7Brare%7D%20+%20k_%7Bcommon%7D%20+%20k_%7Bpass%7D%0A%5Cend%7Baligned%7D%0A"></p>
+</section>
+<section id="output" class="level4">
+<h4 class="anchored" data-anchor-id="output">Output</h4>
+<p><img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D">: Augmented training dataset</p>
+</section>
+<section id="procedure" class="level4">
+<h4 class="anchored" data-anchor-id="procedure">Procedure</h4>
+<ol type="1">
+<li>Initialize <img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D%20%5Cgets%20%5Cemptyset"> with size <img src="https://latex.codecogs.com/png.latex?s"></li>
+<li>For <img src="https://latex.codecogs.com/png.latex?i%20=%201"> to <img src="https://latex.codecogs.com/png.latex?m">:
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D%20%5Cgets%20F_%7Brare%7D"> (Include all rare failures)</li>
+<li><img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D%20%5Cgets%20D_%7Baug%7D%20%5Ccup%20%5Ctext%7BRandomSample%7D(F_%7Bcommon%7D,%20k_%7Bcommon%7D)"></li>
+<li><img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D%20%5Cgets%20D_%7Baug%7D%20%5Ccup%20%5Ctext%7BRandomSample%7D(P,%20k_%7Bpass%7D)"></li>
+</ul></li>
+<li>Return <img src="https://latex.codecogs.com/png.latex?D_%7Baug%7D"></li>
+</ol>
+<p>This bootstrapping process naturally results in <strong>bagging (bootstrap aggregation) effect</strong>. The training dataset now has synthetic bootstrapped groups, and the LTR model has to learn to prioritize rare failures over different combinations of common failures and passes.</p>
+</section>
+</section>
+<section id="benchmarking-with-production-datasets" class="level2">
+<h2 class="anchored" data-anchor-id="benchmarking-with-production-datasets">Benchmarking with production datasets</h2>
+<p>With this new LTR model, I conducted a benchmarking experiment to compare the model performance of the existing binary classifier and the new model. I used about 40 production datasets from a CPU project from last year. For a thorough model comparison, I used the following four metrics:</p>
+<ol type="1">
+<li>Number of failures (Equation&nbsp;2): Binary fail/pass</li>
+<li>Number of <strong>rare</strong> failures: failures whose relevance label is the largest <span id="eq-rare"><img src="https://latex.codecogs.com/png.latex?%0A%5Csum_%7Bi=1%7D%5E%7BK%7D%20%5Cmathbb%7B1%7D_%7By_i%20=%20%5Cmax(rel)%7D%0A%5Ctag%7B4%7D"></span></li>
+<li>Number of unique fail signatures (Equation&nbsp;1): Measure of signature set cardinality</li>
+<li>Number of <strong>never-seen</strong> fail signatures: Number of signatures that are newly discovered in the test set but NOT observed in the train set, <img src="https://latex.codecogs.com/png.latex?S_%7Btrain%7D"> <span id="eq-neverseen"><img src="https://latex.codecogs.com/png.latex?%0A%5Cleft%7C%5Cbigcup_%7Bi=1%7D%5E%7BK%7D%20%5C%7Bs_i%5C%7D%20-%20S_%7Btrain%7D%5Cright%7C%0A%5Ctag%7B5%7D"></span></li>
+</ol>
+<p>These metrics allow us to understand different aspects of model behavior. The number of rare failures (Equation&nbsp;4) addresses ranking quality most directly. The number of unique fail signatures is our KPI. The number of <strong>never-seen</strong> fail signatures indicates model generalizability.</p>
+</section>
+<section id="ranking-performance-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="ranking-performance-comparison">Ranking performance comparison</h2>
+<div id="fig-2" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-01/Fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Mean test-set ranking performance of the binary classification (“Clf-Fail”) and the LTR (“Rank-FS”) models. Scores are calculated from the top-1000 samples.
+</figcaption>
+</figure>
+</div>
+<p>The average performance of the four metrics of the two models shows an interesting pattern (Figure&nbsp;2). Although the classifier is much better at capturing failures than the LTR model (leftmost), when it comes to metrics that consider fail signatures, it was worse than the LTR model. This supports the idea of the large metric gap of the classifier’s model loss and the target metric (KPI) (Table&nbsp;1).</p>
+<div id="fig-3" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-01/Fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Mean test-set ranking performance of the binary classification (“Clf-Fail”) and the LTR (“Rank-FS”) models across different Ks.
+</figcaption>
+</figure>
+</div>
+<p>This performance pattern remained consistent when I varied K (Figure&nbsp;3). By comparing different Ks, it’s possible to measure efficiency improvement by the LTR model. In the “UFS” and “Never-seen fail signatures” plots, the LTR performance at <img src="https://latex.codecogs.com/png.latex?K=250"> is similar to the classifier performance at <img src="https://latex.codecogs.com/png.latex?K=1000">. This suggests that the LTR model may require <strong>75% fewer tests</strong> to produce the same results.</p>
+</section>
+<section id="measuring-the-bagging-effect" class="level2">
+<h2 class="anchored" data-anchor-id="measuring-the-bagging-effect">Measuring the bagging effect</h2>
+<div id="fig-4" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-01/Fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Mean effect of the number of bootstrapped groups (<img src="https://latex.codecogs.com/png.latex?m">) during data augmentation on model performance (top-1000).
+</figcaption>
+</figure>
+</div>
+<p>In the default LTR model version I tried, I created a training dataset with 30 bootstrapped groups. When I varied the number of groups, I observed the impact of bagging on model performance (Figure&nbsp;4). As I increased the number of groups, the performance generally improved but it had diminishing return after a certain point.</p>
+</section>
+<section id="extended-model-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="extended-model-comparison">Extended model comparison</h2>
+<p>To further understand the model behavior, I created several model variants and measured their performance using the same metrics and benchmark datasets.</p>
+<section id="separating-the-impact-of-label-change-and-algorithm-change" class="level3">
+<h3 class="anchored" data-anchor-id="separating-the-impact-of-label-change-and-algorithm-change">Separating the impact of label change and algorithm change</h3>
+<p>In the LTR model, I made two changes. I created a different labeling system using failure signature frequency, and I changed the algorithm from classification to LTR as well. To separate the impact of these changes, I created two model variants:</p>
+<ul>
+<li>Multi-class classification with relevance labels (“Clf-FS”)</li>
+<li>LTR with binary labels (“Rank-Fail”)</li>
+</ul>
+</section>
+<section id="classification-with-frequency-based-label-encoding" class="level3">
+<h3 class="anchored" data-anchor-id="classification-with-frequency-based-label-encoding">Classification with frequency-based label encoding</h3>
+<p>To further explore the idea of the impact of the new labeling system I used for LTR, I tried the following two classifier variants:</p>
+<ul>
+<li>Binary classification without “common” failures (“Clf-FS (No 1s)”)</li>
+<li>Binary classification by treating “common” failures as passes (“Clf-FS (1&gt;&gt;0)”)</li>
+</ul>
+<p>I also played with different signature-frequency thresholds to create binary labels. For instance, if the threshold is 50, all failures whose signature frequency is less than 50 are labeled as 1, the rest (failures whose signature frequency is larger than 50 and all passes) are labeled as 0:</p>
+<ul>
+<li>Binary classification with varying signature-frequency thresholds (“Clf-FS (Bin, &lt;<img src="https://latex.codecogs.com/png.latex?N">)” where different Ns are chosen based on varying quantile values)</li>
+</ul>
+</section>
+<section id="classification-with-bootstrapping" class="level3">
+<h3 class="anchored" data-anchor-id="classification-with-bootstrapping">Classification with bootstrapping</h3>
+<p>To investigate whether bootstrapping can improve classification performance, I created the following variants as well:</p>
+<ul>
+<li>Multi-class classification with relevance labels and bootstrapped training data (“Clf-FS (m=30)”)</li>
+<li>Binary classification with fail/pass labels and bootstrapped training data (“Clf-Fail (m=30)”)</li>
+</ul>
+</section>
+<section id="the-verdict" class="level3">
+<h3 class="anchored" data-anchor-id="the-verdict">The verdict</h3>
+<div id="fig-5" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-01/Fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Mean test-set ranking performance of the binary classification (“Clf-Fail”) and the LTR (“Rank-FS”) model variants.
+</figcaption>
+</figure>
+</div>
+<p>Figure&nbsp;5 shows the final model comparison that includes all classifier variants (gray) and LTR variants (light blue) in addition to the existing binary classifier model (black) and the first (default) LTR model (dark blue). Modifying the label encoding slightly improved the performance of classifiers (see “Clf-FS (Bin, &lt;<img src="https://latex.codecogs.com/png.latex?N">)” models in the middle), but their performance was still worse than all LTR variants. Interestingly, the LTR model that used binary labels (“Rank-Fail”) was better than the existing binary classifier’s performance, suggesting that direct ranking optimization result in better performance since our key metrics are ranking metrics.</p>
+</section>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>One of the biggest lessons from this project was the importance of reducing the gap between the business objective and the optimization objective of ML models especially when it is challenging to accommodate the former. By switching from binary classification to learning-to-rank, we achieved similar bug discovery rate with 75% fewer tests, while better identifying rare and never-seen failure signatures. The LTR model’s success in learning patterns among rare failures suggests there may be underlying commonalities in these rare failures that require further investigation.</p>
+<p>The lightweight nature of our approach - using only test settings without design features - makes it particularly practical for verification teams. While not attempting to fundamentally solve the verification problem like RL studies, this approach offers a more deployment-friendly solution that allows verification engineers to focus their efforts on more challenging bugs. Future work could explore incorporating design features, LTR model fine-tuning, and using test output features for ranking.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>verification</category>
+  <category>Learning-to-rank</category>
+  <guid>https://hongsupshin.github.io/posts/2025-02-01/</guid>
+  <pubDate>Sat, 01 Feb 2025 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2025-02-01/Fig1.png" medium="image" type="image/png" height="82" width="144"/>
+</item>
 <item>
   <title>Model tuning with Weights &amp; Biases, Ray Tune, and LightGBM</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -1816,7 +2045,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 
 
 <p>After a decade as an ML practitioner in industry, I have noticed an interesting dichotomy in how ML is perceived in corporate settings. Senior stakeholders typically fall into two opposing camps.</p>
-<p>The Skeptics are interested in adopting ML, but they overestimate the risks of ML product developtment. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.</p>
+<p>The Skeptics are interested in adopting ML, but they overestimate the risks of ML product development. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.</p>
 <p>The Believers view ML as a magical solution for any problem. They fully buy into AI hype and greenlight ML projects without understanding limitations or real business value. They also rush to production even when the solution is half-baked and needs validation.</p>
 <p>When it comes to ML discussion, the ML community often talks about state-of-the-art technology but rarely about how ML teams actually get things done. ML teams have to navigate between the two extremes, on the one hand building confidence in ML solutions, and on the other setting realistic expectations about capabilities and limitations. While working with the stakeholders, ML teams must also maintain their autonomy and technical integrity without sacrificing efficiency.</p>
 <section id="research-excellence-and-judgment" class="level2">
@@ -6975,64 +7204,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/</guid>
   <pubDate>Mon, 08 Mar 2021 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/data dev cycle.png" medium="image" type="image/png" height="105" width="144"/>
-</item>
-<item>
-  <title>Tutorials at FAccT 2021</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>Last year during the SciPy 2020 conference, I participated in a mentoring program and I’ve got to know a fellow data scientist, <a href="https://twitter.com/MrHenHan">Henrik Hain</a>. He diligently uploaded a daily update during the conference, which was impressive. Inspired by him, I’ve decided to follow his practice and to write notes during my attendance in the FAccT 2021 this year.</p>
-<section id="conference-overview" class="level2">
-<h2 class="anchored" data-anchor-id="conference-overview">Conference Overview</h2>
-<p>The conference is held virtually this year for the obvious reason. It’s on a platform called <a href="https://circle.so/">circle.so</a>. Everything happens in one platform; video streaming, general announcement, community boards, internal messaging, etc., which is pretty convenient.</p>
-<p>As an international <em>virtual</em> conference, the schedule is a bit brutal. For my time zone (UTC-6), the schedule starts at 6 am and lasts until 4-7 pm in the evening. Talks in the main session are pre-recorded and thus attendees can watch at their convenience but some sessions occur in real time. Luckily, the conference organizers set up dedicated watching times for the main session, which I really appreciate.</p>
-<p>Today was about tutorials. I attended the following: - Causal Fairness Analysis - Explainable ML in the Wild: When Not to Trust Your Explanations - Responsible AI in Industry: Lessons Learned in Practice - A Behavioral and Economic Approach to Algorithmic Fairness &amp; Human-Centered Mechanism Design - How to Achieve Both Transparency and Accuracy in Predictive Decision Making: an Introduction to Strategic Prediction</p>
-<p>Each tutorial was about 90 minutes, which was a bit short for me. Since FATE (fairness, accountability, transparency, and ethics) topics are highly diverse, it makes sense to have many different tutorials. But because they were so short, they weren’t much of a deep-dive and an overview (at least for the ones I attended).</p>
-</section>
-<section id="causal-fairness-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="causal-fairness-analysis">Causal Fairness Analysis</h2>
-<p>This tutorial was about conducting fairness analysis through causal framework by using <strong>structural causal models (SCMs)</strong>. The speaker (Elias Bareinboim) started the talk by mentioning that the burden of proof is on the plaintiff in discrimination lawsuit, meaning they have to prove the causal connection if they were treated unfairly. I found this emphasis and motivation from legal lense quite refreshing.</p>
-<p>The material was relatively easy to follow in the beginning where Elias explained SCM models and how we evaluate them with given empirical data. However, it got a bit challenging to follow where we started combining fairness and causal models, especially given that fairness metrics are so diverse.</p>
-<p>For me the most interesting part was where Elias compared various counterfactual scenarios. I’ve always assumed that the causal DAGs will not change when we switch the group membership to simulate counterfactuals, but obviously there is no guarantee. It’s <strong>possible that we can have indirect and spurious effects for counterfactual scenarios</strong> and he explained that we need to subtract those effects from direct effects.</p>
-</section>
-<section id="explainable-ml-in-the-wild-when-not-to-trust-your-explanations" class="level2">
-<h2 class="anchored" data-anchor-id="explainable-ml-in-the-wild-when-not-to-trust-your-explanations">Explainable ML in the Wild: When Not to Trust Your Explanations</h2>
-<p>This tutorial consisted of three parts: overview of explainable AI (XAI) methods, their limitations and ethical/practical challenges. I found the second part most interesting.</p>
-<p>The speaker (Chirag Agarwal) introduced four aspects of XAI limitations: <strong>faithfulness, stability, fragility</strong>, and <strong>evaluation gap</strong>. Faithfulness refers to whether explanations change when models changes (and perhaps also <a href="https://dl.acm.org/doi/abs/10.1145/3351095.3372836">the Rashomon effect</a>). Stability refers to whether post-hoc explanations are unstable with respect to small non-adversarial input perturbation. For instance, some evidence shows that <a href="https://arxiv.org/abs/1602.04938">LIME</a> explanations may change if we change random seed in certain ML algorithms. We also wouldn’t want our models to chance explanations based on hyperparameters.</p>
-<p>Fragility is about whether explanation changes according to data drift in input space. This is closely related to adversarial attack on explanations (i.e., whether small perturbation can change explanation without changing prediction). Finally, in general, it is very difficult to properly evaluate XAI methods and currently there is no ground truth for evaluation.</p>
-<p>Perhaps because of these problematic features, the case studies presented in the following session felt very nuanced and complicated. As I’ve seen in other responsible AI talks, XAI methods are closely related to human-in-the-loop systems and the level of trust in human end users.</p>
-</section>
-<section id="responsible-ai-in-industry-lessons-learned-in-practice" class="level2">
-<h2 class="anchored" data-anchor-id="responsible-ai-in-industry-lessons-learned-in-practice">Responsible AI in Industry: Lessons Learned in Practice</h2>
-<p>This talk consisted of two parts: overview of responsible AI tools and related case studies. These tools are useful for <strong>model monitoring/inspection, generating explanations, fairness mitigation, error analysis, and counterfactual analysis</strong>. I was surprised that there are already several open-source tools available such as <a href="https://interpret.ml/">InterepretML</a>, <a href="https://fairlearn.org/">Fairlearn</a>, <a href="https://pair-code.github.io/what-if-tool/">What-If Tool</a>.</p>
-<p>The live demo from Microsoft was impressive but it was too fast to follow (I personally think Jupyter notebook isn’t the best method for presentation if we have to go back and forth a lot). Also I was not sure whether the examples were from deployed projects or toy datasets especially since the speaker talked about fairness mitigation and I was curious about how the full cycle of mitigation process looked like.</p>
-<p>The case study from LinkedIn at the end was interesting (especially since they presented similar material last year at the same conference) but it felt somewhat disconnected for the same reason I just mentioned above; I wasn’t sure how human end users were involved in the fairness mitigation process.</p>
-</section>
-<section id="a-behavioral-and-economic-approach-to-algorithmic-fairness" class="level2">
-<h2 class="anchored" data-anchor-id="a-behavioral-and-economic-approach-to-algorithmic-fairness">A Behavioral and Economic Approach to Algorithmic Fairness</h2>
-<p>This talk was about looking at the fairness problem from economic perspective. Different from the traditional computer science approach, this talk suggested that economic approach presents the fairness problem in the form <strong>social welfare functions</strong> where social planner can optimize efficiency (expected outcome of interest among groups) and equity.</p>
-<p>What was interesting was that the optimal algorithm isn’t just about prediction function but also about <strong>admission rule</strong>, meaning how social planner can use the predictions to make decisions. Normally, these admission rules are threshold-based; we make a decision on certain group of individuals based on certain thresholds, which is affected by equity preference of social planner. Another interesting aspect was that this equity preference can even affect the prediction function because <strong>decision makers who prefer discrimination may want to use additional features</strong> from data to discriminate protected groups.</p>
-</section>
-<section id="how-to-achieve-both-transparency-and-accuracy-in-predictive-decision-making-an-introduction-to-strategic-prediction" class="level2">
-<h2 class="anchored" data-anchor-id="how-to-achieve-both-transparency-and-accuracy-in-predictive-decision-making-an-introduction-to-strategic-prediction">How to Achieve Both Transparency and Accuracy in Predictive Decision Making: an Introduction to Strategic Prediction</h2>
-<p>The whole idea of strategic prediction is very interesting because it’s about <strong>human users trying to game the system if they start understanding the rule of the game</strong>. For instance, if students learn about the criteria universities use for their admission process, they will try to find ways to cross that threshold so that they can be admitted. This tutorial gave an overview of this phenomenon from the perspective each stakeholder group in the process; institution (algorithm designers), individual (data provider), and society (all people as a whole).</p>
-<p>Instead of doing a deep dive on a specific topic, the tutorial presented various topics in the domain. <strong>Recourse and incentivization</strong> was one of them. If the deployed algorithm uses a feature that can harm individuals because the feature incentivizes them to behave in a certain way, automated harm at a massive scale will be expected. Another way to look at the strategic prediction is through causality. If we find a true <strong>causal relationship between features and model predictions</strong>, it might be able to utilize the benefit of strategic prediction from the institution’s perspective and to encourage improvement without encouraging gaming, which will be crucial for modellers.</p>
-
-
-</section>
-
- ]]></description>
-  <category>conference</category>
-  <category>fairness</category>
-  <category>responsible AI</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/</guid>
-  <pubDate>Thu, 04 Mar 2021 06:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
