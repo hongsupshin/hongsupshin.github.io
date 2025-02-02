@@ -9,7 +9,7 @@ categories: [ML, collaboration]
 
 After a decade as an ML practitioner in industry, I have noticed an interesting dichotomy in how ML is perceived in corporate settings. Senior stakeholders typically fall into two opposing camps.
 
-The Skeptics are interested in adopting ML, but they overestimate the risks of ML product developtment. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.
+The Skeptics are interested in adopting ML, but they overestimate the risks of ML product development. They treat standard ML workflows—investigation, experimentation, and evaluation—as if they were experimental research. Proven ML solutions are unnecessarily scrutinized and methodological experiments are considered exploratory and academic.
 
 The Believers view ML as a magical solution for any problem. They fully buy into AI hype and greenlight ML projects without understanding limitations or real business value. They also rush to production even when the solution is half-baked and needs validation.
 
