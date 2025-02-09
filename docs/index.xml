@@ -10,7 +10,434 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.40</generator>
-<lastBuildDate>Sat, 01 Feb 2025 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 08 Feb 2025 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Ranking metrics: pitfalls and best practices</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2025-02-08/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div id="cell-1" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-3"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>matplotlib inline</span>
+<span id="cb1-4"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span>config InlineBackend.figure_format<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'retina'</span></span>
+<span id="cb1-5">plt.style.use(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ggplot'</span>)</span></code></pre></div>
+</details>
+</div>
+<p>Ranking is everywhere. When you search for products online or scroll through your social media feed, you’re interacting with ranking systems. Unlike classification where we simply predict a category, ranking requires ordering items by their relevance or importance. This fundamental difference requires specific metrics so-called information retrieval (IR) metrics that capture nuanced aspects of ranking quality. Choosing the right ranking metric requires good understanding of reward, discount, and normalization of ranking metrics. In this post, we will discuss mathematical properties of various ranking metrics, focusing on common pitfalls in practice and how to address them. Let’s start with some basics.</p>
+<section id="why-ranking-is-different" class="level2">
+<h2 class="anchored" data-anchor-id="why-ranking-is-different">Why ranking is different</h2>
+<p>A good way to understand ranking is to compare it against classification. Let’s say we have a dataset with three relevance grades: excellent, good, and mediocre. We can train a multi-class classifier to predict the probability of a sample belonging to each grade. In learning-to-rank (LTR) framework, this is called point-wise ranking approach. However, at the core, ranking is about understanding relative relationship among different samples, and thus, more preferred LTR models take pair-wise or list-wise approach.</p>
+<p>This consideration of multi-sample comparison is related to how LTR is used in practice. When retrieving relevant documents or optimizing search query, we work with multiple queries. This means, we want to generalize the model to learn the relative importance of samples across multiple datasets. This is why a typical LTR dataset contains a group variable that indicates group or query membership. This also means that in some groups, we might not always have all relevance labels. For instance, in the three-grade example, we might have a query group where we only have samples that belong to “excellent” and “mediocre”, without the “good” grade. A classifier will complain about this but LTR optimization loss can naturally handle this.</p>
+<p>Finally and most importantly, ranking deals with positional bias. We can train a model that optimizes the ranking of <em>all</em> items in a dataset, but in practice, we normally care about the small minority at the top (i.e., top K). This leads to more complex use cases and metrics such as whether only the top first item matters or top 10 items, or how we penalize model when it makes errors. Related to this, compared to classification, partial correctness exists in ranking systems. Even when model prediction does not result in a perfect ranking, loss can be computed by considering how far it is from the ideal ranking.</p>
+</section>
+<section id="mean-reciprocal-rank-mrr" class="level2">
+<h2 class="anchored" data-anchor-id="mean-reciprocal-rank-mrr">Mean reciprocal rank (MRR)</h2>
+<p>Ranking metrics are naturally designed to digest the positional information (ranks) of relevant items retrieved. Mean reciprocal rank (MRR) is a good example where the metric is solely computed by ranks. Mathematically, MRR is defined as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%20%5Ctext%7BMRR%7D%20=%20%5Cfrac%7B1%7D%7B%7CQ%7C%7D%20%5Csum_%7Bi=1%7D%5E%7B%7CQ%7C%7D%20%5Cfrac%7B1%7D%7B%5Ctext%7Brank%7D_i%7D%20"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Ctext%7Brank%7D_i"> refers to the rank of the <strong>first</strong> relevant item of <img src="https://latex.codecogs.com/png.latex?i">th query from a set of queries, <img src="https://latex.codecogs.com/png.latex?Q">. In other words, MRR is the <em>inverse</em> of the harmonic mean of ranks of the first relevant items. This also indicates that MRR’s focus is a single item, not the overall quality of ranking of an array.</p>
+<section id="hyperbolic-discount-of-reward" class="level3">
+<h3 class="anchored" data-anchor-id="hyperbolic-discount-of-reward">Hyperbolic discount of reward</h3>
+<p>Since we use reciprocal rank (RR), <img src="https://latex.codecogs.com/png.latex?%5Cfrac%7B1%7D%7B%5Ctext%7Brank%7D_i%7D">, individual RR scores shows <em>hyperbolic</em> decay:</p>
+<div id="cell-fig-1" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">fig, ax <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span>))</span>
+<span id="cb2-2">ax.plot(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> np.arange(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>))</span>
+<span id="cb2-3">ax.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">set</span>(xlabel<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Rank of the first relevant item"</span>, ylabel<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RR score"</span>)</span>
+<span id="cb2-4">fig.tight_layout()</span></code></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-1" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://hongsupshin.github.io/posts/2025-02-08/index_files/figure-html/fig-1-output-1.png" class="quarto-figure quarto-figure-center figure-img" width="391" height="241">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Hyperbolic decay of reciprocal rank (RR)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>This hyperbolic decay means the RR score difference between <strong><img src="https://latex.codecogs.com/png.latex?i">th and <img src="https://latex.codecogs.com/png.latex?i+k">th item is much larger when <img src="https://latex.codecogs.com/png.latex?i"> is small</strong>. For instance, the difference between getting the relevant item in the first vs.&nbsp;second place is much larger than getting the relevant item in the 100th vs.&nbsp;the 101st places.</p>
+<p>This positional reward discount in RR is a core characteristic of most ranking metrics. In ranking systems, we put more emphasis on low ranking values. When ranking quality is poor (higher ranking values), discerning the ranking performance in this region is less meaningful than in the lower-ranking region.</p>
+</section>
+<section id="harmonic-nature-of-mrr" class="level3">
+<h3 class="anchored" data-anchor-id="harmonic-nature-of-mrr">Harmonic nature of MRR</h3>
+<p>This positional discount is why we use harmonic mean of ranks in MRR. When we compute the average of RR scores across queries, we do not want to treat a query with RR score of 1 (i.e., getting the relevant item in the 1st place) and RR score of 0.2 (i.e., 1/5, getting the item in the 5th place). This implies that MRR is less sensitive to outliers: MRR does not change dramatically when bad ranking performance is observed occasionally because their contribution is quite small.</p>
+<p>But at the same time, this means that a small number queries with low rank values (higher RR scores) can significantly outweigh multiple queries with higher rank values. Assume that we have 4 queries, and system A returns the first relevant item at ranks 2, 3, 2 and 3, respectively, while system B returns the relevant items at ranks 1, 10, 1 and 15:</p>
+<div id="cell-7" class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> MRR(ranks):</span>
+<span id="cb3-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>((<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> ranks).mean(), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>)</span>
+<span id="cb3-3"></span>
+<span id="cb3-4"></span>
+<span id="cb3-5">first_relevant_ranks_A <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.array([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>])</span>
+<span id="cb3-6">first_relevant_ranks_B <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.array([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">15</span>])</span>
+<span id="cb3-7"></span>
+<span id="cb3-8"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"MRR(A):</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>MRR(first_relevant_ranks_A)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb3-9"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"MRR(B):</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>MRR(first_relevant_ranks_B)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>MRR(A):0.4167
+MRR(B):0.5417</code></pre>
+</div>
+</div>
+<p>In this example, MRR score is higher in system B but the overall ranking quality is more consistent in system A, which might be preferable in practice. This suggests MRR alone might not be enough, and it is useful to understand the distribution of individual RR scores.</p>
+</section>
+</section>
+<section id="normalized-discounted-cumulative-gain-ndcg" class="level2">
+<h2 class="anchored" data-anchor-id="normalized-discounted-cumulative-gain-ndcg">Normalized discounted cumulative gain (NDCG)</h2>
+<p>NDCG is perhaps the most widely used ranking metric. Compared to MRR, NDCG has two distinctive features:</p>
+<ul>
+<li>It evaluates overall quality of ranking, not just the location of the first relevant item.</li>
+<li>It can incorporate <em>graded</em> relevance levels where item relevance grades are more granular than binary.</li>
+</ul>
+<p>NDCG is a normalized form of DCG. DCG is defined as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?DCG_K%20=%20%5Csum_%7Bi=1%7D%5EK%20%5Cfrac%7B2%5E%7Brel_i%7D%20-%201%7D%7B%5Clog_2(i%20+%201)%7D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?rel_i"> represents the relevance of the <img src="https://latex.codecogs.com/png.latex?i">th item and <img src="https://latex.codecogs.com/png.latex?K"> is the size of top-ranked items we consider (i.e., K in top K). NDCG is a normalized form of DCG: we divide DCG by ideal DCG (IDCG), which can be only computed when we have full knowledge of the ranking labels so we know what the ideal order of all items is:</p>
+<p><img src="https://latex.codecogs.com/png.latex?NDCG_K%20=%20%5Cfrac%7BDCG_K%7D%7BIDCG_K%7D"></p>
+<section id="linear-vs.-exponential-gain" class="level3">
+<h3 class="anchored" data-anchor-id="linear-vs.-exponential-gain">Linear vs.&nbsp;exponential gain</h3>
+<p>There are actually <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">two versions of DCG implementation</a>. The one above is more commonly used in industry and research, and it uses exponential gain on the numerator. The original DCG formula on the other hand, uses linear gain:</p>
+<p><img src="https://latex.codecogs.com/png.latex?DCG_K%20=%20%5Csum_%7Bi=1%7D%5EK%20%5Cfrac%7Brel_i%7D%7B%5Clog_2(i%20+%201)%7D"></p>
+<p>As of now (Feb 2025), scikit-learn 1.6 version uses the linear gain in ndcg calculation. So if we want to compute NDCG scores using sklearn, it’s important to know that the linear version is less common.</p>
+<div id="cell-13" class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> sklearn</span>
+<span id="cb5-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> sklearn.metrics <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ndcg_score</span>
+<span id="cb5-3"></span>
+<span id="cb5-4"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"sklearn version:</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>sklearn<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>__version__<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb5-5"></span>
+<span id="cb5-6"></span>
+<span id="cb5-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> dcg(relevance_labels, scores, gain_type):</span>
+<span id="cb5-8">    ranking <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.argsort(scores)[::<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]</span>
+<span id="cb5-9">    relevance_labels_ranked <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> relevance_labels[ranking]</span>
+<span id="cb5-10">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> gain_type <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"linear"</span>:</span>
+<span id="cb5-11">        gains <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> relevance_labels_ranked</span>
+<span id="cb5-12">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> gain_type <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exponential"</span>:</span>
+<span id="cb5-13">        gains <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span>relevance_labels_ranked <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb5-14">    discounts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.log2(np.arange(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(scores) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb5-15">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(gains <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> discounts)</span>
+<span id="cb5-16"></span>
+<span id="cb5-17"></span>
+<span id="cb5-18">y_true <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.array([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>])</span>
+<span id="cb5-19">scores <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.array([<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.2</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">70</span>])</span>
+<span id="cb5-20">ndcg_sklearn <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ndcg_score(y_true.reshape((<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)), scores.reshape((<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)))</span>
+<span id="cb5-21">ndcg_lin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dcg(y_true, scores, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"linear"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> dcg(y_true, y_true, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"linear"</span>)</span>
+<span id="cb5-22">ndcg_exp <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> dcg(y_true, scores, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exponential"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> dcg(y_true, y_true, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"exponential"</span>)</span>
+<span id="cb5-23"></span>
+<span id="cb5-24"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"NDCG with scikit-learn    : </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>ndcg_sklearn<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.4f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb5-25"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"NDCG with linear gain     : </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>ndcg_lin<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.4f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb5-26"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"NDCG with exponential gain: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>ndcg_exp<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.4f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sklearn version:1.6.0
+NDCG with scikit-learn    : 0.6957
+NDCG with linear gain     : 0.6957
+NDCG with exponential gain: 0.4097</code></pre>
+</div>
+</div>
+<p>In the exponential version, higher relevance scores are emphasized much more strongly than the linear one. This is certainly better for applications where finding highly relevant items is critically important. This explains the difference in NDCG scores between linear and exponential in the above example. In our example, the relevance scores <code>[10, 0, 0, 1, 5]</code> range from 0 to 10 and exponential gains of 10 and 5 are massive. Therefore, any suboptimal ordering, which the example provides, is heavily penalized.</p>
+<p>Note that in LightGBM, the loss objective <code>xe_ndcg</code> (or <code>rank_xendcg</code>) based on <a href="https://arxiv.org/abs/1911.09798">Bruch 2021</a> uses the exponential gain.</p>
+</section>
+<section id="ndcg-comparison-the-importance-of-fixed-k" class="level3">
+<h3 class="anchored" data-anchor-id="ndcg-comparison-the-importance-of-fixed-k">NDCG comparison: The importance of fixed K</h3>
+<p>One common mistake when comparing NDCG scores of top K items is to compare the scores across different Ks. For instance, one might want to compare NDCG@5 vs.&nbsp;NDCG@10. This is problematic for several reasons.</p>
+<p>First, when K is different, we are trying to compare two fundamentally different cases. For a smaller K, the score calculation ignores candidates with ranks larger than K, which will be considered when computing NDCG with a larger K. Second, the discount factor effect from the <img src="https://latex.codecogs.com/png.latex?%5Clog_2(i+1)"> in the denominator means errors at different positions have different impacts. Since later positions have less impact on the final score, NDCG scores at a larger K can sometimes be higher even with mistakes in the tail region. Finally, since NDCG is a normalized metric, when K differs, the normalization term also changes. This means if we are to compare NDCG with different K, we are ignoring the scaling difference.</p>
+<p>Thus, when we evaluate different ranking systems and models, we should always compare NDCG scores at the same K value. However, since NDCG with a fixed K provides a snapshot of the ranking quality at a single point, it’s recommended to report NDCG at multiple K values to understand the model behavior in depth.</p>
+</section>
+</section>
+<section id="why-small-k" class="level2">
+<h2 class="anchored" data-anchor-id="why-small-k">Why small K</h2>
+<p>When choosing K, the main consideration should be the use case of the system. For a search query or video recommendation, K should be quite small, but for a use case like song playlist generation, K can be a bit larger. This means we need to consider how users interact with the system.</p>
+<p>But there are computational and modeling aspects that discourage having a larger K. First, as MRR and NDCG show, ranking metrics come with positional discount. Later positions have minimal impact and ranking error in this region may not provide much signal for models to learn. It’s even possible that models might focus on minor improvements in deep positions instead of focusing on top positions, which eventually can lead to slower convergence. In addition, as we saw in the examples above, as K becomes larger, there are more subtle nuances that occur, which evaluation metrics or losses might not be able to fully capture. This makes evaluation at larger K values less reliable. And of course, a larger K requires more compute resources.</p>
+<p>So it is often more sensible to keep the size of K small. If we have a use case where K is large, we need to think about whether ranking is the best approach here, or we can propose an alternative solution where K can be kept small. For instance, instead of suggesting top 100 videos to a user group, we may recommend top 5 videos per user.</p>
+</section>
+<section id="granularity-in-relevance-levels" class="level2">
+<h2 class="anchored" data-anchor-id="granularity-in-relevance-levels">Granularity in relevance levels</h2>
+<p>When defining relevance of items, the number of relevance grades should also be small. First, having too much granularity in relevance level is not practical because data annotation can become easily unreliable and inconsistent (e.g., relevant:irrelevant vs.&nbsp;relevance Lv.36:relevance Lv.47). Relevance is also often just naturally clustered.</p>
+<p>Having too many levels is also not useful for model training. With the exponential NDCG, having too many levels can create extreme difference in relevance. This can make model training very unstable because the model will be overly incentivized to learn higher relevance items while essentially ignoring the distinction between low relevance items. This means training can be dominated by high-relevant items, making the fine granularity less useful. Model evaluation become even more challenging because it becomes extremely difficult to interpret ranking results and training process.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>This post explores common pitfalls and practical considerations when working with ranking metrics. Compared to classification, ranking has the distinctive positional-discount feature, which results in many interesting metric definitions and important considerations around it. One of the main challenges with ranking evaluation is that metrics often do not capture the full picture of ranking because it almost always requires holistic understanding of item arrays. Given that there are many metrics to choose from and many parameters to tweak, understanding how the choice impacts use case and model training should help us make better decisions when designing and evaluating ranking systems.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>Learning-to-rank</category>
+  <guid>https://hongsupshin.github.io/posts/2025-02-08/</guid>
+  <pubDate>Sat, 08 Feb 2025 06:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Learning-to-rank for hardware bug discovery</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -7151,59 +7578,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/</guid>
   <pubDate>Tue, 09 Mar 2021 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/toolkit.png" medium="image" type="image/png" height="52" width="144"/>
-</item>
-<item>
-  <title>FAccT 2021. AI audit, governance, and trustworthiness</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>This year, for the first time, the FAccT conference has more than one track and there are 27 sessions (+80 talks) happening in 3 days. This is a summary of the first day of the main conference. My summary is based on the talks I attended based on my interest.</p>
-<section id="keynote-health-technology-and-race" class="level2">
-<h2 class="anchored" data-anchor-id="keynote-health-technology-and-race">Keynote: Health, Technology and Race</h2>
-<p>As a person who’s been attending FAccT every year, I’ve been familiar with the criticism to the FAccT academic community; many studies appeared here are often too abstract or disconnected from the real world and the impacted communities. The organizers are aware of this and they have been making efforts such as organizing CRAFT (Critiquing and Rethinking Accountability, Fairness and Transparency) sessions where they bring more multidisciplinary stakeholders. I considered the first keynote from today, given by Yeshimabeit “Yeshi” Milner, the executive director and co-founder of <a href="https://d4bl.org/"><em>Data for Black Lives (D4BL)</em></a>, as a signal from the conference saying that they are actively working on this criticism. In this regard, it was an excellent keynote speech to kick off the conference.</p>
-<p>At the very beginning of the talk, Yeshi said, “we will never achieve fairness, accountability, and transparency <strong>without first demanding justice, power, and self-determination</strong>.” Again, this directly points out that without a holistic approach where we bring all the stakeholders, achieving justice and making changes isn’t going to happen. Yeshi then talked about racial disparity examples where Black people were discriminated and disproportionately affected in a negative way, especially in healthcare.</p>
-<p>She introduced the <a href="https://d4bl.org/covid19-data"><em>COVID-19 Data Tracker Project</em></a> where organizers in the D4BL members compiled a dataset by themselves to highlight the stark disparities in health outcomes related to COVID-19. She mentioned that the larger goal here is to “build the political power of Black communities” as well, which is a critical point. She also emphasized that <strong>any intervention that does not build political power or agency of the marginalized community is liable to harm</strong> rather than to help. Considering that even some tech-for-good projects with good intentions often sideline those who are affected by the system, her remark was poignant.</p>
-<p>“We need to think ‘who do we need to be’” At the end of the talk, she mentioned the importance of reflection, and said we need to resist the urge to feel compelled to keep moving forward, but to pause and reflect on ourselves. This involves identifying what we should unlearn and how we need to create new spaces to bring people who are directly impacted. I think this passionate and moving speech from Yeshi sent out this important message to all attendees, especially to academics and tech workers, like myself.</p>
-</section>
-<section id="algorithm-audit-and-impact-assessment" class="level2">
-<h2 class="anchored" data-anchor-id="algorithm-audit-and-impact-assessment">Algorithm Audit and Impact Assessment</h2>
-<p>For tech workers who are interested robust and responsible AI like myself, case studies are like gems. We are always curious about how others do things and want to learn from each other. That’s why I was very happy to see a case study about algorithm audit from Wilson et al., <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445928"><em>Building and Auditing Fair Algorithms: A Case Study in Candidate Screening</em></a>.</p>
-<p>Researchers from Northeastern University worked with <a href="https://www.pymetrics.ai/">Pymetrics</a>, a company that uses gamification and AI to assist hiring in other companies. This collaboration itself was a unique instance because most audits happen internally or in a permission-less form where the companies being audited do not cooperate with the auditors. The academic researchers seemed to be quite transparent about the process (e.g., they revealed they were paid but the audit was done independently) and disclosed some problems in Pymetric’s system based on the criteria they used. I don’t know the full details yet but it was nice to hear that Pymetrics started working on solutions to fix these.</p>
-<p>Speaking of the audit, there was another interesting paper about Amazon’s questionable practice in product recommendation. It’s been known that Amazon created their own private brand and started competing against other brands. The paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445944"><em>When the Umpire is also a Player: Bias in Private Label Product Recommendations on E-commerce Marketplaces</em></a> investigates this issue by conducting a systematic audit on Amazon’s recommendation system. They found that Amazon’s private brand has greater exposure in the sponsored ads by comparing related item network (RIN) models between the private brand’s and others’ networks.</p>
-<p>Finally, there was a paper dedicated to algorithmic impact assessment. The authors in the paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445935"><em>Algorithmic Impact Assessments (AIA) and Accountability: The Co-construction of Impacts</em></a>, pointed out that often poor impact assessment practices neither mitigate harm nor bring effective algorithm governance. They emphasized that impact assessment should be closely related to accountability, especially for both institutions and people who are affected. The paper showcases impact assessment examples from different domains, which will be useful to design an effective and accountable algorithmic impact assessment procedure.</p>
-</section>
-<section id="trust-in-ai" class="level2">
-<h2 class="anchored" data-anchor-id="trust-in-ai">Trust in AI</h2>
-<p>Speaking of impact assessment, if we have incredibly thoughtful (which is probably very detailed) impact assessment and documentation of deployed algorithms, does it bring more trust? The paper, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445890"><em>The Sanction of Authority: Promoting Public Trust in AI</em></a>, says, perhaps not. The authors bring up the example of aviation industry. When we board on a plane, do we want to see the maintenance log, history of pilot performance to reassure ourselves? Or, do we normally trust that aviation is <strong>“highly regulated, comparatively safe, and any breach of safety will be sanctioned”</strong>? The authors suggest that the latter is how public trust is formed. This is an excellent point. Documentation of deployed AI systems can be as bad as terms of service statements, which usually have extremely poor readability and can be easily manipulated. I liked that the authors emphasized both the importance of regulatory system but also of <strong>externally auditable AI documentation</strong>, which would facilitate the development of AI regulations.</p>
-</section>
-<section id="explainable-ai" class="level2">
-<h2 class="anchored" data-anchor-id="explainable-ai">Explainable AI</h2>
-<p><a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445941"><em>How Can I Choose an Explainer? An Application-Grounded Evaluation of Post-hoc Explanations</em></a> was a case study of comparing various XAI methods (LIME, SHAP, and <a href="https://github.com/andosa/treeinterpreter">TreeInterpreter</a>) and how human participants use explanations to perform fraud detection task. I was hoping to see a discussion of comparison and evaluation of various XAI methods in a standardized way but it was more about evaluating the suitability of these methods using case-specific real-human tasks. I’d like to take a deeper look at the paper to see whether the authors mentioned any suggestions on cases where it is challenging to run those tasks.</p>
-</section>
-<section id="data-governance" class="level2">
-<h2 class="anchored" data-anchor-id="data-governance">Data Governance</h2>
-<p>My favorite talk of the day was <a href="https://arxiv.org/pdf/2010.13561.pdf"><em>Towards Accountability for Machine Learning Datasets: Practices from Software Engineering and Infrastructure</em></a> by Hutchinson et al.</p>
-<p>It’s not too difficult to meet ML practitioners who are obsessed with state-of-the-art deep learning models and conveniently ignore training data and how their data is preprocessed. These people often have a tendency of even looking down upon data preprocessing process and consider it demeaning. This paper takes a jab at this phenomenon.</p>
-<p>The authors first talk about data scapegoating. Even though everyone is well aware of “garbage in, garbage out” relationship between data and ML models, often data is overlooked and undervalued. Many ML practitioners depend on benchmark datasets, which <strong>“reinforce the notion of data as fixed resources.”</strong> In my experience, this tendency intensifies the fanaticism on ML algorithms even though they are just a tiny part of a much bigger picture. With many good off-the-shelf models readily available, frankly speaking, models are rather becoming commodities.</p>
-<p>They also point out the lack of good governance practice in data maintenance. Understanding ML model performance often requires good and detailed understanding of training data. However, validation and verification of training data is rarely conducted in ML engineering pipelines.</p>
-<p>Finally, the authors didn’t forget to mention the power imbalanced between ML practitioners and data providers. I often feel extremely fortunate that I have experienced the entire end-to-end process of an academic research. I started from scratch and designed a process to collect the data by myself, which required great care and intense labor. In the current ML trend, this step is often conveniently removed and thus creates a bad habit of ignoring labor and responsibility in the data collection and development process.</p>
-<p>I really appreciated the simplicity of the authors’ suggestion on this problem; <strong>“acknowledge that datasets are technical infrastructures.”</strong> Since many ML practitioners are familiar with tech infrastructures such as software programs, the authors suggest that we simply apply existing practices to datasets; create <strong>requirements, design, and tests</strong>. Once this formally becomes a part of infrastructure, it also becomes easy to get all the existing stakeholders in the pipeline involved.</p>
-
-
-</section>
-
- ]]></description>
-  <category>conference</category>
-  <category>responsible AI</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/</guid>
-  <pubDate>Mon, 08 Mar 2021 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/data dev cycle.png" medium="image" type="image/png" height="105" width="144"/>
 </item>
 </channel>
 </rss>
