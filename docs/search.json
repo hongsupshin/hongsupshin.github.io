@@ -707,6 +707,13 @@
     "text": "Exercise sharp technical judgment\nWith the fast moving pace of the ML field, it is important to quickly identify promising ideas in the team that are worth pursuing. Tech leads should help them cut through bureaucracy to speed up the innovation. At the same time, tech leads should help establish evaluation standards at the team level so that every idea is properly vetted. If unproductive approaches are found, it is important to recognize when to pivot. This also means the team should be able to quickly iterate through multiple ideas, and thus tech leads should help create a space for this. Finally, when making decisions and judgments, make sure document the reasoning and process for fairness, transparency, and accountability."
   },
   {
+    "objectID": "posts/2025-02-23/index.html#embrace-change-and-combat-complacency",
+    "href": "posts/2025-02-23/index.html#embrace-change-and-combat-complacency",
+    "title": "Essential qualities of ML tech leads",
+    "section": "Embrace change and combat complacency",
+    "text": "Embrace change and combat complacency\nAs ML tools and technology advance daily, maintaining a “business as usual” approach is likely to make the team less competitive. While changes can feel uncomfortable, ML is a unique domain characterized by rapid evolution across tools, frameworks, and methodologies. What works today might not be optimal tomorrow.\nMoreover, ML practitioners are naturally drawn to innovation and eager to experiment with new approaches. Tech leads should harness this enthusiasm by leading through example such as actively discussing emerging technologies relevant to the team’s work and creating regular forums for team members to introduce new ideas. To make this sustainable, tech leads should establish structured processes for testing and validating new approaches without disrupting production systems. This balance between innovation and stability ensures the team stays current while maintaining reliable service."
+  },
+  {
     "objectID": "posts/2025-02-23/index.html#champion-team-growth-and-development",
     "href": "posts/2025-02-23/index.html#champion-team-growth-and-development",
     "title": "Essential qualities of ML tech leads",
