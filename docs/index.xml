@@ -10,7 +10,61 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.40</generator>
-<lastBuildDate>Sat, 08 Feb 2025 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 23 Feb 2025 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Essential qualities of ML tech leads</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2025-02-23/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Over my near-decade career in ML, I’ve witnessed firsthand how technical leadership can make or break a team’s success. As both a tech lead and someone who has worked with various tech leads, I’ve learned that typical engineering management is not enough to handle unique challenges of ML projects. The ML field moves at a fast pace, and projects require orchestrating multiple stakeholders with diverse expertise. Teams must constantly balance research with production while assessing the inherent uncertainty in ML systems. In addition, it is necessary to nurture collaboration between highly skilled individuals who bring their own innovative perspectives. Without effective technical leadership, even the most promising ML projects can unravel, leading to missed opportunities and team burnout.</p>
+<p>I’ve learned (sometimes the hard way) that great ML tech leadership requires a unique blend of technical vision, people skills, and operational excellence. While no one perfectly embodies all of these, I think understanding them is crucial for developing good tech leads in ML community, myself included.</p>
+<section id="drive-technical-vision-and-stay-at-the-forefront" class="level2">
+<h2 class="anchored" data-anchor-id="drive-technical-vision-and-stay-at-the-forefront">Drive technical vision and stay at the forefront</h2>
+<p>ML tech leads must stay informed about recent developments in the ML field. Even when an ML system runs like a well-oiled machine, there always is room for increased efficiency and innovation. Staying informed does not mean buying all the hypes from recent developments. It is crucial to distinguish true opportunities from background noise, and then translate them into business values because “cool” does not always mean “useful.” Once the connection between technology and business values is established, tech leads need to set clear technical directions with a roadmap. This not only includes clarifying short-term scopes, but also charting out a vision for long-term objectives, so the team and stakeholders are aware of where the team is headed.</p>
+</section>
+<section id="embrace-the-shift-from-coding-to-leading" class="level2">
+<h2 class="anchored" data-anchor-id="embrace-the-shift-from-coding-to-leading">Embrace the shift from coding to leading</h2>
+<p>Tech leads often start their careers as individual contributors (ICs) and inevitably face the challenge of transitioning from technical to managerial responsibilities. While it’s understandable to feel frustrated about not being able to maintain deep and focused technical work, tech leads need to remind themselves of their primary responsibility and recognize the importance of delegation. Besides, it is possible to maintain technical credibility while transitioning to leadership. For instance, tech leads can participate in code reviews rather than development itself, engage in short-term innovative projects, or create opportunities for team members to present their work and learn together more efficiently. Moreover, tech leads will also start developing a different set of technical skills focused at a higher level, which they might find equally enjoyable and rewarding.</p>
+</section>
+<section id="build-strong-development-infrastructures" class="level2">
+<h2 class="anchored" data-anchor-id="build-strong-development-infrastructures">Build strong development infrastructures</h2>
+<p>ML projects require iterative processes. Lack of proper scalable and frictionless development infrastructure leads to slow and unstable development, and causes constant fatigue in the team. While it is challenging to balance technical debts with delivery pressure, tech leads might have to convince the upper management to make initial investments on infrastructure before continuing development and delivery. Without the solid infrastructure, the ML product will be like a house of cards. However, tech leads should be aware of the trade-offs between building perfect and practical solutions. This naturally requires following changes in ML infrastructure space as well.</p>
+</section>
+<section id="exercise-sharp-technical-judgment" class="level2">
+<h2 class="anchored" data-anchor-id="exercise-sharp-technical-judgment">Exercise sharp technical judgment</h2>
+<p>With the fast moving pace of the ML field, it is important to quickly identify promising ideas in the team that’s worth pursuing. Tech leads should help them cut through bureaucracy to speed up the innovation. At the same time, tech leads should help establish evaluation standards at the team level so that every idea is properly vetted. If unproductive approaches are found, it is important to recognize when to pivot. This also means the team should be able to quickly iterate through multiple ideas, and thus tech leads should help create a space for this. Finally, when making decisions and judgments, make sure document the reasoning and process for fairness, transparency, and accountability.</p>
+</section>
+<section id="champion-team-growth-and-development" class="level2">
+<h2 class="anchored" data-anchor-id="champion-team-growth-and-development">Champion team growth and development</h2>
+<p>To go through different ideas and innovations, it is crucial to invest in team’s growth. Tech leads should create opportunities of learning and development, and also be able to identify each team member’s career aspirations. While nurturing unique strengths of individual members, tech leads should provide opportunities where team members can share their skills so that the whole team is more synced in technical capabilities and grow together. Team leads should be able to ask leadership for necessary resources for attending conferences and workshops while pursuing opportunities for publication and demo showcase.</p>
+</section>
+<section id="build-a-culture-of-trust-and-innovation" class="level2">
+<h2 class="anchored" data-anchor-id="build-a-culture-of-trust-and-innovation">Build a culture of trust and innovation</h2>
+<p>Teams cannot grow without reviewing and critiquing their work together. That’s why it is essential for tech leads to create a safe space for constant experimentation and failure. I recommend that tech leads should become a role model in this case and practice vulnerability by admitting their own mistakes while providing honest feedback with empathy in a group discussion. There is a fine balance to be struck here because teams should maintain high standards while supporting learning and open dialogue.</p>
+<p>Since ML teams often consist of highly technical individual with diverse skills, it is possible that the teams’ functionality stays fragmented and team building may become overlooked. But I think it is important to nurture a strong sense of belonging and shared purpose. This can be simply done by celebrating wins together, and creating opportunities for knowledge sharing and teaching. Strengthening bonds among the team members leads to better quality of work and lower turnover. Furthermore, this will help building a brand for the team, which increases recognition in the company and community.</p>
+</section>
+<section id="advocate-for-your-team-and-shield-from-disruption" class="level2">
+<h2 class="anchored" data-anchor-id="advocate-for-your-team-and-shield-from-disruption">Advocate for your team and shield from disruption</h2>
+<p>Team leads should champion achievements from their team to leadership by highlighting individual members who contributed. When communicating with stakeholders and leadership, tech leads should set realistic expectations of the product and negotiate deadlines and resources without overpromising. I have seen many tech leads who were too eager to say yes to every stakeholder demand, unfortunately often because of the lack of technical understanding of their own product capabilities, which drove their team members to exhaustion. Although internal politics and unnecessary disruptions may not always be unavoidable, tech leads should do their best to shield the team from these.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>Yes, good ML tech leadership is undoubtedly challenging. While these qualities might seem daunting taken all at once, remember that great tech leadership develops over time through experience, reflection, and genuine care for both the technical craft and the people we work with. As our field continues to evolve and diversify, the need grows for exceptional ML tech leads who can balance technical excellence with human understanding, drive both innovation and value, and help their teams navigate the complex landscape of modern ML development.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>ML</category>
+  <category>leadership</category>
+  <guid>https://hongsupshin.github.io/posts/2025-02-23/</guid>
+  <pubDate>Sun, 23 Feb 2025 06:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Ranking metrics: pitfalls and best practices</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -7534,50 +7588,6 @@ font-style: inherit;">1.03</span>)</span>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/</guid>
   <pubDate>Wed, 10 Mar 2021 06:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>FAccT 2021. Automated decision-making, causal accountability, and robustness</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<section id="keynote-in-praise-of-flawed-mathematical-models" class="level2">
-<h2 class="anchored" data-anchor-id="keynote-in-praise-of-flawed-mathematical-models">Keynote: In Praise of (Flawed) Mathematical Models</h2>
-<p>One of the reasons I try to attend the FAccT conference is because I always get inspired by novel approaches from this community to quantify and measure social concepts such as fairness. However, this approach has its own demise. It’s possible that these attempts get lost in the weeds while discussing abstract and theoretical aspects of the models which can easily alienate researchers from the real world. Today’s keynote by <a href="https://www.cs.huji.ac.il/~katrina/">Katrina Ligett</a> from Hebrew University addressed this issue.</p>
-<p>During the talk, she discussed the pros and cons of using mathematical models in general, but also in the context of studying FAccT-related topics. Many positive aspects of mathematical models she mentioned were exactly the same reasons why I have been drawn to this area; mathematical models are <strong>explicit about their assumptions</strong> such as what’s included and what’s not, usually come with provable guarantees, and provide solid foundations for future research. Mathematical models can also easily <strong>become a fig leaf</strong> by letting bad actors hide behind the models’ specificity and complexity. People also have a misperceived notion on mathematical models that the models are objective (and thus have authority).</p>
-<p>She talked a lot about this duplicity during the Q&amp;A. It was nice to hear from Katrina that theoreticians have tendency to be drawn to intellectually stimulating problems and sometimes lose touch with the main purpose that our models serve. She also talked about how to bridge the gap between people who build mathematical models and people who do not have the background but are impacted by the models. She first talked about the <strong>importance of translational type of work</strong> which explains theoretical concepts in real-world meanings. This way, it is going to be much easier to <strong>critique models’ basic assumptions</strong> where many problems begin.</p>
-<p>She ended the talk in a positive note by saying that even with the flaws of mathematical models, our approach should not be banning mathematical models but rather <strong>encouraging modelers to acknowledge the shared responsibility</strong> within the community they serve, to take advantage of the rigorousness built in mathematical approaches to carefully examine the problems, and to constantly critique the models.</p>
-</section>
-<section id="automated-decision-making" class="level2">
-<h2 class="anchored" data-anchor-id="automated-decision-making">Automated Decision-Making</h2>
-<p><a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445921">Reviewable Automated Decision-Making: A Framework for Accountable Algorithmic Systems</a> presents an easy-to-follow and straightforward guide for automated decision-making (ADM) system review. Being able to review something means that we can hold companies easily accountable for the consequences from ADM systems, which already have serious issues of lack of accountability. The authors borrowed the idea from <strong>administrative law’s approach to reviewing human decision-making</strong>, and presents a practical and holistic framework. The suggested idea consists of various parts such as commissioning, model building, decision-making, investigation, group deliberation, and assessment. I liked their idea originated from law because this will help legislators regulate ADMs.</p>
-<p>Speaking of regulation, <a href="https://dl.acm.org/doi/epdf/10.1145/3442188.3445938">An Action-Oriented AI Policy Toolkit for Technology Audits by Community Advocates and Activists</a> was an excellent paper in that it provided an example of <strong>algorithmic equity toolkit</strong> designed for diverse stakeholders. I assume it was possible because the authors come from diverse background; computer science, social and political science, and activism. The toolkit aims to increase public participation for AI-policy action and consists of various formats including flowcharts, maps, and questionnaires. With this diverse methods, it tries to deliver comprehensive of information of AI technology such as the type, functionality, and its potential impact. This looks like a handy way to facilitate communication between many different stakeholders such as communities, government officials, and even technologists.</p>
-</section>
-<section id="accountability-and-recourse" class="level2">
-<h2 class="anchored" data-anchor-id="accountability-and-recourse">Accountability and Recourse</h2>
-<p><a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445905">Designing Accountable Systems</a> suggests that accountability requires a causal model because if something happens and we need to hold someone accountable for the consequences. The authors bring an interesting distinction between forward- and backward-looking causalities. When we build causal models, we use the forward-looking approach such as “A causes B”. However, when we need to use causality for accountability, we lean on the <strong>backward-looking</strong> approach such as “the fact that A happened last year causes B to die yesterday”. Thus, the authors use Structural Causal Models to evaluate a system’s design for accountability.</p>
-<p>In a similar context, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445899">Algorithmic Recourse: from Counterfactual Explanations to Interventions</a> also emphasizes the importance of causal models. Many previous studies on counterfactuals as a means of algorithmic recourse overlooked how to achieve the counterfactual scenarios. <strong>Without addressing the feasibility, algorithms may provide nonsensical counterfactual explanations</strong> such as “in order to get a loan, change your ethnicity”. This study shows that causal models can mitigate this issue because causal explanations inherently avoids nonsensical explanations from the beginning.</p>
-<p>Finally, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445943">Epistemic Values in Feature Importance Methods: Lessons From Feminist Epistemology</a> looks at explainable AI (particularly feature importance) through the lense of feminism studies, which was highly enlightening. The authors say explanations and epistemology (study of human knowledge) are inseparable; <strong>useful explanations have epistemic values</strong>. And providing AI explanations in a feminist way is means we <strong>focus on understanding of situated knowledge</strong> and avoid totalization. To elaborate, explanations should <strong>respect different perspectives, particularly from marginalized individuals</strong>, and encourage active conversation about the knowledge. If I look back on how I used feature importance as a tool for explainable AI, it is true that it’s usually a one-way communication that was static and lacked communication with stakeholders. The authors suggest that it’s crucial to evaluate explanation in context and keep it <strong>interactive</strong>. More importantly, since explanations can often be used as an authoritative way, it’s important to <strong>encourage users to avoid over-trusting one interpretation</strong>, which was such a thoughtful insight.</p>
-</section>
-<section id="robustness" class="level2">
-<h2 class="anchored" data-anchor-id="robustness">Robustness</h2>
-<p>It’s well known that proxy features can contain information about sensitive attributes such as race and gender. Often people try to remove these spurious features from the dataset. In fact, this practice is not just limited to applications that use datasets with sensitive attributes. ML practitioners drop correlated or spurious features to build more robust models. <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445883">Removing Spurious Features can Hurt Accuracy and Affect Groups Disproportionately</a> shows that <strong>removing these features can lead to performance drop</strong>. The authors mitigated the problem by using a technique called <a href="https://arxiv.org/abs/2002.10716">Robust Self-Training</a>. The authors of this paper also investigated how the performance drop is manifested among different groups in the data.</p>
-<p><a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445910">Fairness Through Robustness: Investigating Robustness Disparity in Deep Learning</a> is an interesting paper that they define the group <strong>fairness in terms of model vulnerability against adversarial attacks</strong>. They first address that in deep learning models, it is possible for a certain subgroup to be more vulnerable to those attacks, and thus the model is less robust for particular subgroups. You can easily picture this as a classification with a decision boundary. If the model is not robust and changes its decision boundary when the attack occurs, samples that are closer to the original boundary may be more likely to be misclassified with the attack. The authors identified that for deep learning models, this is a complex matter because it is about data drift and the learning process of the model. However, as a first attempt, they added a simple regularization term to the model to equalize the robustness bias among the subgroups in some examples.</p>
-
-
-</section>
-
- ]]></description>
-  <category>conference</category>
-  <category>responsible AI</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/</guid>
-  <pubDate>Tue, 09 Mar 2021 06:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/toolkit.png" medium="image" type="image/png" height="52" width="144"/>
 </item>
 </channel>
 </rss>

@@ -1,0 +1,45 @@
+---
+title: "Essential qualities of ML tech leads"
+author: Hongsup Shin
+date: 2025-02-23
+description: Good ML tech leadership is undoubtedly challenging. I've learned (sometimes the hard way) that great ML tech leadership requires a unique blend of technical vision, people skills, and operational excellence. While no one perfectly embodies all of these, I think understanding them is crucial for developing good tech leads in ML community, myself included.
+categories: [ML, leadership]
+---
+
+Over my near-decade career in ML, I've witnessed firsthand how technical leadership can make or break a team's success. As both a tech lead and someone who has worked with various tech leads, I've learned that typical engineering management is not enough to handle unique challenges of ML projects. The ML field moves at a fast pace, and projects require orchestrating multiple stakeholders with diverse expertise. Teams must constantly balance research with production while assessing the inherent uncertainty in ML systems. In addition, it is necessary to nurture collaboration between highly skilled individuals who bring their own innovative perspectives. Without effective technical leadership, even the most promising ML projects can unravel, leading to missed opportunities and team burnout.
+
+I've learned (sometimes the hard way) that great ML tech leadership requires a unique blend of technical vision, people skills, and operational excellence. While no one perfectly embodies all of these, I think understanding them is crucial for developing good tech leads in ML community, myself included.
+
+## Drive technical vision and stay at the forefront
+
+ML tech leads must stay informed about recent developments in the ML field. Even when an ML system runs like a well-oiled machine, there always is room for increased efficiency and innovation. Staying informed does not mean buying all the hypes from recent developments. It is crucial to distinguish true opportunities from background noise, and then translate them into business values because "cool" does not always mean "useful." Once the connection between technology and business values is established, tech leads need to set clear technical directions with a roadmap. This not only includes clarifying short-term scopes, but also charting out a vision for long-term objectives, so the team and stakeholders are aware of where the team is headed.
+
+## Embrace the shift from coding to leading
+
+Tech leads often start their careers as individual contributors (ICs) and inevitably face the challenge of transitioning from technical to managerial responsibilities. While it's understandable to feel frustrated about not being able to maintain deep and focused technical work, tech leads need to remind themselves of their primary responsibility and recognize the importance of delegation. Besides, it is possible to maintain technical credibility while transitioning to leadership. For instance, tech leads can participate in code reviews rather than development itself, engage in short-term innovative projects, or create opportunities for team members to present their work and learn together more efficiently. Moreover, tech leads will also start developing a different set of technical skills focused at a higher level, which they might find equally enjoyable and rewarding.
+
+## Build strong development infrastructures
+
+ML projects require iterative processes. Lack of proper scalable and frictionless development infrastructure leads to slow and unstable development, and causes constant fatigue in the team. While it is challenging to balance technical debts with delivery pressure, tech leads might have to convince the upper management to make initial investments on infrastructure before continuing development and delivery. Without the solid infrastructure, the ML product will be like a house of cards. However, tech leads should be aware of the trade-offs between building perfect and practical solutions. This naturally requires following changes in ML infrastructure space as well.
+
+## Exercise sharp technical judgment
+
+With the fast moving pace of the ML field, it is important to quickly identify promising ideas in the team that's worth pursuing. Tech leads should help them cut through bureaucracy to speed up the innovation. At the same time, tech leads should help establish evaluation standards at the team level so that every idea is properly vetted. If unproductive approaches are found, it is important to recognize when to pivot. This also means the team should be able to quickly iterate through multiple ideas, and thus tech leads should help create a space for this. Finally, when making decisions and judgments, make sure document the reasoning and process for fairness, transparency, and accountability.
+
+## Champion team growth and development
+
+To go through different ideas and innovations, it is crucial to invest in team's growth. Tech leads should create opportunities of learning and development, and also be able to identify each team member's career aspirations. While nurturing unique strengths of individual members, tech leads should provide opportunities where team members can share their skills so that the whole team is more synced in technical capabilities and grow together. Team leads should be able to ask leadership for necessary resources for attending conferences and workshops while pursuing opportunities for publication and demo showcase.
+
+## Build a culture of trust and innovation
+
+Teams cannot grow without reviewing and critiquing their work together. That's why it is essential for tech leads to create a safe space for constant experimentation and failure. I recommend that tech leads should become a role model in this case and practice vulnerability by admitting their own mistakes while providing honest feedback with empathy in a group discussion. There is a fine balance to be struck here because teams should maintain high standards while supporting learning and open dialogue.
+
+Since ML teams often consist of highly technical individual with diverse skills, it is possible that the teams' functionality stays fragmented and team building may become overlooked. But I think it is important to nurture a strong sense of belonging and shared purpose. This can be simply done by celebrating wins together, and creating opportunities for knowledge sharing and teaching. Strengthening bonds among the team members leads to better quality of work and lower turnover. Furthermore, this will help building a brand for the team, which increases recognition in the company and community.
+
+## Advocate for your team and shield from disruption
+
+Team leads should champion achievements from their team to leadership by highlighting individual members who contributed. When communicating with stakeholders and leadership, tech leads should set realistic expectations of the product and negotiate deadlines and resources without overpromising. I have seen many tech leads who were too eager to say yes to every stakeholder demand, unfortunately often because of the lack of technical understanding of their own product capabilities, which drove their team members to exhaustion. Although internal politics and unnecessary disruptions may not always be unavoidable, tech leads should do their best to shield the team from these.
+
+## Summary
+
+Yes, good ML tech leadership is undoubtedly challenging. While these qualities might seem daunting taken all at once, remember that great tech leadership develops over time through experience, reflection, and genuine care for both the technical craft and the people we work with. As our field continues to evolve and diversify, the need grows for exceptional ML tech leads who can balance technical excellence with human understanding, drive both innovation and value, and help their teams navigate the complex landscape of modern ML development.
