@@ -3,6 +3,7 @@ title: "Essential qualities of ML tech leads"
 author: Hongsup Shin
 date: 2025-02-23
 description: Good ML tech leadership is undoubtedly challenging. I've learned (sometimes the hard way) that great ML tech leadership requires a unique blend of technical vision, people skills, and operational excellence. While no one perfectly embodies all of these, I think understanding them is crucial for developing good tech leads in ML community, myself included.
+image: fig.png
 categories: [ML, leadership]
 ---
 
