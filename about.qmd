@@ -8,9 +8,9 @@ about:
   image: profile.png
 ---
 
-I'm Hongsup/홍섭 and I am an ML practitioner in Austin, TX. I currently work as a Principal ML Research Engineer at Arm, and volunteer as a co-chair of the SciPy conference Proceedings Committee. In the past, I volunteered at [Texas Justice Initiative](https://texasjusticeinitiative.org/), a local criminal justice non-profit in Austin, and other organizations such as DataKind, NeurIPS, and SciPy as grant and paper reviewers. I run an in-person [ML journal club](https://austinmljournalclub.github.io/) in Austin, TX.
+I'm Hongsup/홍섭 and I am an AI/ML practitioner in Austin, TX. I currently work as a Principal AI Engineer at Arm, and volunteer as a co-chair of the SciPy conference Proceedings Committee. In the past, I volunteered at [Texas Justice Initiative](https://texasjusticeinitiative.org/), a local criminal justice non-profit in Austin, and other organizations such as DataKind, NeurIPS, and SciPy as grant and paper reviewers. I run an in-person [ML journal club](https://austinmljournalclub.github.io/) in Austin, TX.
 
-My background is computational neuroscience (PhD) and behavioral ecology (MSc). My general interests are ML Ops, AI ethics, responsible AI, and ML in hardware. Feel free to reach out to me on [Linkedin](https://www.linkedin.com/in/hongsupshin/) and check out some of my work:
+My background is computational neuroscience (PhD) and behavioral ecology (MSc). My general interests are AI engineering, ML Ops, AI ethics, responsible AI, and ML in hardware. Feel free to reach out to me on [Linkedin](https://www.linkedin.com/in/hongsupshin/) and check out some of my work:
 
 - [IEEE System-on-Chip 2024 paper on learning-to-rank algorithm for bug discovery in hardware verification](https://ieeexplore.ieee.org/document/10737744)
 - [Scipy 2023 poster: Data-centric ML pipeline for data drift and data preprocessing](https://zenodo.org/record/8136049)
