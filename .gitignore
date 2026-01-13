@@ -2,3 +2,6 @@
 /_site/
 *.code-workspace
 .ipynb_checkpoints
+**/*.quarto_ipynb
+*.ruff_cache/
+*__pycache__/

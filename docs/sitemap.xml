@@ -30,54 +30,18 @@
   </url>
   <url>
     <loc>https://hongsupshin.github.io/posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html</loc>
-    <lastmod>2025-01-26T17:32:55.854Z</lastmod>
+    <lastmod>2026-01-12T23:15:20.106Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/index.html</loc>
-    <lastmod>2025-01-26T17:32:55.849Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2025-01-18/index.html</loc>
-    <lastmod>2025-01-26T17:32:55.862Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/index.html</loc>
-    <lastmod>2025-01-26T17:32:55.848Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2025-02-08/index.html</loc>
-    <lastmod>2025-02-11T14:34:53.766Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2024-10-05/index.html</loc>
-    <lastmod>2025-01-26T17:32:55.858Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2023-08-31/index.html</loc>
-    <lastmod>2025-01-19T19:24:47.241Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</loc>
-    <lastmod>2025-01-26T17:32:55.857Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/index.html</loc>
-    <lastmod>2024-11-16T16:45:16.134Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2022-10-27/index.html</loc>
+    <loc>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/index.html</loc>
     <lastmod>2025-01-26T17:32:55.856Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2025-02-23/index.html</loc>
-    <lastmod>2025-02-23T21:58:37.882Z</lastmod>
+    <loc>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/index.html</loc>
+    <lastmod>2025-01-19T19:24:47.241Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2025-02-01/index.html</loc>
-    <lastmod>2025-02-03T14:55:11.578Z</lastmod>
-  </url>
-  <url>
-    <loc>https://hongsupshin.github.io/posts/2022-12-15/index.html</loc>
+    <loc>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</loc>
     <lastmod>2025-01-26T17:32:55.857Z</lastmod>
   </url>
   <url>
@@ -85,16 +49,56 @@
     <lastmod>2024-11-16T16:45:16.133Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</loc>
+    <loc>https://hongsupshin.github.io/posts/2022-12-15/index.html</loc>
     <lastmod>2025-01-26T17:32:55.857Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/index.html</loc>
+    <loc>https://hongsupshin.github.io/posts/2025-02-01/index.html</loc>
+    <lastmod>2025-02-03T14:55:11.578Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2025-02-23/index.html</loc>
+    <lastmod>2025-02-23T21:58:37.882Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2022-10-27/index.html</loc>
+    <lastmod>2025-01-26T17:32:55.856Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/index.html</loc>
+    <lastmod>2024-11-16T16:45:16.134Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</loc>
+    <lastmod>2025-01-26T17:32:55.857Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2023-08-31/index.html</loc>
     <lastmod>2025-01-19T19:24:47.241Z</lastmod>
   </url>
   <url>
-    <loc>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/index.html</loc>
-    <lastmod>2025-01-26T17:32:55.856Z</lastmod>
+    <loc>https://hongsupshin.github.io/posts/2024-10-05/index.html</loc>
+    <lastmod>2025-01-26T17:32:55.858Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2025-02-08/index.html</loc>
+    <lastmod>2025-02-11T14:34:53.766Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/index.html</loc>
+    <lastmod>2025-01-26T17:32:55.848Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2025-01-18/index.html</loc>
+    <lastmod>2025-01-26T17:32:55.862Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/index.html</loc>
+    <lastmod>2025-01-26T17:32:55.849Z</lastmod>
+  </url>
+  <url>
+    <loc>https://hongsupshin.github.io/posts/2026-01-12/index.html</loc>
+    <lastmod>2026-01-13T04:09:34.896Z</lastmod>
   </url>
   <url>
     <loc>https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/index.html</loc>
@@ -110,7 +114,7 @@
   </url>
   <url>
     <loc>https://hongsupshin.github.io/posts/2024-03-28/index.html</loc>
-    <lastmod>2025-01-25T23:27:07.722Z</lastmod>
+    <lastmod>2026-01-12T23:15:20.101Z</lastmod>
   </url>
   <url>
     <loc>https://hongsupshin.github.io/posts/2025-01-12/index.html</loc>
