@@ -9,8 +9,877 @@
 <link>https://hongsupshin.github.io/</link>
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.8.24</generator>
-<lastBuildDate>Sun, 23 Feb 2025 06:00:00 GMT</lastBuildDate>
+<generator>quarto-1.8.26</generator>
+<lastBuildDate>Mon, 12 Jan 2026 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>LangGraph Error Handling Patterns in Production</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2026-01-12/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Everyone says you can build an agent in several lines of code. Making it work in production is a different story. APIs timeout, LLMs hallucinate recovery strategies, users provide incomplete data, and the workflow needs to handle all of it gracefully without cascading failures.</p>
+<p>In traditional software, you catch exceptions, log them, and maybe retry. In agent systems, this approach does not work efficiently because <strong>the right recovery strategy depends on error semantics, not just error types</strong>. For instance, a timeout should retry automatically, but an “email format invalid” error needs semantic understanding to fix. Besides, for a problem that requires human intervention, the system needs to pause and seek out human input. This differs depending on whether you need information from users or need developers to debug the system.</p>
+<p>Agent workflows are multi-step and autonomous. An error in an intermediate step shouldn’t just bubble up. It might need retry logic, LLM reasoning to adapt, or user clarification to continue. Treating all errors the same leads to cascading failures or stuck workflows. This post covers four error handling patterns for LangGraph agent systems, each mapping to a fundamentally different recovery mechanism:</p>
+<ol type="1">
+<li><strong>Retry with Backoff</strong> (Time-based): wait and try again (no decision needed)</li>
+<li><strong>LLM-Guided Recovery</strong> (Semantic): LLM reasons about context and chooses action</li>
+<li><strong>Human-in-the-Loop</strong> (External information): only humans can provide what’s needed</li>
+<li><strong>Unexpected Failures</strong> (Unrecoverable): surface to developers immediately</li>
+</ol>
+<p>This post is inspired by a <a href="https://docs.langchain.com/oss/python/langgraph/thinking-in-langgraph">LangGraph tutorial</a>. The tutorial covers basic concepts of the errors but not the full practical implementations. In this post, we will discuss a more detailed walkthrough of each error type such as when to use each pattern, code examples for different workflows, and architecture for testing error scenarios.</p>
+<p>We’ll use the familiar and simple email support agent (the same one from the above-mentioned tutorial) as an example throughout. This way, we can focus on error handling patterns rather than understanding complex business logic.</p>
+<p>All code is available <a href="https://github.com/hongsupshin/hongsupshin.github.io/tree/main/posts/2026-01-12/code">here</a>. The figure below shows the workflow overview of the email support agent system.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hongsupshin.github.io/posts/2026-01-12/workflow_diagram.png" class="quarto-figure quarto-figure-center figure-img" height="500"></p>
+</figure>
+</div>
+<section id="langgraph-quick-start" class="level2">
+<h2 class="anchored" data-anchor-id="langgraph-quick-start">LangGraph Quick Start</h2>
+<section id="core-concepts" class="level3">
+<h3 class="anchored" data-anchor-id="core-concepts">Core Concepts</h3>
+<p>Let’s quickly review the key concepts of LangGraph.</p>
+<p><strong>1. State = Workflow Memory (Data)</strong></p>
+<p>State is a typed object (Pydantic model or TypedDict) that flows through your workflow; I prefer <strong>Pydantic</strong> over TypedDict for runtime validation and better error messages. Think of a state as a comprehensive list of data fields in your agent system. You should be able to fully design the system first before defining a state. Every node reads it and returns updates:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> pydantic <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> BaseModel</span>
+<span id="cb1-2"></span>
+<span id="cb1-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> EmailState(BaseModel):</span>
+<span id="cb1-4">    email_content: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span></span>
+<span id="cb1-5">    sender_email: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span></span>
+<span id="cb1-6">    classification: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">dict</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span></span>
+<span id="cb1-7">    draft_response: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span></span>
+<span id="cb1-8">    reply_sent: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span></code></pre></div></div>
+<p><strong>2. Nodes = Processing Functions</strong></p>
+<p>Nodes transform state and return updates. Each node reads the current state, performs a specific task (like calling an API or running an LLM), and returns updates to merge back into state:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> classify_email(state: EmailState) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">dict</span>:</span>
+<span id="cb2-2">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Returns dict; updates merged into state."""</span></span>
+<span id="cb2-3">    classification <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> llm.invoke(state.email_content)</span>
+<span id="cb2-4">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"classification"</span>: classification}</span></code></pre></div></div>
+<p><strong>3. Command = State Update + Routing</strong></p>
+<p>The <code>Command</code> lets nodes do two things at once: update the state AND decide where to go next. Without <code>Command</code>, nodes only return state updates and go to <em>pre-defined</em> edges. With <code>Command</code>, a node can make routing decisions dynamically based on what it just processed. This is useful when the next step depends on the results of the current node:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.types <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Command</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> classify_email(state: EmailState) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> Command[Literal[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bug_tracker"</span>]]:</span>
+<span id="cb3-4">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Returns Command; updates state AND decides next node."""</span></span>
+<span id="cb3-5">    classification <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> llm.invoke(state.email_content)</span>
+<span id="cb3-6">    next_node <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> classification.intent <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"question"</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bug_tracker"</span></span>
+<span id="cb3-7">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> Command(</span>
+<span id="cb3-8">        update<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"classification"</span>: classification},</span>
+<span id="cb3-9">        goto<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>next_node  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Dynamic routing</span></span>
+<span id="cb3-10">    )</span></code></pre></div></div>
+<p><strong>4. Workflows = The Big Picture</strong></p>
+<p>Workflows connect all your nodes together into an execution graph. Using <code>StateGraph</code>, you define which nodes exist, how they connect to each other, and the order of execution. Think of it as drawing a flowchart; you specify the starting point, the processing steps (nodes), and the paths between them (edges). Once you compile the workflow, you have a complete agent system ready to execute:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.graph <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> StateGraph, START, END</span>
+<span id="cb4-2"></span>
+<span id="cb4-3">workflow <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> StateGraph(EmailState)</span>
+<span id="cb4-4">workflow.add_node(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"classify"</span>, classify_email)</span>
+<span id="cb4-5">workflow.add_node(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span>, search_documentation)</span>
+<span id="cb4-6">workflow.add_edge(START, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"classify"</span>)</span>
+<span id="cb4-7">workflow.add_conditional_edges(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"classify"</span>, [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bug_tracker"</span>])</span>
+<span id="cb4-8">workflow.add_edge(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span>, END)</span>
+<span id="cb4-9"></span>
+<span id="cb4-10">app <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> workflow.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>()</span></code></pre></div></div>
+<p>You can visualize workflows in several ways. For command-line scripts, <code>print(workflow.get_graph().draw_ascii())</code> outputs an ASCII diagram directly to the terminal. For richer visualizations, <code>workflow.get_graph().draw_mermaid()</code> generates Mermaid diagram code you can paste into mermaid.live. For Jupyter notebooks, compiled workflows’ diagram can be rendered in output cells (i.e., simply return <code>app</code> in a cell).</p>
+<p><strong>5. Execution</strong></p>
+<p>Once you’ve compiled your workflow, call <code>invoke()</code> with your initial state and the workflow runs through the graph. This executes nodes and follows edges until it reaches the <code>END</code>. You get back the final state with all updates from every node that ran:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> app.invoke({</span>
+<span id="cb5-2">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"email_content"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"I forgot my password"</span>,</span>
+<span id="cb5-3">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sender_email"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"user@example.com"</span></span>
+<span id="cb5-4">})</span>
+<span id="cb5-5"></span>
+<span id="cb5-6"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(result[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"draft_response"</span>])</span></code></pre></div></div>
+<p>Note that LangGraph workflows are <strong>compiled</strong>. Once you call <code>.compile()</code>, node functions are locked in. To test different behaviors (like error simulation), you must rebuild the workflow with different node implementations. This is why modular architecture matters.</p>
+</section>
+<section id="testing-pattern-workflow-builders" class="level3">
+<h3 class="anchored" data-anchor-id="testing-pattern-workflow-builders">Testing Pattern: Workflow Builders</h3>
+<p>Since workflows are compiled and immutable, testing different behaviors requires rebuilding with node overrides. The <code>build_workflow()</code> helper function constructs and compiles a <code>StateGraph</code> while allowing you to swap in different node implementations for testing:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Production version</span></span>
+<span id="cb6-2">app <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> build_workflow()</span>
+<span id="cb6-3"></span>
+<span id="cb6-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Test version with simulated error</span></span>
+<span id="cb6-5">app <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> build_workflow(</span>
+<span id="cb6-6">    nodes_override<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_docs"</span>: search_with_error}</span>
+<span id="cb6-7">)</span></code></pre></div></div>
+<p>This pattern keeps production code clean while enabling deterministic error testing. Examples throughout use this approach. Full code structure available in the [GitHub repo].</p>
+</section>
+<section id="observability-tools" class="level3">
+<h3 class="anchored" data-anchor-id="observability-tools">Observability Tools</h3>
+<p>LangGraph workflows benefit from observability tools that trace execution, inspect state at each step, and visualize error scenarios. <a href="https://docs.langchain.com/langsmith/studio">LangSmith Studio</a> is the primary tool for this. It provides real-time execution traces, state snapshots at each node, and visual debugging of workflow paths. To enable tracing, set your LangSmith API key and configure tracing before building your workflow. Once enabled, every workflow invocation automatically logs to LangSmith, where you can inspect the full execution graph, timing data, and state transitions:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> os</span>
+<span id="cb7-2">os.environ[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"LANGCHAIN_TRACING_V2"</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span></span>
+<span id="cb7-3">os.environ[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"LANGCHAIN_API_KEY"</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"your-api-key"</span></span>
+<span id="cb7-4">os.environ[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"LANGCHAIN_PROJECT"</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"error-handling-demo"</span></span>
+<span id="cb7-5"></span>
+<span id="cb7-6">app <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> build_workflow()</span>
+<span id="cb7-7">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> app.invoke(initial_state)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Automatically traced to LangSmith</span></span></code></pre></div></div>
+<p>Note that this tracing is available for notebook code cells.</p>
+</section>
+</section>
+<section id="error-handling-and-recovery-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="error-handling-and-recovery-patterns">Error Handling and Recovery Patterns</h2>
+<section id="overview-the-decision-framework" class="level3">
+<h3 class="anchored" data-anchor-id="overview-the-decision-framework">Overview: The Decision Framework</h3>
+<p>Here’s a quick reference for matching error types to recovery patterns:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 31%">
+<col style="width: 31%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Pattern</th>
+<th>When to Use</th>
+<th>LangGraph Feature</th>
+<th>Recovery Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Retry with Backoff</strong></td>
+<td>Network failures, rate limits, temporary outages</td>
+<td><code>RetryPolicy</code></td>
+<td>Automatic retry with exponential backoff</td>
+</tr>
+<tr class="even">
+<td><strong>LLM-Guided Recovery</strong></td>
+<td>Errors with semantic context LLM can understand and fix</td>
+<td>Circular routing</td>
+<td>LLM decides recovery action</td>
+</tr>
+<tr class="odd">
+<td><strong>Human-in-the-Loop</strong></td>
+<td>Missing data only user can provide, high-stakes decisions</td>
+<td><code>interrupt()</code></td>
+<td>Pause and request human input</td>
+</tr>
+<tr class="even">
+<td><strong>Unexpected Failures</strong></td>
+<td>Unknown errors, bugs, critical infrastructure failures</td>
+<td>Exception bubbling</td>
+<td>Log context, bubble up to developers</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pattern-1-retry-with-backoff" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-1-retry-with-backoff">Pattern 1: Retry with Backoff</h3>
+<p>This pattern uses automatic retry with exponential backoff to handle transient failures like network timeouts, rate limits (429), and temporary service outages (503).</p>
+<p>The key is to <strong>use <code>RetryPolicy</code> when adding a node to a workflow</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.types <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> RetryPolicy</span>
+<span id="cb8-2"></span>
+<span id="cb8-3">workflow.add_node(</span>
+<span id="cb8-4">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"search_documentation"</span>,</span>
+<span id="cb8-5">    search_documentation,</span>
+<span id="cb8-6">    retry_policy<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>RetryPolicy(max_attempts<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, backoff_base<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb8-7">)</span></code></pre></div></div>
+<p>The <code>backoff_base</code> parameter controls exponential backoff timing: <code>backoff_base=2</code> means wait times follow 2^0=1s, 2^1=2s, 2^2=4s, etc.</p>
+<p>The workflow attempts the failing node 3 times with exponential backoff. Attempt 1 raises <code>SearchAPIError</code> and retries in 1 second. Attempt 2 raises the same error and retries in 2 seconds. Attempt 3 succeeds and the workflow continues normally. (In LangSmith Studio, you’ll see 3 separate executions of the node with exponential backoff timing.)</p>
+<p>This pattern is unsuitable for errors that won’t resolve with retry (like bad API keys or malformed requests), errors that need user input, or errors requiring semantic understanding to fix.</p>
+<hr>
+</section>
+<section id="pattern-2-llm-guided-recovery" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-2-llm-guided-recovery">Pattern 2: LLM-Guided Recovery</h3>
+<p>This pattern stores errors in state and routes to an LLM agent that decides the recovery action. Use it for errors with semantic information an LLM can understand and fix.</p>
+<p>We handle this by <strong>creating an agent node that uses <code>Command</code> with <code>goto</code> to route dynamically based on state</strong>. Instead of raising exceptions, nodes store errors in state and return to the agent:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.types <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Command</span>
+<span id="cb9-2"></span>
+<span id="cb9-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> agent(state: EmailState) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> Command[Literal[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"get_customer_history"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"normalize_email"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"draft_response"</span>]]:</span>
+<span id="cb9-4">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Agent examines state and decides next action."""</span></span>
+<span id="cb9-5">    decision <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> llm.invoke(state)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># LLM decides based on state</span></span>
+<span id="cb9-6">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> Command(goto<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>decision.next_action)</span>
+<span id="cb9-7"></span>
+<span id="cb9-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> get_customer_history(state):</span>
+<span id="cb9-9">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Node stores errors instead of raising."""</span></span>
+<span id="cb9-10">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> has_error:</span>
+<span id="cb9-11">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"customer_history"</span>: {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"error"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"..."</span>}}  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Store error</span></span>
+<span id="cb9-12">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"customer_history"</span>: {...}}  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Store result</span></span>
+<span id="cb9-13"></span>
+<span id="cb9-14">workflow.add_node(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"agent"</span>, agent)</span>
+<span id="cb9-15">workflow.add_node(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"get_customer_history"</span>, get_customer_history)</span>
+<span id="cb9-16">workflow.add_edge(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"get_customer_history"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"agent"</span>)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Always route back to agent</span></span></code></pre></div></div>
+<p>The recovery flow cycles through the agent node multiple times:</p>
+<ol type="1">
+<li>First, <code>get_customer_history</code> fails due to mixed-case email, stores the error, and routes to <code>agent</code>.</li>
+<li>The LLM agent sees the error and decides to call <code>normalize_email</code>.</li>
+<li>After normalizing the email, it routes back to <code>agent</code>, which decides to retry <code>get_customer_history</code>. This time it succeeds and routes to <code>agent</code> again.</li>
+<li>The agent sees valid data and decides to proceed with <code>draft_response</code>.</li>
+</ol>
+<p>In LangSmith Studio, we can watch the circular path through the agent node and see LLM reasoning for each decision.</p>
+<p>Note that the agent’s return type <code>Command[Literal["get_customer_history", "normalize_email", "draft_response"]]</code> explicitly lists all possible routing destinations. This provides type safety and serves as documentation showing the full decision space. If you add new recovery paths, update this type hint.</p>
+<p>Use this pattern when error messages contain semantic information LLMs can parse, when multiple potential recovery strategies exist, or when the best action depends on contextual understanding. Avoid it for simple errors with deterministic recovery (use conditional edges instead), errors that need human judgment, or when high-latency is a concern (each agent call requires one LLM inference).</p>
+<section id="preventing-infinite-loops" class="level4">
+<h4 class="anchored" data-anchor-id="preventing-infinite-loops">Preventing infinite loops</h4>
+<p>Since this pattern creates circular routing, add safeguards to prevent infinite loops (e.g., <code>MaxIterationsError</code>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> EmailState(BaseModel):</span>
+<span id="cb10-2">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ... other fields ...</span></span>
+<span id="cb10-3">    iteration_count: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb10-4">    max_iterations: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span>
+<span id="cb10-5"></span>
+<span id="cb10-6"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> agent(state: EmailState) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> Command[...]:</span>
+<span id="cb10-7">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Check iteration limit</span></span>
+<span id="cb10-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> state.iteration_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> state.max_iterations:</span>
+<span id="cb10-9">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">raise</span> MaxIterationsError(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Agent exceeded </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>state<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>max_iterations<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> iterations"</span>)</span>
+<span id="cb10-10"></span>
+<span id="cb10-11">    decision <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> llm.invoke(state)</span>
+<span id="cb10-12"></span>
+<span id="cb10-13">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> Command(</span>
+<span id="cb10-14">        update<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"iteration_count"</span>: state.iteration_count <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>},</span>
+<span id="cb10-15">        goto<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>decision.next_action</span>
+<span id="cb10-16">    )</span></code></pre></div></div>
+<p>Alternatively, you can also track specific error types or visited actions to detect stuck states.</p>
+<hr>
+</section>
+</section>
+<section id="pattern-3-human-in-the-loop" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-3-human-in-the-loop">Pattern 3: Human-in-the-Loop</h3>
+<p>This pattern uses <code>interrupt()</code> to pause workflow execution and request human input. Use it when missing data only users can provide, handling ambiguous requests, or making high-stakes decisions.</p>
+<p>The key is to <strong>use <code>interrupt()</code> inside a node to pause execution and compile the workflow with a checkpointer.</strong> Resume by invoking with <code>Command(resume=...)</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.types <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> interrupt, Command</span>
+<span id="cb11-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> langgraph.checkpoint.memory <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> MemorySaver</span>
+<span id="cb11-3"></span>
+<span id="cb11-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> node_with_interrupt(state):</span>
+<span id="cb11-5">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> needs_user_input:</span>
+<span id="cb11-6">        user_data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> interrupt({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"request"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Please provide X"</span>})</span>
+<span id="cb11-7">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> Command(</span>
+<span id="cb11-8">            update<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"field"</span>: user_data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"field"</span>]},</span>
+<span id="cb11-9">            goto<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"node_with_interrupt"</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Recursive until condition met</span></span>
+<span id="cb11-10">        )</span>
+<span id="cb11-11">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Continue normally</span></span>
+<span id="cb11-12">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"result"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"..."</span>}</span>
+<span id="cb11-13"></span>
+<span id="cb11-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Compile with checkpointer (required for interrupt/resume)</span></span>
+<span id="cb11-15">checkpointer <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> MemorySaver()</span>
+<span id="cb11-16">app <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> workflow.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(checkpointer<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>checkpointer)</span>
+<span id="cb11-17"></span>
+<span id="cb11-18"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Part 1: Trigger interrupt</span></span>
+<span id="cb11-19">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> app.invoke(initial_state, config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"configurable"</span>: {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"thread_id"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span>}})</span>
+<span id="cb11-20"></span>
+<span id="cb11-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Part 2: Resume with user input</span></span>
+<span id="cb11-22">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> app.invoke(</span>
+<span id="cb11-23">    Command(resume<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"field"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"user_value"</span>}),</span>
+<span id="cb11-24">    config<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"configurable"</span>: {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"thread_id"</span>: <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span>}}</span>
+<span id="cb11-25">)</span></code></pre></div></div>
+<p>The node detects missing <code>customer_id</code>, calls <code>interrupt()</code> with a request payload, and the workflow pauses and returns the payload to the caller. After the human provides the <code>customer_id</code>, the workflow resumes from the same node with updated state. The node sees that <code>customer_id</code> now exists and continues normally. Note the recursive pattern: the node calls <code>goto="search_docs"</code> (itself) after getting user input, creating a loop until the condition is satisfied. (In LangSmith Studio, you’ll see the workflow paused at the node with the interrupt payload, then the resumed continuation.)</p>
+<p>Use this pattern when you need required data only users have (account IDs, preferences, clarifications), high-risk actions needing approval (delete data, financial transactions), or ambiguous requests needing clarification. Critical requirement: <strong>you must use a checkpointer to maintain memory</strong> of workflow state between invocations.</p>
+<hr>
+</section>
+<section id="pattern-4-unexpected-failures" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-4-unexpected-failures">Pattern 4: Unexpected Failures</h3>
+<p>This pattern logs context then re-raises the exception—don’t catch what you can’t handle. Use it for bugs, edge cases, and critical infrastructure failures. In this case, we <strong>log state context for debugging, then re-raise the exception without attempting recovery</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> node_with_unexpected_errors(state):</span>
+<span id="cb12-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">try</span>:</span>
+<span id="cb12-3">        result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> risky_operation()</span>
+<span id="cb12-4">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"result"</span>: result}</span>
+<span id="cb12-5">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">except</span> UnexpectedError <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> e:</span>
+<span id="cb12-6">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Log context</span></span>
+<span id="cb12-7">        logger.error(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Error: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>e<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, State: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>state<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">dict</span>()<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb12-8">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Re-raise - don't recover</span></span>
+<span id="cb12-9">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">raise</span></span></code></pre></div></div>
+<p>When the node encounters an unexpected error, it logs state context for debugging, re-raises the exception without attempting recovery, and the workflow fails immediately. LangSmith captures the full state at the failure point. (In LangSmith Studio, you’ll see a red error icon on the failed node with the stack trace and state snapshot.)</p>
+<p>Use this pattern for infrastructure failures (database down, API 500 errors), programming bugs (unexpected data types, null references), security violations, or any error where “continuing anyway” would be worse than stopping. Don’t catch exceptions you can’t meaningfully handle—let them bubble up to your monitoring system where they trigger alerts with full context. In production, connect to error monitoring tools like Sentry or Datadog for alerting. LangSmith Studio provides tracing and debugging visibility but isn’t designed for incident response.</p>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>We’ve covered four distinct error handling patterns, each designed for different failure modes. The decision framework boils down to one question: how should the system recover? Transient failures need time, semantic errors need reasoning, missing data needs human input, and unexpected failures need developer attention. Here’s a quick reference mapping common scenarios to their appropriate patterns:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 30%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Scenario</th>
+<th>Pattern</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>API timeout</td>
+<td><span style="color: #0066CC;"><strong>Retry with Backoff</strong></span></td>
+<td>Transient - likely succeeds on retry</td>
+</tr>
+<tr class="even">
+<td>Rate limit (429)</td>
+<td><span style="color: #0066CC;"><strong>Retry with Backoff</strong></span></td>
+<td>Temporary - retry after backoff</td>
+</tr>
+<tr class="odd">
+<td>Database query timeout</td>
+<td><span style="color: #0066CC;"><strong>Retry with Backoff</strong></span></td>
+<td>Connection issue - often resolves quickly</td>
+</tr>
+<tr class="even">
+<td>Third-party service unavailable (503)</td>
+<td><span style="color: #0066CC;"><strong>Retry with Backoff</strong></span></td>
+<td>Service may recover within seconds</td>
+</tr>
+<tr class="odd">
+<td>CRM (Customer Relationship Management) returns error message</td>
+<td><span style="color: #00AA00;"><strong>LLM-Guided Recovery</strong></span></td>
+<td>LLM can adapt response to missing data</td>
+</tr>
+<tr class="even">
+<td>Invalid email format</td>
+<td><span style="color: #00AA00;"><strong>LLM-Guided Recovery</strong></span></td>
+<td>LLM can normalize and retry</td>
+</tr>
+<tr class="odd">
+<td>Malformed JSON in API response</td>
+<td><span style="color: #00AA00;"><strong>LLM-Guided Recovery</strong></span></td>
+<td>LLM can extract data despite formatting issues</td>
+</tr>
+<tr class="even">
+<td>Ambiguous user query</td>
+<td><span style="color: #00AA00;"><strong>LLM-Guided Recovery</strong></span></td>
+<td>LLM can reformulate or add context</td>
+</tr>
+<tr class="odd">
+<td>Missing user preference</td>
+<td><span style="color: #FF8800;"><strong>Human-in-the-Loop</strong></span></td>
+<td>Only user knows their preference</td>
+</tr>
+<tr class="even">
+<td>Delete confirmation</td>
+<td><span style="color: #FF8800;"><strong>Human-in-the-Loop</strong></span></td>
+<td>High-stakes action needs approval</td>
+</tr>
+<tr class="odd">
+<td>Payment amount approval</td>
+<td><span style="color: #FF8800;"><strong>Human-in-the-Loop</strong></span></td>
+<td>Financial decision requires human judgment</td>
+</tr>
+<tr class="even">
+<td>Account ID for lookup</td>
+<td><span style="color: #FF8800;"><strong>Human-in-the-Loop</strong></span></td>
+<td>User-specific data only they can provide</td>
+</tr>
+<tr class="odd">
+<td>Database connection lost</td>
+<td><span style="color: #CC0000;"><strong>Unexpected Failures</strong></span></td>
+<td>Infrastructure issue - can’t recover</td>
+</tr>
+<tr class="even">
+<td>Null reference error</td>
+<td><span style="color: #CC0000;"><strong>Unexpected Failures</strong></span></td>
+<td>Programming bug - needs investigation</td>
+</tr>
+<tr class="odd">
+<td>Authentication service down</td>
+<td><span style="color: #CC0000;"><strong>Unexpected Failures</strong></span></td>
+<td>Critical dependency failure</td>
+</tr>
+<tr class="even">
+<td>Permission denied on resource</td>
+<td><span style="color: #CC0000;"><strong>Unexpected Failures</strong></span></td>
+<td>Security/configuration issue needs fixing</td>
+</tr>
+</tbody>
+</table>
+<p>This guide covered four distinct error handling patterns, each designed for different failure modes. <strong>Retry with Backoff</strong> handles transient failures that resolve automatically with time. <strong>LLM-Guided Recovery</strong> uses the LLM to decide recovery actions for semantic errors that require reasoning. <strong>Human-in-the-Loop</strong> pauses workflow execution when missing data or decisions require human input. <strong>Unexpected Failures</strong> log context and bubble up to developers when the system can’t meaningfully recover.</p>
+<p>LangGraph workflows are compiled, meaning node functions lock in after calling <code>.compile()</code>. To test different behaviors, you must rebuild the workflow with <code>nodes_override</code> to swap in alternative node implementations. This design choice is why modular architecture matters—it enables deterministic testing without polluting production code. Test utilities provide controlled error simulation, making it easy to validate recovery behavior from notebooks or CLI.</p>
+<p>Use LangSmith Studio to observe workflow execution in real-time. It provides execution traces, state inspection at each step, and full context for debugging errors. For production monitoring and alerting, integrate with dedicated tools like Sentry or Datadog—Studio is excellent for development visibility but not designed for incident response.</p>
+<p>Error handling in agent systems is more complex because we have semantic errors that require different recovery patterns than typical software engineering. The key is matching the recovery pattern to error characteristics.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb13-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb13-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2026</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">langgraph</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">error</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">handling</span>,</span>
+<span id="cb13-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb13-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {LangGraph Error Handling Patterns in Production},</span>
+<span id="cb13-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2026},</span>
+<span id="cb13-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {1},</span>
+<span id="cb13-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {12},</span>
+<span id="cb13-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb13-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb13-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-12/},</span>
+<span id="cb13-11">}</span></code></pre></div></div>
+
+
+</section>
+
+ ]]></description>
+  <category>LangGraph</category>
+  <category>AI Agents</category>
+  <category>LLM</category>
+  <category>Production</category>
+  <category>Debugging</category>
+  <guid>https://hongsupshin.github.io/posts/2026-01-12/</guid>
+  <pubDate>Mon, 12 Jan 2026 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2026-01-12/fig.png" medium="image" type="image/png" height="111" width="144"/>
+</item>
 <item>
   <title>Essential qualities of ML tech leads</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -7578,52 +8447,6 @@ font-style: inherit;">1.03</span>)</span>
   <guid>https://hongsupshin.github.io/posts/2021-05-24-ds-volunteering-part1/2021-05-24-Data-Science-Volunteering-Part1.html</guid>
   <pubDate>Mon, 24 May 2021 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2021-05-24-ds-volunteering-part1/index.png" medium="image" type="image/png" height="101" width="144"/>
-</item>
-<item>
-  <title>FAccT 2021. Journalism, data leverage, education, and language models</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<section id="keynote-algorithms-accountability-and-journalism" class="level2">
-<h2 class="anchored" data-anchor-id="keynote-algorithms-accountability-and-journalism">Keynote: Algorithms, Accountability, and Journalism</h2>
-<p>The final keynote was given by Julia Anguin, an investigative journalist and a co-founder of <a href="https://themarkup.org/">The Markup</a>, “a nonprofit newsroom that investigates how powerful institutions are using technology to change our society.” I was already familiar with her body of her because she’s famous for <a href="https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing">her ProPublica article</a> on racial bias in the risk assessment software, COMPAS. Her talk consisted of two parts. First, she talked about how her organization Markup is run and what methods they use to publish investigative journalism reports. Later, she gave several examples of their work from last year, which was mostly on algorithm auditing.</p>
-<p>Markup consists of <strong>engineers and journalists</strong>. It’s interesting to hear her saying that engineers are essentially investigative journalists themselves. They collaborate with journalists in the team but they bring tech expertise to tech reporting. Once Markup has written a report, they have an extensive vetting process (called the “bulletproof” stage) where they actively seek out critiques from various external experts. What’s interesting is that each work product comes with a pair of publications; a news article targeting general public and <strong>an extensively detailed methodological write-up</strong>. They also have established a practice of publishing datasets and codes so that other people can replicate their analysis and apply those to their own projects.</p>
-<p>When she gave examples of their algorithm auditing projects, it was amusing to learn about various novel approaches they have made to probe algorithms. In one project, they simply analyzed search results, but in other projects, they created numerous web accounts to try to reverse-engineer opaque decisions algorithms make. Markup also seemed to put resources into creating tools such as <a href="https://themarkup.org/blacklight">Blacklight</a> that runs privacy tests on virtual browsers for websites to inspect their privacy violations, or <a href="https://themarkup.org/series/citizen-browser">Citizen Browser</a> where volunteer citizens use Markup’s app to scrape data from Facebook so that the team can examine various decisions the Facebook app makes.</p>
-<p>During the Q&amp;A, one memorable remark she made was <strong>all data is political.</strong> Whether it’s leaked, accessed through protocols, or publicly available, data collection starts with a certain intention. She said there’s no national database on police violence in the US, which reveals the political will and intention of the US government, which was revealing. To fight this issue, she said it’s really <strong>important to know the limitations of data and be very transparent about it.</strong></p>
-<p>She mentioned that Markup often tries to co-publish pieces with other news companies for distribution reasons. She said sometimes the process is challenging because these organizations do not have technical experts to review their lengthy methodological write-up. This resonated with me most because this is what I’ve been experiencing while volunteering at a local non-profit. Nevertheless, when one of the audience members asked her about how individual tech workers help, she said the most straightforward way to help journalists it via financially supporting them, especially the local news organizations.</p>
-</section>
-<section id="data-leverage" class="level2">
-<h2 class="anchored" data-anchor-id="data-leverage">Data Leverage</h2>
-<p>In the tech world, there’s a tendency to trivialize data labor. Tech companies also conduct problematic practices to collect data. For the public, who are in a very vulnerable position, what can they do? <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445885"><em>Data Leverage: A Framework for Empowering the Public in its Relationship with Technology Companies</em></a> explores several ways to leverage the fact that we the public are data providers. The defined the data leverage as <strong>power to influence a company held by those who implicitly or explicitly contribute data on which companies rely</strong>. The large goal of identifying data leverage is to give more agency to people. They explore three options; data strike, data poisoning, and conscious data contribution. Each options has its pros and cons and some have more complex legal landscape to navigate. Personally I found <strong>data poisoning</strong> most interesting, which is about inputting fake and random data (somewhat similar to adversarial attacks).</p>
-</section>
-<section id="measurement" class="level2">
-<h2 class="anchored" data-anchor-id="measurement">Measurement</h2>
-<p>Any attempts to address FAccT topics in mathematical models begin with constructing a measurement; we are trying to measure unobservable and abstract concepts. <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445901"><em>Measurement and Fairness</em></a> proposes <strong>measurement modeling framework</strong> in fairness research in computer science. The authors target fairness specifically because fairness itself is an <strong>essentially contested construct</strong>; it’s heavily context-dependent and some constructs are conflicting. Besides, in general, determining which measurements and metrics to use requires extreme caution. To mitigate these problems, the authors came up with two criteria; <strong>construct reliability</strong> and <strong>construct validity</strong>. The former checks whether similar inputs can return similar measurements. The latter checks whether measurements are meaningful and useful such as whether they capture relevant events, or whether the impact from using the measurements has been addressed.</p>
-</section>
-<section id="education" class="level2">
-<h2 class="anchored" data-anchor-id="education">Education</h2>
-<p>Since last year, the conference has been including more papers about ethics education. This year, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445914"><em>“You Can’t Sit With Us”: Exclusionary Pedagogy in AI Ethics Education</em></a> stood out. This survey paper collected more than 250 AI ethics courses in computer science curriculums from more than 100 universities around the world and analyzed the pattern. Sadly, they found a predominant pattern of exclusion in many courses. The authors found this exclusion had many shapes; the discipline not valuing other ways of knowing, lack of collaboration with other disciplines, and lack of interest in learning other’s work. The fact that computer science itself can’t solve AI ethics problems, this seemed very worrisome.</p>
-</section>
-<section id="language-models" class="level2">
-<h2 class="anchored" data-anchor-id="language-models">Language Models</h2>
-<p>What happens when an authoritarian government and AI meet? <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445916"><em>Censorship of Online Encyclopedias: Implications for NLP Models</em></a> explores how censorship in training data influence downstream processes in NLP applications using Chinese language models. One of the dataset they looked into was <a href="https://en.wikipedia.org/wiki/Baidu_Baike">Baidu Baike</a>, a censored language dataset that is often used in Chinese language models. They first checked the word embeddings and examined the position of words such as <em>democracy, surveillance, social control, CCP (Chinese Communist Party)</em> with respect to positive and negative words. They found that <em>democracy</em> often appeared with negative words and the rest in the example were the opposite. They also found similar pattern in a sentiment classification application that uses web news headlines. These results were concerning because as the authors addressed, these applications can be used to monitor public opinion and curate social media posts, essentially as a highly effective propaganda machine in a massive scale.</p>
-<p>For those who’ve been following the news of Timit Gebru, an AI ethics researcher who was fired by Google, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445922"><em>On the Dangers of Stochastic Parrots:Can Language Models Be Too Big?</em></a> was the paper that was at the core. The paper explores potential risks of the current trend in language modeling where researchers and practitioner pay more attention to larger models. As shown in the paper, these models have <strong>billions, sometimes trillions of parameters</strong>. The first risk the authors bring up is environmental and financial cost. Studies have shown that <strong>training a single BERT base model (without tuning) requires as much energy as a trans-American flight</strong>. This gets more problematic if you become aware that <strong>most language models serve English-speaking communities</strong> and the most impacted communities from climate change are not those. There are more sinister risks too such as training data still lacking diversity (i.e., <strong>“big” doesn’t mean “diverse.”</strong>) and lacking oversight, which creates harmful effects. Plus, since many efforts and resources in ML community go into building large language models, other research topics are naturally overlooked. The authors suggest simple mitigation strategies - <strong>step back and think</strong>; evaluate various approaches, ask yourself if we really need large models, and conduct <strong>pre-mortem</strong> analysis.</p>
-
-
-</section>
-
- ]]></description>
-  <category>conference</category>
-  <category>LLM</category>
-  <category>responsible AI</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/</guid>
-  <pubDate>Wed, 10 Mar 2021 06:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
