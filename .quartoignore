@@ -1,0 +1,2 @@
+# Exclude companion code directories from rendering
+posts/*/code/
