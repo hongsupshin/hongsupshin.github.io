@@ -91,6 +91,49 @@
 <p>The uncomfortable truth is that most organizations aren’t ready for comprehensive AI SDKs yet. If you have only a couple of production applications with clear scope and utility (and chances are you don’t even have an application that meets the criteria), you don’t need golden-path abstraction layers. You need engineers building things that actually work and documenting the learning. The SDK comes later, extracted from observed patterns rather than hypothetical needs.</p>
 <p>This requires patience that conflicts with institutional pressure to “scale AI fast.” Leadership wants standardization now. But premature standardization is worse than no standardization at all because it locks in the wrong patterns leading to technical debt, and creates friction that slows down the innovation.</p>
 <p>The question to ask isn’t “Is this SDK technically sound?” but “Have we proven this solves a real problem for actual users?” If you can’t point to specific engineers who asked for specific features based on specific pain points, you’re probably building in isolation. And isolation, however well-intentioned, leads to tools that gather dust.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2026</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">ai</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">sdk</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">adoption</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {The AI SDK Adoption Problem: When Conway's Law Meets AI Engineering},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2026},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {1},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {24},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-24-conway-law/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
