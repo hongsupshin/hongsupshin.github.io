@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2026-01-24">
+<meta name="description" content="Many organizations build AI SDKs before understanding real user needs, leading to low adoption despite technical quality. SDK engineers who embed with solution teams, build actual applications first, and extract patterns from repeated observations achieve organic adoption. The difference is organizational design, not technical capability.">
+
+<title>The AI SDK Adoption Problem: When Conway’s Law Meets AI Engineering – Hongsup Shin</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="The AI SDK Adoption Problem: When Conway’s Law Meets AI Engineering – Hongsup Shin">
+<meta property="og:description" content="Many organizations build AI SDKs before understanding real user needs, leading to low adoption despite technical quality. SDK engineers who embed with solution teams, build actual applications first, and extract patterns from repeated observations achieve organic adoption. The difference is organizational design, not technical capability.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2026-01-24-conway-law/fig.png">
+<meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="994">
+<meta property="og:image:width" content="1122">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">The AI SDK Adoption Problem: When Conway’s Law Meets AI Engineering</h1>
+                  <div>
+        <div class="description">
+          Many organizations build AI SDKs before understanding real user needs, leading to low adoption despite technical quality. SDK engineers who embed with solution teams, build actual applications first, and extract patterns from repeated observations achieve organic adoption. The difference is organizational design, not technical capability.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">AI</div>
+                <div class="quarto-category">SDK-design</div>
+                <div class="quarto-category">engineering-leadership</div>
+                <div class="quarto-category">AIOps</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">January 24, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#conways-law-building-in-isolation" id="toc-conways-law-building-in-isolation" class="nav-link active" data-scroll-target="#conways-law-building-in-isolation">Conway’s Law: Building in Isolation</a></li>
+  <li><a href="#paved-roads-rather-than-golden-paths" id="toc-paved-roads-rather-than-golden-paths" class="nav-link" data-scroll-target="#paved-roads-rather-than-golden-paths">“Paved Roads” Rather Than “Golden Paths”</a></li>
+  <li><a href="#but-we-need-to-scale-fast" id="toc-but-we-need-to-scale-fast" class="nav-link" data-scroll-target="#but-we-need-to-scale-fast">“But We Need to Scale Fast”</a></li>
+  <li><a href="#what-to-focus-sdk-efforts-on" id="toc-what-to-focus-sdk-efforts-on" class="nav-link" data-scroll-target="#what-to-focus-sdk-efforts-on">What to Focus SDK Efforts On</a></li>
+  <li><a href="#concrete-example-what-made-rag-wrapper-work" id="toc-concrete-example-what-made-rag-wrapper-work" class="nav-link" data-scroll-target="#concrete-example-what-made-rag-wrapper-work">Concrete Example: What Made RAG Wrapper Work</a></li>
+  <li><a href="#closing-remarks" id="toc-closing-remarks" class="nav-link" data-scroll-target="#closing-remarks">Closing Remarks</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="https://www.comicagile.net/comic/conways-law/"><img src="fig.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></a></p>
+</figure>
+</div>
+<figcaption>Comic Agile #85: Conway’s Law</figcaption>
+</figure>
+</div>
+<p>Two teams exist in many organizations building AI capabilities: the SDK team builds client libraries and developer tools, and the solutions team builds applications. Both teams want the same thing: successful AI products. But there’s a tension.</p>
+<p>The SDK team asks the solutions team to adopt their tools. The solutions team resists: “Too immature, slows us down. We’ll just use the API directly.” The SDK team can’t mature the tools without production use cases. Meanwhile, internal users/engineers, who are eager to build things quickly, just bypass both teams entirely and use OpenAI or Anthropic APIs directly, sometimes with nothing more than a prompt file and a Python script.</p>
+<p>Both sides are frustrated, and both sides have valid concerns. The SDK team genuinely wants to help because they’re trying to prevent chaos and technical debt. The solutions team isn’t being difficult because they face demands from users and they’re trying to ship products under real deadlines.</p>
+<p>This post examines why internal SDK teams struggle with adoption, even when building technically sound tools, and what actually works based on my experience building and using AI SDKs.</p>
+<section id="conways-law-building-in-isolation" class="level2">
+<h2 class="anchored" data-anchor-id="conways-law-building-in-isolation">Conway’s Law: Building in Isolation</h2>
+<p>The typical model looks like this. An SDK team operates separately from solution teams, building an SDK based on what “users should (or would) want” based on some hypotheses. They push adoption without proving that it solves real problems. Features get built speculatively, before patterns emerge from actual use cases, which naturally creates user alienation and resistance. This isn’t malice—it’s an organizational structure problem. The reasoning seems sound: “We need reusable tooling before use cases proliferate. If we don’t build this now, we’ll have chaos later.”</p>
+<p>But the consequences are predictable. With no production use cases driving requirements, the SDK team keeps building features based on hypotheticals, leading to over-engineering or feature mismatch. Adoption stays low because for solution engineers, this just feels like another unnecessary layer. The cycle repeats.</p>
+<p>The issue isn’t technical capability. The teams are structurally set up to not collaborate effectively. Whether the motivation for an SDK is vendor independence, cost governance, or developer experience, the adoption problem remains the same: you can’t build a good SDK for a problem space you haven’t explored through real applications. One would say we can still build an SDK for general features, but then why would we need this additional layer in the first place?</p>
+<p><a href="https://en.wikipedia.org/wiki/Conway%27s_law">Conway’s Law</a> is at work here. Team boundaries create tool boundaries. When SDK engineers operate in isolation, they build isolated tools.</p>
+</section>
+<section id="paved-roads-rather-than-golden-paths" class="level2">
+<h2 class="anchored" data-anchor-id="paved-roads-rather-than-golden-paths">“Paved Roads” Rather Than “Golden Paths”</h2>
+<p>The alternative approach requires <strong>SDK engineers to embed with solution teams and build 2-3 real applications themselves first</strong>. SDK engineers can extract common patterns into an SDK after they see repetition across use cases. Then, they bring their SDK to maturity by continuing to apply and validate it with new and existing use cases. This embedding approach creates an <strong>immediate feedback loop</strong>. SDK engineers experience user pain firsthand, not through filtered feature requests. When they’ve used their own tools in production, credibility and adoption come naturally. The solutions team sees them as peers who understand their constraints, not outsiders pushing tools.</p>
+<p>This connects to an important engineering concept: <a href="https://mia-platform.eu/blog/paved-roads-golden-paths-guardrails-railroads/">“paved road” vs.&nbsp;“golden path.”</a></p>
+<ul>
+<li><strong>Golden path</strong> provides one blessed way. High opinions, low flexibility. The SDK makes strong assumptions about your workflow and enforces them.</li>
+<li><strong>Paved road</strong> makes the right thing easy but doesn’t prevent alternatives. Lower opinions, high flexibility. The SDK helps you do common things quickly but doesn’t lock you in.</li>
+</ul>
+<p>Both have pros and cons, but <strong>for AI development, paved roads are the better choice</strong>, at least initially. LLM APIs, frameworks, and best practices shift rapidly, and the whole process requires experimentation: trying different retrieval strategies, testing model combinations, iterating on evaluation approaches. Golden paths lock in workflows before understanding their true utilities. In large organizations, they often become bureaucratic blockers that slow down the very innovation they’re meant to enable.</p>
+<p>But paved roads alone can invite chaos. This is where <strong>guardrails</strong> come in: automated safety nets that constrain consequences without constraining methods. For instance, cost controls like budget alerts and rate limiting prevent runaway spending. Security and compliance measures like audit trails and PII detection prevent data leaks. Observability provides visibility into what’s happening across applications. These guardrails don’t dictate <em>how</em> engineers build. Rather, they protect against what can go wrong.</p>
+<p>Golden paths would make sense later once patterns have stabilized and standardization provides clear value. Organizations fail when they try to build mature-stage SDKs at early-stage maturity. If you have fewer than five clear production use cases with high utility, you might not need a comprehensive SDK with golden paths. You need to focus on building applications that work, and pay attention to what hurts.</p>
+</section>
+<section id="but-we-need-to-scale-fast" class="level2">
+<h2 class="anchored" data-anchor-id="but-we-need-to-scale-fast">“But We Need to Scale Fast”</h2>
+<p>This advice sounds reasonable for small teams. But what about organizations that need to scale AI adoption quickly?</p>
+<p>Let’s be real: the pressure is on. Many companies want to ramp up AI across their organizations quickly. They have dozens of ML engineers or data scientists, who need to transition to AI engineering. Every team wants AI work, and leadership is expecting 10x returns on their LLM investments. The tempting response is to build the SDK first so everyone has something to standardize around. But it actually makes things worse because you’re locking in abstractions before understanding the problem space.</p>
+<p>The key is to <strong>deploy AI engineers to highest-priority use cases immediately without waiting for the SDK</strong>. Let them document pain points as they build. After 2-3 apps ship, they will see real patterns, and can extract those specific things. They can then start building focused utilities that address observed pain. Starting with the smallest thing that provides value always works.</p>
+<p>I would also suggest not to create a separate SDK team. It is much better to have <strong>engineer rotation between app and SDK work</strong>, which builds organic collaboration, robust team knowledge, and empathy, all at once. For instance, engineers spend a month building an app, then spend the next month extracting patterns into shared tooling, then back to a new app. This rotation keeps SDK work grounded in reality. Engineers understand both perspectives because they’ve lived both.</p>
+<p>But more importantly, management must understand that <strong>project selection requires ruthlessness.</strong> Not all “high priority” projects are actually good candidates for early AI work. Good candidates have clear, bounded scope, not wishlist-type scope creep. They have easily measurable results and eval setup that can be iterated fast. Most importantly, they need engaged domain experts who collaborate actively, not senior stakeholders who over-promise and then disappear. And these criteria should create healthy competition across teams. Teams that can’t provide clear scopes aren’t suitable for ML/AI adoption. It’s better to learn this early than to commit engineers to projects destined to fail. Organizations that try to skip this learning phase end up rebuilding their SDKs after real applications expose the mismatches.</p>
+</section>
+<section id="what-to-focus-sdk-efforts-on" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-focus-sdk-efforts-on">What to Focus SDK Efforts On</h2>
+<p>This doesn’t mean all early SDK work is bad. The <strong>guardrails</strong> discussed earlier are exactly what SDK teams should focus on first; automated safety nets that protect without constraining how engineers build. In my experience, some areas provide high value with low controversy:</p>
+<p><strong>Observability and telemetry are good starting points.</strong> They address a universal need non-intrusively: cost tracking per query/user/project, performance monitoring for latency/token usage/error rates, and so on. You can add these via decorators without refactoring user code. For example, OpenTelemetry-based instrumentation that wraps any module gives teams visibility without forcing them to change their application logic.</p>
+<p><strong>Governance and compliance become critical as applications mature.</strong> Audit trails for all LLM interactions, data sanitization and PII detection against potential leaks, budget alerts and spend tracking to prevent cost spirals, and access control and rate limiting against abuse. These protections make everyone’s life easier and guarantee compliance.</p>
+<p><strong>Developer experience (DX) improvements should focus on reducing friction.</strong> Config templates encode best practices so engineers don’t start from scratch. Better error messages with actionable guidance instead of cryptic stack traces. Idempotency checks prevent duplicate operations. None of these are glamorous, but they’re what engineers actually thank you for.</p>
+<p>But I’d recommend NOT abstracting:</p>
+<p><strong>LLM provider APIs</strong> are too volatile because they change weekly. Let <a href="https://docs.litellm.ai/docs/">LiteLLM</a> or <a href="https://openrouter.ai/">OpenRouter</a> or similar tools handle this. Your abstraction will lag behind updates and become a bottleneck.</p>
+<p><strong>Vector database query languages</strong> are evolving rapidly. Whatever abstraction you build will be outdated within months. Give users direct access.</p>
+<p><strong>Framework-specific patterns</strong> like LangChain or LlamaIndex are moving targets. Don’t wrap them. If users choose those frameworks, they’ve already accepted that dependency.</p>
+<p>The principle I’ve found helpful: abstract stable interfaces (authentication, observability, governance) from volatile ones (LLM APIs, retrieval strategies). The SDK should make the boring stuff invisible and stay out of the way for the interesting stuff.</p>
+</section>
+<section id="concrete-example-what-made-rag-wrapper-work" class="level2">
+<h2 class="anchored" data-anchor-id="concrete-example-what-made-rag-wrapper-work">Concrete Example: What Made RAG Wrapper Work</h2>
+<p>In my experience building AI SDKs, I developed a RAG wrapper library that got organic adoption from engineers despite broader SDK adoption challenges in the organization. When I joined the solutions team after my SDK work, I experienced the resistance to the broader adoption firsthand. Engineers saw it as “yet another layer to learn” with unclear benefits. The SDK team had skipped the teaching phase entirely (releasing docs and expecting adoption without demonstrating value or dogfooding their own tools).</p>
+<p>Fortunately, before building the wrapper, I worked with teams building RAG applications. After helping build several different pipelines, patterns emerged. Teams spent hours on boilerplate setup, copying similar code between projects. Every team needed custom preprocessing, but in slightly different ways depending on their document types. This experience helped me build these features:</p>
+<p><strong>Config-based quick start</strong> emerged from watching teams copy-paste the same 50 lines of setup code. Engineers could get a working RAG pipeline in minutes with YAML config instead of learning a new API. Lower barrier meant more people would try it.</p>
+<p><strong>Extensibility via custom preprocessors</strong> came after the third team asked “can I customize just the chunking logic?” Inspired by sklearn’s pipeline pattern (familiar to ML engineers and data scientists), users could build their own preprocessing pipeline through the config while keeping the rest of the workflow standard.</p>
+<p><strong>Idempotency and duplicate detection</strong> came from debugging a team’s duplicate content issue that caused retrieval quality and eval data contamination problems. Content hashing at ingestion time prevented duplicate uploads and flagged potential training/validation data leakage, turning this into a safety net.</p>
+<p><strong>Product mindset for internal tools</strong> meant treating it like a real product. As a firm believer of good communication, I provided detailed documentation with live step-by-step demos, structured feature requests, and 1:1 support conversations to understand needs before and after building.</p>
+<p>The value proposition was straightforward because it had <strong>lower activation energy</strong> than learning LangChain or LlamaIndex from scratch, but <strong>more structure than raw API calls</strong>. Engineers could start with a standard pipeline in minutes, then customize specific components (embeddings, chunking, retrieval strategy) without learning an entire framework. For teams that needed RAG but didn’t want to become LangChain experts, this was the middle path.</p>
+<p>Adoption happened organically. A few engineers experimented, found it useful, and told others. The features that got the most use were ones I have built to solve friction I have experienced myself. The library wasn’t comprehensive but it did address real pain points users hit repeatedly.</p>
+</section>
+<section id="closing-remarks" class="level2">
+<h2 class="anchored" data-anchor-id="closing-remarks">Closing Remarks</h2>
+<p>The most common mistake organizations make with AI SDKs is treating them as technical problems when they’re actually organizational design problems. You can hire the best engineers, give them all the resources, and still fail if the team structure doesn’t support collaboration between builders and users.</p>
+<p>The uncomfortable truth is that most organizations aren’t ready for comprehensive AI SDKs yet. If you have only a couple of production applications with clear scope and utility (and chances are you don’t even have an application that meets the criteria), you don’t need golden-path abstraction layers. You need engineers building things that actually work and documenting the learning. The SDK comes later, extracted from observed patterns rather than hypothetical needs.</p>
+<p>This requires patience that conflicts with institutional pressure to “scale AI fast.” Leadership wants standardization now. But premature standardization is worse than no standardization at all because it locks in the wrong patterns leading to technical debt, and creates friction that slows down the innovation.</p>
+<p>The question to ask isn’t “Is this SDK technically sound?” but “Have we proven this solves a real problem for actual users?” If you can’t point to specific engineers who asked for specific features based on specific pain points, you’re probably building in isolation. And isolation, however well-intentioned, leads to tools that gather dust.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/hongsupshin\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
