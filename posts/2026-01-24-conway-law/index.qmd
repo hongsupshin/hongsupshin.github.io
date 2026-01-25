@@ -102,3 +102,21 @@ The uncomfortable truth is that most organizations aren't ready for comprehensiv
 This requires patience that conflicts with institutional pressure to "scale AI fast." Leadership wants standardization now. But premature standardization is worse than no standardization at all because it locks in the wrong patterns leading to technical debt, and creates friction that slows down the innovation.
 
 The question to ask isn't "Is this SDK technically sound?" but "Have we proven this solves a real problem for actual users?" If you can't point to specific engineers who asked for specific features based on specific pain points, you're probably building in isolation. And isolation, however well-intentioned, leads to tools that gather dust.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2026-ai-sdk-adoption,
+    author = {Hongsup Shin},
+    title = {The AI SDK Adoption Problem: When Conway's Law Meets AI Engineering},
+    year = {2026},
+    month = {1},
+    day = {24},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2026-01-24-conway-law/},
+}
+```
