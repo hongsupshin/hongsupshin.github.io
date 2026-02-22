@@ -1,0 +1,174 @@
+---
+title: "The Corpus-Provenance Gap in RAG Evaluation"
+author: "Hongsup Shin"
+date: 2026-02-22
+description: "RAG evaluation tooling versions prompts, model configurations, and scores, but not the retrieval corpus. When eval data are generated from documents already in the vector store, scores are inflated by construction. This post addresses this corpus-eval contamination, and proposes a content hashing pattern to detect and prevent it at three levels of effort."
+image: "fig.png"
+categories:
+  - RAG
+  - evaluation
+  - LLMOps
+  - data-provenance
+toc: true
+---
+
+A widespread pattern in RAG evaluation is to generate QA pairs from the same or overlapping documents that populate the retrieval corpus. The evaluation scores often look encouraging, but after deployment, users report hallucinations and confidently wrong answers at a rate the evaluation did not predict. The root cause is often that every eval question has a matching document in the store by construction, so the evaluation never tests partial-match scenarios, out-of-distribution queries, or questions where the appropriate response is "I don't have enough information." This **corpus-eval contamination** is well-understood in supervised ML as train/test contamination. In RAG evaluation, the same principle applies but the tooling does not surface it.
+
+This post proposes a lightweight content hashing pattern that gives teams corpus-level awareness: the ability to know what was in the vector store when an evaluation ran, detect overlap between eval QA sources and the retrieval corpus, and construct out-of-distribution tests deliberately. This is not a new idea; it is a transfer of train/test discipline from supervised ML, and several recent papers address overlapping concerns. The sections that follow first review the relevant literature and the current evaluation tooling landscape, then describe practical mitigations at three levels of effort.
+
+## The Analogy to Train/Test Contamination
+
+In supervised ML, the train/test split is foundational, and contamination between the two is among the first pitfalls any practitioner learns to avoid. Temporal splits, group-aware splits, and distribution shift testing all exist to handle subtler versions of this problem.
+
+In RAG, the retrieval corpus plays a role analogous to training data, and the evaluation QA set serves as the test set. When there's an overlap between the two, the split is effectively contaminated. The system will retrieve plausible content for every eval question, inflating faithfulness and context recall scores. Effectively, we are measuring the system's ability to look up answers that are guaranteed to exist.
+
+### Related Work
+
+Several 2025 papers address RAG contamination, primarily from the **memorization angle** such as whether the LLM already knows the answer from pretraining and does not actually need retrieval. [RePCS](https://arxiv.org/abs/2506.15513) proposes a retrieval-path contamination score. [HybridRAG-Bench](https://arxiv.org/abs/2602.10210) uses time-framed corpora to reduce pretraining overlap. [DRAGOn](https://arxiv.org/abs/2507.05713) demonstrates non-reproducibility when corpora evolve over time. 
+
+These papers address overlapping concerns. DRAGOn in particular asks how to verify what was in the store when an evaluation ran. HybridRAG-Bench's use of time-framed corpus snapshots is also a form of corpus-level control for evaluation validity. [RAGOps paper](https://arxiv.org/abs/2506.03401) supports the framing here, noting that current LLMOps tools focus on model and prompt management while offering limited support for data-related aspects of RAG systems. 
+
+## A Landscape Review: What Gets Versioned and What Does Not
+
+There appears to be a structural gap at the boundary between two tooling categories: evaluation platforms and vector stores, each of which addresses part of the problem.
+
+### Evaluation Platforms
+
+Modern evaluation platforms are capable experiment management tools. They version **prompts, scores, model configurations, and evaluation datasets**.
+
+[Braintrust](https://www.braintrust.dev/) tracks full lineage per experiment: dataset version, prompt version, model configuration, and judge settings. [LangSmith](https://www.langchain.com/langsmith) provides per-query trace-level visibility into which documents were retrieved, along with dataset versioning for test cases. [Langfuse](https://langfuse.com/) shipped dataset item versioning in late 2025, automatically tying experiments to the exact dataset state at run time. [W&B Weave](https://wandb.ai/site/weave) versions code via `@weave.op()` decorators alongside model parameters, datasets, and scorers. [Arize Phoenix](https://phoenix.arize.com/) offers corpus embedding extraction and visualization — the closest any evaluation tool comes to corpus awareness, though as post-hoc analysis rather than provenance. These tools address the problems they were designed for, and they do so effectively.
+
+#### What Remains Unversioned
+
+The retrieval corpus state at evaluation time. In reviewing seven tools ([Braintrust](https://www.braintrust.dev/), [LangSmith](https://www.langchain.com/langsmith), [Langfuse](https://langfuse.com/), [W&B Weave](https://wandb.ai/site/weave), [Arize Phoenix](https://phoenix.arize.com/), [Promptfoo](https://www.promptfoo.dev/), and [Maxim](https://www.getmaxim.ai/)), I could not find one that can answer **"What documents were in the vector store when this evaluation ran?"**
+
+The concept of a **unified evaluation environment fingerprint** (a single hash capturing vector store contents, embedding model version, chunking parameters, and retrieval configuration) does not appear in any of these tools' documentation as of this writing (Feb 2026). Prompts, models, eval datasets, and scoring criteria can all be versioned. The data the system retrieves from cannot.
+
+### Data Versioning Tools
+
+[lakeFS](https://lakefs.io/) provides git-like branching and commits for data lakes. As of early 2026, it has shipped a LanceDB integration, built a LangChain document loader, and acquired DVC in late 2025. It can version data effectively. However, connecting a lakeFS commit ID to an evaluation run in Braintrust or Langfuse requires custom engineering. I have not found a documented standard pattern for this integration.
+
+[Deep Lake](https://www.activeloop.ai/) (Activeloop) offers built-in version control at the storage format level with time-travel capabilities. It has expanded its RAG support with Deep Memory, Deep Lake 4.0, and a PostgreSQL integration. It can version corpus data, but similarly lacks integration with evaluation frameworks to bind corpus versions to evaluation runs.
+
+The gap seems to exist because versioning tools can version data, evaluation tools can version experiments, but **the connection between the two for RAG evaluation is not yet standardized**. The problem is not on either side alone. To my knowledge, no existing system currently provides automatic corpus fingerprinting at evaluation time, immutable eval-corpus binding, diff-aware re-evaluation triggered by corpus changes, corpus-version comparison dashboards, or CI/CD gates on corpus quality regressions. These would be straightforward extensions of what evaluation tools already do. They have simply not been built yet, likely because the corpus has been treated as outside the evaluation tool's scope.
+
+## Practical Mitigations
+
+Rather than jumping to an infrastructure solution, I think the most useful starting point is a diagnostic. In my experience, teams are more motivated to build systematic tooling after discovering that their current evaluation has a concrete problem.
+
+### Level 1: Diagnostics (Zero Infrastructure)
+
+Three questions to ask about a current evaluation setup:
+
+#### Source Overlap Check
+
+Were the eval QA pairs generated from documents that are currently in the retrieval corpus? If so, what percentage of the eval set has a source document in the store? This is a manual audit: pull the eval dataset, trace where the questions originated, and check whether those source documents are present in the store. In my experience, many teams have not done this, and the overlap is often 100%.
+
+#### The Abstention ("I Don't Know") Test
+
+What percentage of eval questions are genuinely unanswerable from the current corpus? If the answer is zero, the evaluation only measures the happy path. Running 10–20 questions that are known not to be covered by the documents can reveal whether the system hallucinates, hedges, or correctly abstains. To be honest, this is not common practice even among teams with mature evaluation workflows. I had the infrastructure to support this test in a system I built, and it was still never exercised in practice. The gap between recognizing its value and actually doing it is real.
+
+#### The Silent Drift Check
+
+Has the corpus changed since the last evaluation? If new documents have been ingested, old ones deleted, or existing content re-chunked, the previous eval scores describe a system configuration that no longer exists.
+
+### Level 2: Lightweight Instrumentation
+
+For teams that want to address this without adopting new infrastructure:
+
+#### Tag Eval QA Pairs with Source Document Identifiers
+
+Even filenames suffice. When running an evaluation, log which source documents the QA pairs came from. This enables a minimum viable contamination check: if a QA pair's source document is also in the retrieval corpus, flag it.
+
+#### Hash the Corpus at Evaluation Time
+
+Before each eval run, compute a single aggregate hash over the store's contents, even a sorted list of document filenames hashed together. Log it alongside the eval scores. When comparing two evaluation runs, this at least indicates whether the corpus was identical. This is approximate, but substantially better than having no record at all.
+
+#### Split the Eval Set Deliberately
+
+Remove a certain portion (e.g., 20%) of source documents from the store and generate eval questions only from those excluded documents. These serve as out-of-distribution questions. If the system's faithfulness score drops meaningfully on this subset, the magnitude of contamination-driven score inflation becomes quantifiable. 
+
+**A practical note.** The ease of implementation varies by vector store architecture. Self-hosted stores where documents can be enumerated make this straightforward. Managed APIs (such as OpenAI's Assistants API) where file IDs can be listed but content cannot be efficiently hashed require additional workarounds.
+
+### Level 3: The Full Pattern
+
+For teams building evaluation infrastructure, the systematic version of Level 2 can be designed for durability.
+
+A brief note on what vector stores do and do not provide, since this motivates the pattern. Most major vector databases (Pinecone, Qdrant, Chroma, pgvector) offer ID-based upsert: upserting with the same ID produces an update, not a duplicate. But the common RAG ingestion pattern uses auto-generated IDs, so the same document uploaded twice creates two records. More importantly, ID-based upsert tells you nothing about what content is in the store. [Weaviate's `generate_uuid5()`](https://docs.weaviate.io/weaviate/manage-objects/create#generate-deterministic-ids) is an exception because it produces deterministic UUIDs from object content. But it is opt-in and operates at the document level, not as a corpus-level feature. This landscape moves quickly, and I would encourage readers to verify against current documentation.
+
+#### The Content Hashing Pattern
+
+SHA-256 hash each document's content at ingestion time and maintain a manifest mapping file paths to content hashes and upload timestamps. 
+
+It is worth being explicit about two levels of hashing here, since the post uses both. *Document-level hashing* (one hash per file) is the foundation. It enables deduplication and answers the question "is this specific document in the store?" *Corpus-level fingerprinting* is derived from the document hashes, and it represents an aggregate hash or manifest snapshot over all documents currently in the store. It answers a different question: "has the overall state of the store changed since the last evaluation run?" 
+
+The contamination detection use case depends on *document-level awareness*; the "did my corpus drift between eval runs?" check depends on corpus-level fingerprinting. Document-level hashing is, I believe, the appropriate abstraction for the contamination question. The relevant question is "is the source information present in the store when this eval ran?" not "how is it chunked?" A document chunked into 256-token or 1024-token pieces contains the same source information; an eval QA pair generated from that document is answerable in either case. This pattern provides three capabilities:
+
+**Corpus fingerprinting.** A single aggregate hash or manifest snapshot representing what was in the store at evaluation time. Binding this to each evaluation run alongside prompt version and model configuration gives every result a data provenance record.
+
+**Contamination detection.** Comparing the source documents for eval QA pairs against the corpus manifest. Any document used to generate QA and also present in the retrieval corpus at evaluation time can be flagged as potential contamination. This is a mechanical check.
+
+**Out-of-distribution evaluation construction.** Deliberately excluding a subset of documents from the store, generating questions from those excluded documents, and verifying the system declines gracefully rather than hallucinating. Without a manifest, this is difficult to do reliably.
+
+## What I Learned Building This
+
+I built a system along these lines while working on an internal RAG SDK at work. The content hashing manifest was originally motivated by deduplication and rollback safety, but it turned out to also serve as the foundation for evaluation provenance. The three capabilities above emerged from infrastructure that already existed for ingestion integrity. This is perhaps the most useful insight from that experience: if corpus awareness is built into the ingestion layer, evaluation provenance comes at relatively low additional cost.
+
+These pieces, combined with structured execution logs, form what I think of as a reproducibility layer. The content hashing manifest provides data provenance because it's a record of what is in the store at any point. An evaluation environment snapshot (combining configuration, content, and prompt hashes) provides environment tracking, making any result traceable to its full configuration. Structured execution logs such as recording the query, retrieved documents, assembled prompt, and generated answer for each request, provide execution provenance. Together, these three components cover the dimensions needed to reproduce a past evaluation. They are not typically connected into an automated workflow, but the artifacts are inexpensive to produce if considered at ingestion time rather than retrofitted later.
+
+## Limitations
+
+Content hashing is lightweight and effective for the contamination problem, but it has real boundaries that are worth stating clearly.
+
+The aggregate fingerprint is O(n) at evaluation time. Computing a corpus-level hash requires reading every entry in the manifest. At hundreds or low thousands of documents, this is trivial. At hundreds of thousands, **incremental computation** (e.g., a Merkle tree updated on each ingestion) becomes necessary. This is solvable but represents a different class of engineering effort.
+
+A single-file manifest does not support **distributed writers**. Atomic temp-file-then-rename writes work for a single machine with a single ingestion process. Multiple services writing to the same vector store require a database-backed manifest or distributed coordination.
+
+**Near-duplicates** are invisible to content hashing. SHA-256 catches exact matches only. The same document with a different header, trailing whitespace, or encoding produces a different hash. Addressing semantic near-duplicates would require embedding-level similarity at ingestion time, a fundamentally different cost profile. The manifest tracks identical content, not semantically redundant content.
+
+For teams that work with hundreds to low-thousands of documents, running evaluations periodically, with a single ingestion pipeline, the pattern should work within these boundaries. Teams at larger scale should treat it as a starting point rather than a complete solution.
+
+## Suggestions for the Ecosystem
+
+I want to be careful about positioning here. This is intended as a suggestion to existing tool builders, not a claim to have solved the problem comprehensively. Score tracking, dashboards, annotation workflows, prompt versioning, and experiment comparison are mature capabilities in tools like Braintrust, Langfuse, and LangSmith. These should not be rebuilt.
+
+What appears to be missing is a metadata interface. Evaluation tools could accept a corpus-state fingerprint alongside prompt version and model configuration. The ingestion pipeline or SDK would emit this metadata; the evaluation tool would record and surface it.
+
+The minimum viable version might be a `corpus_hash` field on evaluation runs, displayed in experiment comparison views. When two experiments have different corpus hashes, the tool could flag that the underlying data differed. Even this single field, if surfaced in the right context, could meaningfully change how teams interpret their evaluation results.
+
+A more complete vision might include corpus-version comparison dashboards, CI/CD gates on corpus quality regressions, and diff-aware re-evaluation triggered by corpus changes. These are natural extensions of experiment management into the data dimension, and I suspect they are not prohibitively expensive to build for teams that already have the experiment infrastructure in place.
+
+The underlying observation is straightforward: evaluation tools already version most aspects of the evaluation environment except the data the system retrieves from. Closing that gap does not require a paradigm shift and I believe it requires one additional metadata field and the discipline to populate it.
+
+## Summary
+
+The idea in this post is not novel. It is a transfer of a well-established mental model (train/test contamination) from supervised ML to RAG evaluation. And from my understanding, the RAG ecosystem has not yet inherited the tooling to detect and prevent this kind of contamination at the corpus level. The gap seems to be real, but it is also addressable with relatively modest engineering effort.
+
+If this post is useful, it will be for the Level 1 diagnostic. Running a source overlap check, testing out-of-distribution questions, and verifying that the corpus has not drifted since the last evaluation are all things that can be done immediately and at no cost. Most teams, in my experience, find the results informative.
+
+Content hashing is not exotic infrastructure. Logging a corpus fingerprint alongside evaluation scores is a small amount of work. Whether the ecosystem will converge on treating the retrieval corpus with the same discipline applied to training data remains to be seen, but the technical barriers are low.
+
+## References
+
+- Xu, F. et al. (2025). "RAGOps: Managing Data in Retrieval-Augmented Generation Systems." arXiv:2506.03401. CSIRO, TU Munich, Fraunhofer.
+- RePCS (2025). "Retrieval-Path Contamination Scoring." arXiv:2506.15513.
+- HybridRAG-Bench (2025). "Benchmarking RAG with Time-Framed Corpora." arXiv:2602.10210.
+- DRAGOn (2025). "Non-Reproducibility with Evolving Corpora in RAG." arXiv:2507.05713.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2026-rag-corpus-provenance,
+    author = {Hongsup Shin},
+    title = {The Corpus-Provenance Gap in RAG Evaluation},
+    year = {2026},
+    month = {2},
+    day = {22},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/},
+}
+```

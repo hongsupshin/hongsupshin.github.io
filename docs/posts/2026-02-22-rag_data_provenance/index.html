@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.24">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hongsup Shin">
+<meta name="dcterms.date" content="2026-02-22">
+<meta name="description" content="RAG evaluation tooling versions prompts, model configurations, and scores, but not the retrieval corpus. When eval data are generated from documents already in the vector store, scores are inflated by construction. This post addresses this corpus-eval contamination, and proposes a content hashing pattern to detect and prevent it at three levels of effort.">
+
+<title>The Corpus-Provenance Gap in RAG Evaluation – Hongsup Shin</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="The Corpus-Provenance Gap in RAG Evaluation – Hongsup Shin">
+<meta property="og:description" content="RAG evaluation tooling versions prompts, model configurations, and scores, but not the retrieval corpus. When eval data are generated from documents already in the vector store, scores are inflated by construction. This post addresses this corpus-eval contamination, and proposes a content hashing pattern to detect and prevent it at three levels of effort.">
+<meta property="og:image" content="https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/fig.png">
+<meta property="og:site_name" content="Hongsup Shin">
+<meta property="og:image:height" content="1322">
+<meta property="og:image:width" content="1272">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hongsup Shin</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/hongsupshin"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/hongsupshin/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">The Corpus-Provenance Gap in RAG Evaluation</h1>
+                  <div>
+        <div class="description">
+          RAG evaluation tooling versions prompts, model configurations, and scores, but not the retrieval corpus. When eval data are generated from documents already in the vector store, scores are inflated by construction. This post addresses this corpus-eval contamination, and proposes a content hashing pattern to detect and prevent it at three levels of effort.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">RAG</div>
+                <div class="quarto-category">evaluation</div>
+                <div class="quarto-category">LLMOps</div>
+                <div class="quarto-category">data-provenance</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hongsup Shin </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 22, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-analogy-to-traintest-contamination" id="toc-the-analogy-to-traintest-contamination" class="nav-link active" data-scroll-target="#the-analogy-to-traintest-contamination">The Analogy to Train/Test Contamination</a>
+  <ul class="collapse">
+  <li><a href="#related-work" id="toc-related-work" class="nav-link" data-scroll-target="#related-work">Related Work</a></li>
+  </ul></li>
+  <li><a href="#a-landscape-review-what-gets-versioned-and-what-does-not" id="toc-a-landscape-review-what-gets-versioned-and-what-does-not" class="nav-link" data-scroll-target="#a-landscape-review-what-gets-versioned-and-what-does-not">A Landscape Review: What Gets Versioned and What Does Not</a>
+  <ul class="collapse">
+  <li><a href="#evaluation-platforms" id="toc-evaluation-platforms" class="nav-link" data-scroll-target="#evaluation-platforms">Evaluation Platforms</a></li>
+  <li><a href="#data-versioning-tools" id="toc-data-versioning-tools" class="nav-link" data-scroll-target="#data-versioning-tools">Data Versioning Tools</a></li>
+  </ul></li>
+  <li><a href="#practical-mitigations" id="toc-practical-mitigations" class="nav-link" data-scroll-target="#practical-mitigations">Practical Mitigations</a>
+  <ul class="collapse">
+  <li><a href="#level-1-diagnostics-zero-infrastructure" id="toc-level-1-diagnostics-zero-infrastructure" class="nav-link" data-scroll-target="#level-1-diagnostics-zero-infrastructure">Level 1: Diagnostics (Zero Infrastructure)</a></li>
+  <li><a href="#level-2-lightweight-instrumentation" id="toc-level-2-lightweight-instrumentation" class="nav-link" data-scroll-target="#level-2-lightweight-instrumentation">Level 2: Lightweight Instrumentation</a></li>
+  <li><a href="#level-3-the-full-pattern" id="toc-level-3-the-full-pattern" class="nav-link" data-scroll-target="#level-3-the-full-pattern">Level 3: The Full Pattern</a></li>
+  </ul></li>
+  <li><a href="#what-i-learned-building-this" id="toc-what-i-learned-building-this" class="nav-link" data-scroll-target="#what-i-learned-building-this">What I Learned Building This</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  <li><a href="#suggestions-for-the-ecosystem" id="toc-suggestions-for-the-ecosystem" class="nav-link" data-scroll-target="#suggestions-for-the-ecosystem">Suggestions for the Ecosystem</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>A widespread pattern in RAG evaluation is to generate QA pairs from the same or overlapping documents that populate the retrieval corpus. The evaluation scores often look encouraging, but after deployment, users report hallucinations and confidently wrong answers at a rate the evaluation did not predict. The root cause is often that every eval question has a matching document in the store by construction, so the evaluation never tests partial-match scenarios, out-of-distribution queries, or questions where the appropriate response is “I don’t have enough information.” This <strong>corpus-eval contamination</strong> is well-understood in supervised ML as train/test contamination. In RAG evaluation, the same principle applies but the tooling does not surface it.</p>
+<p>This post proposes a lightweight content hashing pattern that gives teams corpus-level awareness: the ability to know what was in the vector store when an evaluation ran, detect overlap between eval QA sources and the retrieval corpus, and construct out-of-distribution tests deliberately. This is not a new idea; it is a transfer of train/test discipline from supervised ML, and several recent papers address overlapping concerns. The sections that follow first review the relevant literature and the current evaluation tooling landscape, then describe practical mitigations at three levels of effort.</p>
+<section id="the-analogy-to-traintest-contamination" class="level2">
+<h2 class="anchored" data-anchor-id="the-analogy-to-traintest-contamination">The Analogy to Train/Test Contamination</h2>
+<p>In supervised ML, the train/test split is foundational, and contamination between the two is among the first pitfalls any practitioner learns to avoid. Temporal splits, group-aware splits, and distribution shift testing all exist to handle subtler versions of this problem.</p>
+<p>In RAG, the retrieval corpus plays a role analogous to training data, and the evaluation QA set serves as the test set. When there’s an overlap between the two, the split is effectively contaminated. The system will retrieve plausible content for every eval question, inflating faithfulness and context recall scores. Effectively, we are measuring the system’s ability to look up answers that are guaranteed to exist.</p>
+<section id="related-work" class="level3">
+<h3 class="anchored" data-anchor-id="related-work">Related Work</h3>
+<p>Several 2025 papers address RAG contamination, primarily from the <strong>memorization angle</strong> such as whether the LLM already knows the answer from pretraining and does not actually need retrieval. <a href="https://arxiv.org/abs/2506.15513">RePCS</a> proposes a retrieval-path contamination score. <a href="https://arxiv.org/abs/2602.10210">HybridRAG-Bench</a> uses time-framed corpora to reduce pretraining overlap. <a href="https://arxiv.org/abs/2507.05713">DRAGOn</a> demonstrates non-reproducibility when corpora evolve over time.</p>
+<p>These papers address overlapping concerns. DRAGOn in particular asks how to verify what was in the store when an evaluation ran. HybridRAG-Bench’s use of time-framed corpus snapshots is also a form of corpus-level control for evaluation validity. <a href="https://arxiv.org/abs/2506.03401">RAGOps paper</a> supports the framing here, noting that current LLMOps tools focus on model and prompt management while offering limited support for data-related aspects of RAG systems.</p>
+</section>
+</section>
+<section id="a-landscape-review-what-gets-versioned-and-what-does-not" class="level2">
+<h2 class="anchored" data-anchor-id="a-landscape-review-what-gets-versioned-and-what-does-not">A Landscape Review: What Gets Versioned and What Does Not</h2>
+<p>There appears to be a structural gap at the boundary between two tooling categories: evaluation platforms and vector stores, each of which addresses part of the problem.</p>
+<section id="evaluation-platforms" class="level3">
+<h3 class="anchored" data-anchor-id="evaluation-platforms">Evaluation Platforms</h3>
+<p>Modern evaluation platforms are capable experiment management tools. They version <strong>prompts, scores, model configurations, and evaluation datasets</strong>.</p>
+<p><a href="https://www.braintrust.dev/">Braintrust</a> tracks full lineage per experiment: dataset version, prompt version, model configuration, and judge settings. <a href="https://www.langchain.com/langsmith">LangSmith</a> provides per-query trace-level visibility into which documents were retrieved, along with dataset versioning for test cases. <a href="https://langfuse.com/">Langfuse</a> shipped dataset item versioning in late 2025, automatically tying experiments to the exact dataset state at run time. <a href="https://wandb.ai/site/weave">W&amp;B Weave</a> versions code via <code>@weave.op()</code> decorators alongside model parameters, datasets, and scorers. <a href="https://phoenix.arize.com/">Arize Phoenix</a> offers corpus embedding extraction and visualization — the closest any evaluation tool comes to corpus awareness, though as post-hoc analysis rather than provenance. These tools address the problems they were designed for, and they do so effectively.</p>
+<section id="what-remains-unversioned" class="level4">
+<h4 class="anchored" data-anchor-id="what-remains-unversioned">What Remains Unversioned</h4>
+<p>The retrieval corpus state at evaluation time. In reviewing seven tools (<a href="https://www.braintrust.dev/">Braintrust</a>, <a href="https://www.langchain.com/langsmith">LangSmith</a>, <a href="https://langfuse.com/">Langfuse</a>, <a href="https://wandb.ai/site/weave">W&amp;B Weave</a>, <a href="https://phoenix.arize.com/">Arize Phoenix</a>, <a href="https://www.promptfoo.dev/">Promptfoo</a>, and <a href="https://www.getmaxim.ai/">Maxim</a>), I could not find one that can answer <strong>“What documents were in the vector store when this evaluation ran?”</strong></p>
+<p>The concept of a <strong>unified evaluation environment fingerprint</strong> (a single hash capturing vector store contents, embedding model version, chunking parameters, and retrieval configuration) does not appear in any of these tools’ documentation as of this writing (Feb 2026). Prompts, models, eval datasets, and scoring criteria can all be versioned. The data the system retrieves from cannot.</p>
+</section>
+</section>
+<section id="data-versioning-tools" class="level3">
+<h3 class="anchored" data-anchor-id="data-versioning-tools">Data Versioning Tools</h3>
+<p><a href="https://lakefs.io/">lakeFS</a> provides git-like branching and commits for data lakes. As of early 2026, it has shipped a LanceDB integration, built a LangChain document loader, and acquired DVC in late 2025. It can version data effectively. However, connecting a lakeFS commit ID to an evaluation run in Braintrust or Langfuse requires custom engineering. I have not found a documented standard pattern for this integration.</p>
+<p><a href="https://www.activeloop.ai/">Deep Lake</a> (Activeloop) offers built-in version control at the storage format level with time-travel capabilities. It has expanded its RAG support with Deep Memory, Deep Lake 4.0, and a PostgreSQL integration. It can version corpus data, but similarly lacks integration with evaluation frameworks to bind corpus versions to evaluation runs.</p>
+<p>The gap seems to exist because versioning tools can version data, evaluation tools can version experiments, but <strong>the connection between the two for RAG evaluation is not yet standardized</strong>. The problem is not on either side alone. To my knowledge, no existing system currently provides automatic corpus fingerprinting at evaluation time, immutable eval-corpus binding, diff-aware re-evaluation triggered by corpus changes, corpus-version comparison dashboards, or CI/CD gates on corpus quality regressions. These would be straightforward extensions of what evaluation tools already do. They have simply not been built yet, likely because the corpus has been treated as outside the evaluation tool’s scope.</p>
+</section>
+</section>
+<section id="practical-mitigations" class="level2">
+<h2 class="anchored" data-anchor-id="practical-mitigations">Practical Mitigations</h2>
+<p>Rather than jumping to an infrastructure solution, I think the most useful starting point is a diagnostic. In my experience, teams are more motivated to build systematic tooling after discovering that their current evaluation has a concrete problem.</p>
+<section id="level-1-diagnostics-zero-infrastructure" class="level3">
+<h3 class="anchored" data-anchor-id="level-1-diagnostics-zero-infrastructure">Level 1: Diagnostics (Zero Infrastructure)</h3>
+<p>Three questions to ask about a current evaluation setup:</p>
+<section id="source-overlap-check" class="level4">
+<h4 class="anchored" data-anchor-id="source-overlap-check">Source Overlap Check</h4>
+<p>Were the eval QA pairs generated from documents that are currently in the retrieval corpus? If so, what percentage of the eval set has a source document in the store? This is a manual audit: pull the eval dataset, trace where the questions originated, and check whether those source documents are present in the store. In my experience, many teams have not done this, and the overlap is often 100%.</p>
+</section>
+<section id="the-abstention-i-dont-know-test" class="level4">
+<h4 class="anchored" data-anchor-id="the-abstention-i-dont-know-test">The Abstention (“I Don’t Know”) Test</h4>
+<p>What percentage of eval questions are genuinely unanswerable from the current corpus? If the answer is zero, the evaluation only measures the happy path. Running 10–20 questions that are known not to be covered by the documents can reveal whether the system hallucinates, hedges, or correctly abstains. To be honest, this is not common practice even among teams with mature evaluation workflows. I had the infrastructure to support this test in a system I built, and it was still never exercised in practice. The gap between recognizing its value and actually doing it is real.</p>
+</section>
+<section id="the-silent-drift-check" class="level4">
+<h4 class="anchored" data-anchor-id="the-silent-drift-check">The Silent Drift Check</h4>
+<p>Has the corpus changed since the last evaluation? If new documents have been ingested, old ones deleted, or existing content re-chunked, the previous eval scores describe a system configuration that no longer exists.</p>
+</section>
+</section>
+<section id="level-2-lightweight-instrumentation" class="level3">
+<h3 class="anchored" data-anchor-id="level-2-lightweight-instrumentation">Level 2: Lightweight Instrumentation</h3>
+<p>For teams that want to address this without adopting new infrastructure:</p>
+<section id="tag-eval-qa-pairs-with-source-document-identifiers" class="level4">
+<h4 class="anchored" data-anchor-id="tag-eval-qa-pairs-with-source-document-identifiers">Tag Eval QA Pairs with Source Document Identifiers</h4>
+<p>Even filenames suffice. When running an evaluation, log which source documents the QA pairs came from. This enables a minimum viable contamination check: if a QA pair’s source document is also in the retrieval corpus, flag it.</p>
+</section>
+<section id="hash-the-corpus-at-evaluation-time" class="level4">
+<h4 class="anchored" data-anchor-id="hash-the-corpus-at-evaluation-time">Hash the Corpus at Evaluation Time</h4>
+<p>Before each eval run, compute a single aggregate hash over the store’s contents, even a sorted list of document filenames hashed together. Log it alongside the eval scores. When comparing two evaluation runs, this at least indicates whether the corpus was identical. This is approximate, but substantially better than having no record at all.</p>
+</section>
+<section id="split-the-eval-set-deliberately" class="level4">
+<h4 class="anchored" data-anchor-id="split-the-eval-set-deliberately">Split the Eval Set Deliberately</h4>
+<p>Remove a certain portion (e.g., 20%) of source documents from the store and generate eval questions only from those excluded documents. These serve as out-of-distribution questions. If the system’s faithfulness score drops meaningfully on this subset, the magnitude of contamination-driven score inflation becomes quantifiable.</p>
+<p><strong>A practical note.</strong> The ease of implementation varies by vector store architecture. Self-hosted stores where documents can be enumerated make this straightforward. Managed APIs (such as OpenAI’s Assistants API) where file IDs can be listed but content cannot be efficiently hashed require additional workarounds.</p>
+</section>
+</section>
+<section id="level-3-the-full-pattern" class="level3">
+<h3 class="anchored" data-anchor-id="level-3-the-full-pattern">Level 3: The Full Pattern</h3>
+<p>For teams building evaluation infrastructure, the systematic version of Level 2 can be designed for durability.</p>
+<p>A brief note on what vector stores do and do not provide, since this motivates the pattern. Most major vector databases (Pinecone, Qdrant, Chroma, pgvector) offer ID-based upsert: upserting with the same ID produces an update, not a duplicate. But the common RAG ingestion pattern uses auto-generated IDs, so the same document uploaded twice creates two records. More importantly, ID-based upsert tells you nothing about what content is in the store. <a href="https://docs.weaviate.io/weaviate/manage-objects/create#generate-deterministic-ids">Weaviate’s <code>generate_uuid5()</code></a> is an exception because it produces deterministic UUIDs from object content. But it is opt-in and operates at the document level, not as a corpus-level feature. This landscape moves quickly, and I would encourage readers to verify against current documentation.</p>
+<section id="the-content-hashing-pattern" class="level4">
+<h4 class="anchored" data-anchor-id="the-content-hashing-pattern">The Content Hashing Pattern</h4>
+<p>SHA-256 hash each document’s content at ingestion time and maintain a manifest mapping file paths to content hashes and upload timestamps.</p>
+<p>It is worth being explicit about two levels of hashing here, since the post uses both. <em>Document-level hashing</em> (one hash per file) is the foundation. It enables deduplication and answers the question “is this specific document in the store?” <em>Corpus-level fingerprinting</em> is derived from the document hashes, and it represents an aggregate hash or manifest snapshot over all documents currently in the store. It answers a different question: “has the overall state of the store changed since the last evaluation run?”</p>
+<p>The contamination detection use case depends on <em>document-level awareness</em>; the “did my corpus drift between eval runs?” check depends on corpus-level fingerprinting. Document-level hashing is, I believe, the appropriate abstraction for the contamination question. The relevant question is “is the source information present in the store when this eval ran?” not “how is it chunked?” A document chunked into 256-token or 1024-token pieces contains the same source information; an eval QA pair generated from that document is answerable in either case. This pattern provides three capabilities:</p>
+<p><strong>Corpus fingerprinting.</strong> A single aggregate hash or manifest snapshot representing what was in the store at evaluation time. Binding this to each evaluation run alongside prompt version and model configuration gives every result a data provenance record.</p>
+<p><strong>Contamination detection.</strong> Comparing the source documents for eval QA pairs against the corpus manifest. Any document used to generate QA and also present in the retrieval corpus at evaluation time can be flagged as potential contamination. This is a mechanical check.</p>
+<p><strong>Out-of-distribution evaluation construction.</strong> Deliberately excluding a subset of documents from the store, generating questions from those excluded documents, and verifying the system declines gracefully rather than hallucinating. Without a manifest, this is difficult to do reliably.</p>
+</section>
+</section>
+</section>
+<section id="what-i-learned-building-this" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-learned-building-this">What I Learned Building This</h2>
+<p>I built a system along these lines while working on an internal RAG SDK at work. The content hashing manifest was originally motivated by deduplication and rollback safety, but it turned out to also serve as the foundation for evaluation provenance. The three capabilities above emerged from infrastructure that already existed for ingestion integrity. This is perhaps the most useful insight from that experience: if corpus awareness is built into the ingestion layer, evaluation provenance comes at relatively low additional cost.</p>
+<p>These pieces, combined with structured execution logs, form what I think of as a reproducibility layer. The content hashing manifest provides data provenance because it’s a record of what is in the store at any point. An evaluation environment snapshot (combining configuration, content, and prompt hashes) provides environment tracking, making any result traceable to its full configuration. Structured execution logs such as recording the query, retrieved documents, assembled prompt, and generated answer for each request, provide execution provenance. Together, these three components cover the dimensions needed to reproduce a past evaluation. They are not typically connected into an automated workflow, but the artifacts are inexpensive to produce if considered at ingestion time rather than retrofitted later.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>Content hashing is lightweight and effective for the contamination problem, but it has real boundaries that are worth stating clearly.</p>
+<p>The aggregate fingerprint is O(n) at evaluation time. Computing a corpus-level hash requires reading every entry in the manifest. At hundreds or low thousands of documents, this is trivial. At hundreds of thousands, <strong>incremental computation</strong> (e.g., a Merkle tree updated on each ingestion) becomes necessary. This is solvable but represents a different class of engineering effort.</p>
+<p>A single-file manifest does not support <strong>distributed writers</strong>. Atomic temp-file-then-rename writes work for a single machine with a single ingestion process. Multiple services writing to the same vector store require a database-backed manifest or distributed coordination.</p>
+<p><strong>Near-duplicates</strong> are invisible to content hashing. SHA-256 catches exact matches only. The same document with a different header, trailing whitespace, or encoding produces a different hash. Addressing semantic near-duplicates would require embedding-level similarity at ingestion time, a fundamentally different cost profile. The manifest tracks identical content, not semantically redundant content.</p>
+<p>For teams that work with hundreds to low-thousands of documents, running evaluations periodically, with a single ingestion pipeline, the pattern should work within these boundaries. Teams at larger scale should treat it as a starting point rather than a complete solution.</p>
+</section>
+<section id="suggestions-for-the-ecosystem" class="level2">
+<h2 class="anchored" data-anchor-id="suggestions-for-the-ecosystem">Suggestions for the Ecosystem</h2>
+<p>I want to be careful about positioning here. This is intended as a suggestion to existing tool builders, not a claim to have solved the problem comprehensively. Score tracking, dashboards, annotation workflows, prompt versioning, and experiment comparison are mature capabilities in tools like Braintrust, Langfuse, and LangSmith. These should not be rebuilt.</p>
+<p>What appears to be missing is a metadata interface. Evaluation tools could accept a corpus-state fingerprint alongside prompt version and model configuration. The ingestion pipeline or SDK would emit this metadata; the evaluation tool would record and surface it.</p>
+<p>The minimum viable version might be a <code>corpus_hash</code> field on evaluation runs, displayed in experiment comparison views. When two experiments have different corpus hashes, the tool could flag that the underlying data differed. Even this single field, if surfaced in the right context, could meaningfully change how teams interpret their evaluation results.</p>
+<p>A more complete vision might include corpus-version comparison dashboards, CI/CD gates on corpus quality regressions, and diff-aware re-evaluation triggered by corpus changes. These are natural extensions of experiment management into the data dimension, and I suspect they are not prohibitively expensive to build for teams that already have the experiment infrastructure in place.</p>
+<p>The underlying observation is straightforward: evaluation tools already version most aspects of the evaluation environment except the data the system retrieves from. Closing that gap does not require a paradigm shift and I believe it requires one additional metadata field and the discipline to populate it.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>The idea in this post is not novel. It is a transfer of a well-established mental model (train/test contamination) from supervised ML to RAG evaluation. And from my understanding, the RAG ecosystem has not yet inherited the tooling to detect and prevent this kind of contamination at the corpus level. The gap seems to be real, but it is also addressable with relatively modest engineering effort.</p>
+<p>If this post is useful, it will be for the Level 1 diagnostic. Running a source overlap check, testing out-of-distribution questions, and verifying that the corpus has not drifted since the last evaluation are all things that can be done immediately and at no cost. Most teams, in my experience, find the results informative.</p>
+<p>Content hashing is not exotic infrastructure. Logging a corpus fingerprint alongside evaluation scores is a small amount of work. Whether the ecosystem will converge on treating the retrieval corpus with the same discipline applied to training data remains to be seen, but the technical barriers are low.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Xu, F. et al.&nbsp;(2025). “RAGOps: Managing Data in Retrieval-Augmented Generation Systems.” arXiv:2506.03401. CSIRO, TU Munich, Fraunhofer.</li>
+<li>RePCS (2025). “Retrieval-Path Contamination Scoring.” arXiv:2506.15513.</li>
+<li>HybridRAG-Bench (2025). “Benchmarking RAG with Time-Framed Corpora.” arXiv:2602.10210.</li>
+<li>DRAGOn (2025). “Non-Reproducibility with Evolving Corpora in RAG.” arXiv:2507.05713.</li>
+</ul>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">hongsupshin</span>-<span class="ot">2026</span>-<span class="ot">rag</span>-<span class="ot">corpus</span>-<span class="ot">provenance</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">title</span> = {The Corpus-Provenance Gap in RAG Evaluation},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> = {2026},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">month</span> = {2},</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">day</span> = {22},</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">howpublished</span> = {<span class="ch">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">url</span> = {https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/},</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/hongsupshin\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

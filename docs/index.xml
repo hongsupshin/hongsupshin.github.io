@@ -9,8 +9,192 @@
 <link>https://hongsupshin.github.io/</link>
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.8.26</generator>
-<lastBuildDate>Sat, 24 Jan 2026 06:00:00 GMT</lastBuildDate>
+<generator>quarto-1.8.24</generator>
+<lastBuildDate>Sun, 22 Feb 2026 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>The Corpus-Provenance Gap in RAG Evaluation</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>A widespread pattern in RAG evaluation is to generate QA pairs from the same or overlapping documents that populate the retrieval corpus. The evaluation scores often look encouraging, but after deployment, users report hallucinations and confidently wrong answers at a rate the evaluation did not predict. The root cause is often that every eval question has a matching document in the store by construction, so the evaluation never tests partial-match scenarios, out-of-distribution queries, or questions where the appropriate response is “I don’t have enough information.” This <strong>corpus-eval contamination</strong> is well-understood in supervised ML as train/test contamination. In RAG evaluation, the same principle applies but the tooling does not surface it.</p>
+<p>This post proposes a lightweight content hashing pattern that gives teams corpus-level awareness: the ability to know what was in the vector store when an evaluation ran, detect overlap between eval QA sources and the retrieval corpus, and construct out-of-distribution tests deliberately. This is not a new idea; it is a transfer of train/test discipline from supervised ML, and several recent papers address overlapping concerns. The sections that follow first review the relevant literature and the current evaluation tooling landscape, then describe practical mitigations at three levels of effort.</p>
+<section id="the-analogy-to-traintest-contamination" class="level2">
+<h2 class="anchored" data-anchor-id="the-analogy-to-traintest-contamination">The Analogy to Train/Test Contamination</h2>
+<p>In supervised ML, the train/test split is foundational, and contamination between the two is among the first pitfalls any practitioner learns to avoid. Temporal splits, group-aware splits, and distribution shift testing all exist to handle subtler versions of this problem.</p>
+<p>In RAG, the retrieval corpus plays a role analogous to training data, and the evaluation QA set serves as the test set. When there’s an overlap between the two, the split is effectively contaminated. The system will retrieve plausible content for every eval question, inflating faithfulness and context recall scores. Effectively, we are measuring the system’s ability to look up answers that are guaranteed to exist.</p>
+<section id="related-work" class="level3">
+<h3 class="anchored" data-anchor-id="related-work">Related Work</h3>
+<p>Several 2025 papers address RAG contamination, primarily from the <strong>memorization angle</strong> such as whether the LLM already knows the answer from pretraining and does not actually need retrieval. <a href="https://arxiv.org/abs/2506.15513">RePCS</a> proposes a retrieval-path contamination score. <a href="https://arxiv.org/abs/2602.10210">HybridRAG-Bench</a> uses time-framed corpora to reduce pretraining overlap. <a href="https://arxiv.org/abs/2507.05713">DRAGOn</a> demonstrates non-reproducibility when corpora evolve over time.</p>
+<p>These papers address overlapping concerns. DRAGOn in particular asks how to verify what was in the store when an evaluation ran. HybridRAG-Bench’s use of time-framed corpus snapshots is also a form of corpus-level control for evaluation validity. <a href="https://arxiv.org/abs/2506.03401">RAGOps paper</a> supports the framing here, noting that current LLMOps tools focus on model and prompt management while offering limited support for data-related aspects of RAG systems.</p>
+</section>
+</section>
+<section id="a-landscape-review-what-gets-versioned-and-what-does-not" class="level2">
+<h2 class="anchored" data-anchor-id="a-landscape-review-what-gets-versioned-and-what-does-not">A Landscape Review: What Gets Versioned and What Does Not</h2>
+<p>There appears to be a structural gap at the boundary between two tooling categories: evaluation platforms and vector stores, each of which addresses part of the problem.</p>
+<section id="evaluation-platforms" class="level3">
+<h3 class="anchored" data-anchor-id="evaluation-platforms">Evaluation Platforms</h3>
+<p>Modern evaluation platforms are capable experiment management tools. They version <strong>prompts, scores, model configurations, and evaluation datasets</strong>.</p>
+<p><a href="https://www.braintrust.dev/">Braintrust</a> tracks full lineage per experiment: dataset version, prompt version, model configuration, and judge settings. <a href="https://www.langchain.com/langsmith">LangSmith</a> provides per-query trace-level visibility into which documents were retrieved, along with dataset versioning for test cases. <a href="https://langfuse.com/">Langfuse</a> shipped dataset item versioning in late 2025, automatically tying experiments to the exact dataset state at run time. <a href="https://wandb.ai/site/weave">W&amp;B Weave</a> versions code via <code>@weave.op()</code> decorators alongside model parameters, datasets, and scorers. <a href="https://phoenix.arize.com/">Arize Phoenix</a> offers corpus embedding extraction and visualization — the closest any evaluation tool comes to corpus awareness, though as post-hoc analysis rather than provenance. These tools address the problems they were designed for, and they do so effectively.</p>
+<section id="what-remains-unversioned" class="level4">
+<h4 class="anchored" data-anchor-id="what-remains-unversioned">What Remains Unversioned</h4>
+<p>The retrieval corpus state at evaluation time. In reviewing seven tools (<a href="https://www.braintrust.dev/">Braintrust</a>, <a href="https://www.langchain.com/langsmith">LangSmith</a>, <a href="https://langfuse.com/">Langfuse</a>, <a href="https://wandb.ai/site/weave">W&amp;B Weave</a>, <a href="https://phoenix.arize.com/">Arize Phoenix</a>, <a href="https://www.promptfoo.dev/">Promptfoo</a>, and <a href="https://www.getmaxim.ai/">Maxim</a>), I could not find one that can answer <strong>“What documents were in the vector store when this evaluation ran?”</strong></p>
+<p>The concept of a <strong>unified evaluation environment fingerprint</strong> (a single hash capturing vector store contents, embedding model version, chunking parameters, and retrieval configuration) does not appear in any of these tools’ documentation as of this writing (Feb 2026). Prompts, models, eval datasets, and scoring criteria can all be versioned. The data the system retrieves from cannot.</p>
+</section>
+</section>
+<section id="data-versioning-tools" class="level3">
+<h3 class="anchored" data-anchor-id="data-versioning-tools">Data Versioning Tools</h3>
+<p><a href="https://lakefs.io/">lakeFS</a> provides git-like branching and commits for data lakes. As of early 2026, it has shipped a LanceDB integration, built a LangChain document loader, and acquired DVC in late 2025. It can version data effectively. However, connecting a lakeFS commit ID to an evaluation run in Braintrust or Langfuse requires custom engineering. I have not found a documented standard pattern for this integration.</p>
+<p><a href="https://www.activeloop.ai/">Deep Lake</a> (Activeloop) offers built-in version control at the storage format level with time-travel capabilities. It has expanded its RAG support with Deep Memory, Deep Lake 4.0, and a PostgreSQL integration. It can version corpus data, but similarly lacks integration with evaluation frameworks to bind corpus versions to evaluation runs.</p>
+<p>The gap seems to exist because versioning tools can version data, evaluation tools can version experiments, but <strong>the connection between the two for RAG evaluation is not yet standardized</strong>. The problem is not on either side alone. To my knowledge, no existing system currently provides automatic corpus fingerprinting at evaluation time, immutable eval-corpus binding, diff-aware re-evaluation triggered by corpus changes, corpus-version comparison dashboards, or CI/CD gates on corpus quality regressions. These would be straightforward extensions of what evaluation tools already do. They have simply not been built yet, likely because the corpus has been treated as outside the evaluation tool’s scope.</p>
+</section>
+</section>
+<section id="practical-mitigations" class="level2">
+<h2 class="anchored" data-anchor-id="practical-mitigations">Practical Mitigations</h2>
+<p>Rather than jumping to an infrastructure solution, I think the most useful starting point is a diagnostic. In my experience, teams are more motivated to build systematic tooling after discovering that their current evaluation has a concrete problem.</p>
+<section id="level-1-diagnostics-zero-infrastructure" class="level3">
+<h3 class="anchored" data-anchor-id="level-1-diagnostics-zero-infrastructure">Level 1: Diagnostics (Zero Infrastructure)</h3>
+<p>Three questions to ask about a current evaluation setup:</p>
+<section id="source-overlap-check" class="level4">
+<h4 class="anchored" data-anchor-id="source-overlap-check">Source Overlap Check</h4>
+<p>Were the eval QA pairs generated from documents that are currently in the retrieval corpus? If so, what percentage of the eval set has a source document in the store? This is a manual audit: pull the eval dataset, trace where the questions originated, and check whether those source documents are present in the store. In my experience, many teams have not done this, and the overlap is often 100%.</p>
+</section>
+<section id="the-abstention-i-dont-know-test" class="level4">
+<h4 class="anchored" data-anchor-id="the-abstention-i-dont-know-test">The Abstention (“I Don’t Know”) Test</h4>
+<p>What percentage of eval questions are genuinely unanswerable from the current corpus? If the answer is zero, the evaluation only measures the happy path. Running 10–20 questions that are known not to be covered by the documents can reveal whether the system hallucinates, hedges, or correctly abstains. To be honest, this is not common practice even among teams with mature evaluation workflows. I had the infrastructure to support this test in a system I built, and it was still never exercised in practice. The gap between recognizing its value and actually doing it is real.</p>
+</section>
+<section id="the-silent-drift-check" class="level4">
+<h4 class="anchored" data-anchor-id="the-silent-drift-check">The Silent Drift Check</h4>
+<p>Has the corpus changed since the last evaluation? If new documents have been ingested, old ones deleted, or existing content re-chunked, the previous eval scores describe a system configuration that no longer exists.</p>
+</section>
+</section>
+<section id="level-2-lightweight-instrumentation" class="level3">
+<h3 class="anchored" data-anchor-id="level-2-lightweight-instrumentation">Level 2: Lightweight Instrumentation</h3>
+<p>For teams that want to address this without adopting new infrastructure:</p>
+<section id="tag-eval-qa-pairs-with-source-document-identifiers" class="level4">
+<h4 class="anchored" data-anchor-id="tag-eval-qa-pairs-with-source-document-identifiers">Tag Eval QA Pairs with Source Document Identifiers</h4>
+<p>Even filenames suffice. When running an evaluation, log which source documents the QA pairs came from. This enables a minimum viable contamination check: if a QA pair’s source document is also in the retrieval corpus, flag it.</p>
+</section>
+<section id="hash-the-corpus-at-evaluation-time" class="level4">
+<h4 class="anchored" data-anchor-id="hash-the-corpus-at-evaluation-time">Hash the Corpus at Evaluation Time</h4>
+<p>Before each eval run, compute a single aggregate hash over the store’s contents, even a sorted list of document filenames hashed together. Log it alongside the eval scores. When comparing two evaluation runs, this at least indicates whether the corpus was identical. This is approximate, but substantially better than having no record at all.</p>
+</section>
+<section id="split-the-eval-set-deliberately" class="level4">
+<h4 class="anchored" data-anchor-id="split-the-eval-set-deliberately">Split the Eval Set Deliberately</h4>
+<p>Remove a certain portion (e.g., 20%) of source documents from the store and generate eval questions only from those excluded documents. These serve as out-of-distribution questions. If the system’s faithfulness score drops meaningfully on this subset, the magnitude of contamination-driven score inflation becomes quantifiable.</p>
+<p><strong>A practical note.</strong> The ease of implementation varies by vector store architecture. Self-hosted stores where documents can be enumerated make this straightforward. Managed APIs (such as OpenAI’s Assistants API) where file IDs can be listed but content cannot be efficiently hashed require additional workarounds.</p>
+</section>
+</section>
+<section id="level-3-the-full-pattern" class="level3">
+<h3 class="anchored" data-anchor-id="level-3-the-full-pattern">Level 3: The Full Pattern</h3>
+<p>For teams building evaluation infrastructure, the systematic version of Level 2 can be designed for durability.</p>
+<p>A brief note on what vector stores do and do not provide, since this motivates the pattern. Most major vector databases (Pinecone, Qdrant, Chroma, pgvector) offer ID-based upsert: upserting with the same ID produces an update, not a duplicate. But the common RAG ingestion pattern uses auto-generated IDs, so the same document uploaded twice creates two records. More importantly, ID-based upsert tells you nothing about what content is in the store. <a href="https://docs.weaviate.io/weaviate/manage-objects/create#generate-deterministic-ids">Weaviate’s <code>generate_uuid5()</code></a> is an exception because it produces deterministic UUIDs from object content. But it is opt-in and operates at the document level, not as a corpus-level feature. This landscape moves quickly, and I would encourage readers to verify against current documentation.</p>
+<section id="the-content-hashing-pattern" class="level4">
+<h4 class="anchored" data-anchor-id="the-content-hashing-pattern">The Content Hashing Pattern</h4>
+<p>SHA-256 hash each document’s content at ingestion time and maintain a manifest mapping file paths to content hashes and upload timestamps.</p>
+<p>It is worth being explicit about two levels of hashing here, since the post uses both. <em>Document-level hashing</em> (one hash per file) is the foundation. It enables deduplication and answers the question “is this specific document in the store?” <em>Corpus-level fingerprinting</em> is derived from the document hashes, and it represents an aggregate hash or manifest snapshot over all documents currently in the store. It answers a different question: “has the overall state of the store changed since the last evaluation run?”</p>
+<p>The contamination detection use case depends on <em>document-level awareness</em>; the “did my corpus drift between eval runs?” check depends on corpus-level fingerprinting. Document-level hashing is, I believe, the appropriate abstraction for the contamination question. The relevant question is “is the source information present in the store when this eval ran?” not “how is it chunked?” A document chunked into 256-token or 1024-token pieces contains the same source information; an eval QA pair generated from that document is answerable in either case. This pattern provides three capabilities:</p>
+<p><strong>Corpus fingerprinting.</strong> A single aggregate hash or manifest snapshot representing what was in the store at evaluation time. Binding this to each evaluation run alongside prompt version and model configuration gives every result a data provenance record.</p>
+<p><strong>Contamination detection.</strong> Comparing the source documents for eval QA pairs against the corpus manifest. Any document used to generate QA and also present in the retrieval corpus at evaluation time can be flagged as potential contamination. This is a mechanical check.</p>
+<p><strong>Out-of-distribution evaluation construction.</strong> Deliberately excluding a subset of documents from the store, generating questions from those excluded documents, and verifying the system declines gracefully rather than hallucinating. Without a manifest, this is difficult to do reliably.</p>
+</section>
+</section>
+</section>
+<section id="what-i-learned-building-this" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-learned-building-this">What I Learned Building This</h2>
+<p>I built a system along these lines while working on an internal RAG SDK at work. The content hashing manifest was originally motivated by deduplication and rollback safety, but it turned out to also serve as the foundation for evaluation provenance. The three capabilities above emerged from infrastructure that already existed for ingestion integrity. This is perhaps the most useful insight from that experience: if corpus awareness is built into the ingestion layer, evaluation provenance comes at relatively low additional cost.</p>
+<p>These pieces, combined with structured execution logs, form what I think of as a reproducibility layer. The content hashing manifest provides data provenance because it’s a record of what is in the store at any point. An evaluation environment snapshot (combining configuration, content, and prompt hashes) provides environment tracking, making any result traceable to its full configuration. Structured execution logs such as recording the query, retrieved documents, assembled prompt, and generated answer for each request, provide execution provenance. Together, these three components cover the dimensions needed to reproduce a past evaluation. They are not typically connected into an automated workflow, but the artifacts are inexpensive to produce if considered at ingestion time rather than retrofitted later.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>Content hashing is lightweight and effective for the contamination problem, but it has real boundaries that are worth stating clearly.</p>
+<p>The aggregate fingerprint is O(n) at evaluation time. Computing a corpus-level hash requires reading every entry in the manifest. At hundreds or low thousands of documents, this is trivial. At hundreds of thousands, <strong>incremental computation</strong> (e.g., a Merkle tree updated on each ingestion) becomes necessary. This is solvable but represents a different class of engineering effort.</p>
+<p>A single-file manifest does not support <strong>distributed writers</strong>. Atomic temp-file-then-rename writes work for a single machine with a single ingestion process. Multiple services writing to the same vector store require a database-backed manifest or distributed coordination.</p>
+<p><strong>Near-duplicates</strong> are invisible to content hashing. SHA-256 catches exact matches only. The same document with a different header, trailing whitespace, or encoding produces a different hash. Addressing semantic near-duplicates would require embedding-level similarity at ingestion time, a fundamentally different cost profile. The manifest tracks identical content, not semantically redundant content.</p>
+<p>For teams that work with hundreds to low-thousands of documents, running evaluations periodically, with a single ingestion pipeline, the pattern should work within these boundaries. Teams at larger scale should treat it as a starting point rather than a complete solution.</p>
+</section>
+<section id="suggestions-for-the-ecosystem" class="level2">
+<h2 class="anchored" data-anchor-id="suggestions-for-the-ecosystem">Suggestions for the Ecosystem</h2>
+<p>I want to be careful about positioning here. This is intended as a suggestion to existing tool builders, not a claim to have solved the problem comprehensively. Score tracking, dashboards, annotation workflows, prompt versioning, and experiment comparison are mature capabilities in tools like Braintrust, Langfuse, and LangSmith. These should not be rebuilt.</p>
+<p>What appears to be missing is a metadata interface. Evaluation tools could accept a corpus-state fingerprint alongside prompt version and model configuration. The ingestion pipeline or SDK would emit this metadata; the evaluation tool would record and surface it.</p>
+<p>The minimum viable version might be a <code>corpus_hash</code> field on evaluation runs, displayed in experiment comparison views. When two experiments have different corpus hashes, the tool could flag that the underlying data differed. Even this single field, if surfaced in the right context, could meaningfully change how teams interpret their evaluation results.</p>
+<p>A more complete vision might include corpus-version comparison dashboards, CI/CD gates on corpus quality regressions, and diff-aware re-evaluation triggered by corpus changes. These are natural extensions of experiment management into the data dimension, and I suspect they are not prohibitively expensive to build for teams that already have the experiment infrastructure in place.</p>
+<p>The underlying observation is straightforward: evaluation tools already version most aspects of the evaluation environment except the data the system retrieves from. Closing that gap does not require a paradigm shift and I believe it requires one additional metadata field and the discipline to populate it.</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>The idea in this post is not novel. It is a transfer of a well-established mental model (train/test contamination) from supervised ML to RAG evaluation. And from my understanding, the RAG ecosystem has not yet inherited the tooling to detect and prevent this kind of contamination at the corpus level. The gap seems to be real, but it is also addressable with relatively modest engineering effort.</p>
+<p>If this post is useful, it will be for the Level 1 diagnostic. Running a source overlap check, testing out-of-distribution questions, and verifying that the corpus has not drifted since the last evaluation are all things that can be done immediately and at no cost. Most teams, in my experience, find the results informative.</p>
+<p>Content hashing is not exotic infrastructure. Logging a corpus fingerprint alongside evaluation scores is a small amount of work. Whether the ecosystem will converge on treating the retrieval corpus with the same discipline applied to training data remains to be seen, but the technical barriers are low.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Xu, F. et al.&nbsp;(2025). “RAGOps: Managing Data in Retrieval-Augmented Generation Systems.” arXiv:2506.03401. CSIRO, TU Munich, Fraunhofer.</li>
+<li>RePCS (2025). “Retrieval-Path Contamination Scoring.” arXiv:2506.15513.</li>
+<li>HybridRAG-Bench (2025). “Benchmarking RAG with Time-Framed Corpora.” arXiv:2602.10210.</li>
+<li>DRAGOn (2025). “Non-Reproducibility with Evolving Corpora in RAG.” arXiv:2507.05713.</li>
+</ul>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2026</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">rag</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">corpus</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">provenance</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {The Corpus-Provenance Gap in RAG Evaluation},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2026},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {2},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {22},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
+
+
+</section>
+
+ ]]></description>
+  <category>RAG</category>
+  <category>evaluation</category>
+  <category>LLMOps</category>
+  <category>data-provenance</category>
+  <guid>https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/</guid>
+  <pubDate>Sun, 22 Feb 2026 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/fig.png" medium="image" type="image/png" height="150" width="144"/>
+</item>
 <item>
   <title>The AI SDK Adoption Problem: When Conway’s Law Meets AI Engineering</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -7175,121 +7359,6 @@ empty &lt;class 'str'&gt;</code></pre>
   <guid>https://hongsupshin.github.io/posts/2022-10-27/</guid>
   <pubDate>Thu, 27 Oct 2022 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI.png" medium="image" type="image/png" height="70" width="144"/>
-</item>
-<item>
-  <title>Tech volunteering tips for nonprofits</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>Throughout my career, I have met many tech workers interested in using their technical skills in more meaningful ways. When I started my industry career, I had similar thoughts and luckily I have been able to volunteer at various non-profits for several occasions. Some may say volunteering will require much less effort than paid labor because the work is free but because of that exact reason, more caution is required. Based on my experience, I would like to share some tips especially regarding using ML and data science skills for tech volunteering.</p>
-<p>I gave a talk at <a href="https://www.meetup.com/austinpython/">Austin Python Meetup</a> in Apr, 2021 About this. If you’re interested, check out the video below.</p>
-<div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/gfqKaplRTsk" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
-<section id="general-advice" class="level2">
-<h2 class="anchored" data-anchor-id="general-advice">General advice</h2>
-<p>First, before delving into specific tech-skill tips, let’s talk about more general aspects of tech volunteering.</p>
-<section id="local-than-national-or-international" class="level3">
-<h3 class="anchored" data-anchor-id="local-than-national-or-international">Local than national or international</h3>
-<p>The first thing you’ll have to do is to choose a nonprofit. If you’ve been interested in data science for social good, you are already familiar with an organization such as <a href="https://www.datakind.org/">DataKind</a>. I’ve worked with DataKind a couple of times for small projects and normally you go through a detailed application process to become a volunteer. Since it’s a popular international organization, the application process is competitive and it’s possible that you will get rejected, which also happened to me several time.</p>
-<p>Famous organizations are all good but I’d like to suggest you look around and go for <strong>local nonprofits</strong>. They often lack resources to afford tech workers which means that you can easily work with them and your work will make a bigger impact. I’ve joined <a href="https://texasjusticeinitiative.org/">Texas Justice Initiative (TJI)</a> through a local nonprofit <a href="https://www.open-austin.org/">Open Austin</a>, a Code for America Brigade which advocates for open government and civic technology. I went to their meetup a couple of times and joined their Slack channel, where I met our TJI director, Eva.</p>
-</section>
-<section id="long-term-than-short-term" class="level3">
-<h3 class="anchored" data-anchor-id="long-term-than-short-term">Long-term than short-term</h3>
-<p>Depending on the situation, you may work on one-off type projects or more long-term ones. After working with TJI for over a year, I am learning that I get to work on <strong>more diverse and in-depth projects</strong> since I’ve been here more than a year. For instance, now that I have better understanding of backend, I am paying more attention to automating many backend processes. Plus, with newly accumulated data, I also get to update data journalism reports and launch new investigation.</p>
-</section>
-<section id="do-your-homework" class="level3">
-<h3 class="anchored" data-anchor-id="do-your-homework">Do your homework</h3>
-<p>If you’re a first-timer and your nonprofit-of-interest doesn’t have any existing volunteers, you might feel intimidated. Then find an organization that already has tech volunteers. When I was reading about TJI before I joined, I found that there are a dozen tech volunteers already, which gave me a sense of reassurance. Most nonprofits disclose <strong>funding sources and board members</strong> information on their websites. This will give you a better idea on whether your values and what they represent are aligned.</p>
-</section>
-<section id="reasonable-expectations" class="level3">
-<h3 class="anchored" data-anchor-id="reasonable-expectations">Reasonable expectations</h3>
-<p>Nonprofits can be like any other workplaces; there will be some you enjoy working with and some you don’t, and there will be times when things are going really well or falling apart. Thus, having realistic and healthy expectations is important.</p>
-</section>
-</section>
-<section id="ml-and-statistical-inference" class="level2">
-<h2 class="anchored" data-anchor-id="ml-and-statistical-inference">1. ML and statistical inference</h2>
-<p>Now let’s talk about specific tech-skill opportunities. Let’s start with ML and statistical inference first.</p>
-<section id="predictive-modeling" class="level3">
-<h3 class="anchored" data-anchor-id="predictive-modeling">Predictive modeling</h3>
-<p>For my police shooting report, <strong>I purposefully did not use any ML models</strong> because I am aware of how ML tools can generate unintended harm easily when used prematurely (or at all). Whenever I talk to ML practitioners, they often love to devour any datasets and create predictive models. This is extremely dangerous.</p>
-<p>Let’s assume that for whatever reason, we decided to build a predictive model by using the police shooting data. One can potentially use the <code>severity</code> column (whether a person was killed or injured during an incident) as a target and use the rest of the data as predictor variables. Given that most of our data has demographic and location information, <strong>this can easily become a bias-reproducing machine.</strong></p>
-<p>Besides, if these models are deployed in public, it’s possible that <strong>the models can be used by bad actors to exploit community members who are already suffering</strong> from these tragic incidents. For instance, insurance companies might be able to use a model like this and predict how likely people of certain demographics are more likely to be killed by police. Then they can increase health insurance premium for these people.</p>
-<p>Before even starting a project, I strongly recommend <strong>considering and evaluating the risk and ethical concerns first</strong>. If the risk is too high, then you shouldn’t build a model. Note that this thoughtful examination <strong>requires a diverse set of opinions</strong>. Thus, please open the discussion to other members in the organization (and even further) and try to thoroughly examine the risk.</p>
-</section>
-<section id="on-significance-testing" class="level3">
-<h3 class="anchored" data-anchor-id="on-significance-testing">On significance testing</h3>
-<p>Some data scientists like computing <em>p</em>-values from their analyses but first and foremost, <strong><em>p</em>-values have many issues</strong> (see <a href="https://www.amstat.org/asa/files/pdfs/P-ValueStatement.pdf">the official statement from American Statistical Association</a> cautioning the use of <em>p</em>-values). Plus, given that they are usually not the domain experts, it is likely that the hypotheses are not well thought out. Moreover, once you make value statements based on thresholding by using <em>p</em>-values, it is very likely that <strong>you will contribute to propagation of misinformation</strong> because these statements (e.g., “A is significantly different from baseline”) can be easily cherry-picked and propagated.</p>
-</section>
-<section id="then-what-can-i-do" class="level3">
-<h3 class="anchored" data-anchor-id="then-what-can-i-do">Then what can I do?</h3>
-<p>I am not telling you to drop any statistical inference or ML completely. Rather, I am asking you to <strong>recognize the responsibility that comes with using ML techniques</strong>. In fact, there are many research papers that use ML in clever ways. For instance, in Gonen and Goldberg’s 2019 paper, <a href="https://arxiv.org/abs/1903.03862">Lipstick on a Pig: Debiasing Methods Cover up Systematic Gender Biases in Word Embeddings But do not Remove Them</a>, the authors used predictive modeling to show that (gender) de-biased word embeddings still contain information about gender, which proves that the de-biasing technique doesn’t work. In short, we need to <strong>be more thoughtful and creative</strong> when it comes to ML.</p>
-</section>
-</section>
-<section id="data-governance" class="level2">
-<h2 class="anchored" data-anchor-id="data-governance">2. Data governance</h2>
-<p>If ML requires more cautious approach, an easier project you can tackle as a data person is to help a nonprofit establish a good data governance practice. Data governance is a practice of <strong>documenting what the data contains and how it should be used</strong>. It’s a great opportunity to learn about data and help the nonprofit utilize the datasets responsibly.</p>
-<p>There is an excellent paper, <strong><a href="https://www.fatml.org/media/documents/datasheets_for_datasets.pdf">Datasheets for Datasets (Gebru et al., 2018)</a></strong> that can guide you through this process. The paper has an exhaustive list of questions that you can answer to understand a dataset and its potential problems and impact. At TJI, I’ve gone through this process and published <a href="https://github.com/texas-justice-initiative/data-processing/blob/hs-datasheet/datasheet/datasheet_DIC_composition.md">a Datasheet on TJI’s custodial death dataset</a> focusing on the dataset’s composition. This was a great exercise for all of us because we were able to discuss some potential caveats such as sampling bias of our dataset. Another template you can follow is <a href="https://gdpr.eu/data-protection-impact-assessment-template/">Data Protection Impact Assessment</a> from European Union’s General Data Protection Regulation (GDPR). This also asks you to answer questions to understand the impact and ethical concerns that come with the data.</p>
-<p>Finally, once you’ve created data governance documentation, make sure you provide it to users when they consume the dataset so that they are also aware of the information. This creates a chain of responsibility.</p>
-</section>
-<section id="data-journalism" class="level2">
-<h2 class="anchored" data-anchor-id="data-journalism">3. Data journalism</h2>
-<section id="interactive-dashboards-need-a-context" class="level3">
-<h3 class="anchored" data-anchor-id="interactive-dashboards-need-a-context">Interactive dashboards need a context</h3>
-<p>Interactive dashboards are useful in that audience can play with the data directly. However, it’s likely that <strong>you can’t have comprehensive knowledge on what users might see</strong> when they start slicing the data in every possible way. Plus, you still need <strong>context</strong> to provide a narrative. Personally, I <strong>prefer data journalism reports with static images</strong> because I can control what audience can see and I can minimize the chance of them misunderstanding the data.</p>
-</section>
-<section id="find-a-reference-point" class="level3">
-<h3 class="anchored" data-anchor-id="find-a-reference-point">Find a reference point</h3>
-<p>Providing a context is extremely important. If I don’t know where something stands compared with others, how would I know whether it is better or worse? Luckily, this comparison can be easily done by <strong>comparing your data with other reference datasets</strong>. In Part 1, I’ve used the US census data and public health data for this. You can see this approach all the time in data journalism reports from major news organizations such as <a href="https://www.nytimes.com/interactive/2020/04/23/upshot/five-ways-to-monitor-coronavirus-outbreak-us.html">New York Times</a>. Comparing your data with a reference data helps you ask more interesting questions to understand the difference.</p>
-</section>
-<section id="get-a-domain-expert-review" class="level3">
-<h3 class="anchored" data-anchor-id="get-a-domain-expert-review">Get a domain expert review</h3>
-<p>It’s likely that tech workers are not the domain experts. In this case, make sure your work is seen by them before you publish. You can start by sharing your work with other members in the nonprofit. You can also <strong>reach out to academics</strong> who are most likely very interested in this type of work. For my report, Eva helped me reach out to Howard Henderson of Texas Southern University’s Barbara Jordan-Mickey Leland School of Public Affairs and Center for Justice Research, and Kevin Buckler of University of Houston-Downtown’s Department of Criminal Justice for a review.</p>
-</section>
-<section id="leave-out-any-questionable-information" class="level3">
-<h3 class="anchored" data-anchor-id="leave-out-any-questionable-information">Leave out any questionable information</h3>
-<p>You might want to use everything that’s in a dataset to write a report. This is not necessarily the best idea, unfortunately. In our police shooting dataset, there is a column called <code>deadly_weapon</code> which shows whether the person shot by police possessed a <em>deadly</em> weapon. It turns out that <strong>this information is highly contentious</strong> because whether an object is perceived as <em>deadly</em> varies widely. Based on studies and news reports, a BB gun, a butter knife, or a candlestick can be perceived as a deadly weapon. After deliberation, we’ve decided not to use this information because we thought this categorization misrepresents true information. We plan to revisit this after collecting information about actual objects used in the incidents.</p>
-</section>
-<section id="research-opportunities" class="level3">
-<h3 class="anchored" data-anchor-id="research-opportunities">Research opportunities</h3>
-<p><strong>Datasets gathered by local nonprofits are so specific and unique</strong> that they provide interesting research opportunities, which becomes great material for a data journalism report. Currently at TJI, several volunteers and I have been working on identifying systematic pattern in interaction between officers and civilians in police shooting incidents. <a href="https://www.linkedin.com/in/jiletta-kubena-phd-21849812a/">Jiletta Kubena</a>, a criminologist and a TJI volunteer, has been studying survey results on various populations, such as people in custody, of those who’ve been impacted by COVID-19.</p>
-</section>
-<section id="tech-setup" class="level3">
-<h3 class="anchored" data-anchor-id="tech-setup">Tech setup</h3>
-<p>You will be creating same types of plots over and over with small changes depending on how your investigation goes. Thus, it’s better to <strong>spend time in the beginning to create modules for plotting</strong>. At the same time, ask if your nonprofit already has a specific visual style guide that you can follow. This helps visual consistency.</p>
-</section>
-</section>
-<section id="sustainable-workflow" class="level2">
-<h2 class="anchored" data-anchor-id="sustainable-workflow">4. Sustainable workflow</h2>
-<p>What kind of tech tools and workflow gets to be implemented in a nonprofit heavily depends on their volunteers. However, the <strong>volunteer-dependent workflow is quite fragile</strong> because volunteers in general have weaker commitment because they are not always readily available. Thus, it’s quite important to help a nonprofit build a sustainable workflow.</p>
-<p><strong>Implementing CI/CD flow</strong> is a must and you can even reuse your notebooks to create analytics reports with updated data by using a package such as <a href="https://papermill.readthedocs.io/en/latest/">Papermill</a>. If you have a heterogenous dataset, you can utilize scikit-learn’s <a href="https://scikit-learn.org/stable/modules/generated/sklearn.compose.ColumnTransformer.html"><code>ColumnTransformer</code></a> to build a consistent and robust data preprocessing pipeline. Finally, you can also set up a data validation check by using a tool like <a href="https://pandera.readthedocs.io/en/stable/">Pandera</a>. This will help you monitor and flag any unexpected data drift.</p>
-<p>A sustainable workflow is also more than just the tech side. Recently, at TJI, we’ve implemented a <strong>formal review process</strong> to improve the quality of our work. We used to review manuscripts on Google Docs but now we review them on GitHub as a <strong>pull request</strong>. <a href="https://www.linkedin.com/in/nickholden/">Nick Holden</a>, a software engineer and a TJI volunteer, connected our content management system (CMS) to this process so that people who are not familiar with GitHub can easily create a manuscript. Writing a plain text document on the CMS automatically creates a pull request and other members at TJI can review and exchange feedback transparently.</p>
-</section>
-<section id="community-building" class="level2">
-<h2 class="anchored" data-anchor-id="community-building">5. Community building</h2>
-<p>As a volunteer, you can always work by yourself on a one-off project. Even if that’s the case, having a sense of community makes your work more enjoyable and prevents fast volunteer turnover. In this sense, community building is quite important.</p>
-<p>Community building can be socializing but it’s also about building robust infrastructure because it reduces unnecessary stress. Given that <strong>volunteer-dependent workflow is fragile, and robustness, accountability, and transparency matter even more.</strong> As a tech worker, you can help nonprofits adopt good practices from tech workflow such as automation, code review, software engineering practices, and so on. But when bringing a new tech tool, please try to <strong>use open source software</strong> as much as possible. I’ve seen a case where a tech worker brought their company’s product and left, which made the nonprofit’s entire backend hugely dependent on a niche commercial product. Sometimes nonprofits are approached by private partners. With your corporate experience, you can help the nonprofit protect their asset too.</p>
-<p>Implementing <strong>a good practice for collaboration</strong> is equally important. You can start by encouraging other volunteers to showcase and highlight their work. I’ve suggested a dedicated <strong>blog where all volunteers can write about their work in their own words</strong>. This accelerates knowledge transfer within the organization and helps other nonprofits too.</p>
-<p>Finally, I want to emphasize that you should <strong>watch out for volunteer burnout</strong>. It happened to me multiple times unfortunately. I got super excited and passionate about a subject matter and I ended up with exhausting all my energy in a short period of time. So please pace yourself and take breaks if needed. But when you do so, instead of ghosting please tell others so that they have reasonable expectations while you’re gone.</p>
-</section>
-<section id="my-personal-experience" class="level2">
-<h2 class="anchored" data-anchor-id="my-personal-experience">My personal experience</h2>
-<p>Some may think volunteering would be using your existing skills without learning. That was never the case for me. It’s been amazing to have <strong>opportunities to work with different types of data</strong> that I don’t get to see at work. I’ve also got to work on various projects from exercising data assessment practice and writing data journalism reports, to creating custom data visualization modules and transferring ML Ops practices to the existing workflow. I’m looking forward to exploring research opportunities with causal modeling and explainable AI with our dataset in the future.</p>
-<p>But more importantly, I’ve been lucky to work with our director Eva and all the volunteers who have been kind, cordial, and open to new ideas. It was also fantastic to <strong>work with people from different disciplines</strong> and to learn from these domain experts. This helped me expand my network and meet other nonprofit organizers, academics, and tech workers. Finally, I’ve <strong>learned a lot about local social issues surrounding my neighborhood and my city</strong>, which have significant impact on our community members. I am looking forward to many other interesting opportunities in TJI.</p>
-<p>I hope these tips help you start exploring volunteering opportunities. Finally, you are more helpful than you think! So don’t worry about whether you have the right skill sets or not. They will appreciate your knowledge and there will be many things you can contribute to. So if you find any interesting organizations, don’t be afraid to reach out. You will help other people and learn a lot in the process. Good luck!</p>
-
-
-</section>
-
- ]]></description>
-  <category>volunteering</category>
-  <category>ML</category>
-  <guid>https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/</guid>
-  <pubDate>Tue, 25 May 2021 05:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2021-05-25-ds-volunteering-part2/datakind.png" medium="image" type="image/png" height="31" width="144"/>
 </item>
 </channel>
 </rss>
