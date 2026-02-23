@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.24">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -75,7 +75,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -124,8 +124,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Hongsup Shin</span>
     </a>
@@ -241,14 +239,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>A widespread pattern in RAG evaluation is to generate QA pairs from the same or overlapping documents that populate the retrieval corpus. The evaluation scores often look encouraging, but after deployment, users report hallucinations and confidently wrong answers at a rate the evaluation did not predict. The root cause is often that every eval question has a matching document in the store by construction, so the evaluation never tests partial-match scenarios, out-of-distribution queries, or questions where the appropriate response is “I don’t have enough information.” This <strong>corpus-eval contamination</strong> is well-understood in supervised ML as train/test contamination. In RAG evaluation, the same principle applies but the tooling does not surface it.</p>
 <p>This post proposes a lightweight content hashing pattern that gives teams corpus-level awareness: the ability to know what was in the vector store when an evaluation ran, detect overlap between eval QA sources and the retrieval corpus, and construct out-of-distribution tests deliberately. This is not a new idea; it is a transfer of train/test discipline from supervised ML, and several recent papers address overlapping concerns. The sections that follow first review the relevant literature and the current evaluation tooling landscape, then describe practical mitigations at three levels of effort.</p>
+<p>A careful reader might object that the analogy is imperfect: training data shapes model parameters through gradient updates, while a retrieval corpus is merely looked up at inference time. The mechanism differs, but the function is the same. In both cases, the data source is the knowledge base the system draws on to produce answers, and in both cases, overlap between that knowledge base and the evaluation set inflates scores by guaranteeing that relevant information is always available. The risk is identical because you are measuring retrieval under conditions that will not hold in production even though the pathway from data to answer is different.</p>
 <section id="the-analogy-to-traintest-contamination" class="level2">
 <h2 class="anchored" data-anchor-id="the-analogy-to-traintest-contamination">The Analogy to Train/Test Contamination</h2>
 <p>In supervised ML, the train/test split is foundational, and contamination between the two is among the first pitfalls any practitioner learns to avoid. Temporal splits, group-aware splits, and distribution shift testing all exist to handle subtler versions of this problem.</p>
 <p>In RAG, the retrieval corpus plays a role analogous to training data, and the evaluation QA set serves as the test set. When there’s an overlap between the two, the split is effectively contaminated. The system will retrieve plausible content for every eval question, inflating faithfulness and context recall scores. Effectively, we are measuring the system’s ability to look up answers that are guaranteed to exist.</p>
 <section id="related-work" class="level3">
 <h3 class="anchored" data-anchor-id="related-work">Related Work</h3>
-<p>Several 2025 papers address RAG contamination, primarily from the <strong>memorization angle</strong> such as whether the LLM already knows the answer from pretraining and does not actually need retrieval. <a href="https://arxiv.org/abs/2506.15513">RePCS</a> proposes a retrieval-path contamination score. <a href="https://arxiv.org/abs/2602.10210">HybridRAG-Bench</a> uses time-framed corpora to reduce pretraining overlap. <a href="https://arxiv.org/abs/2507.05713">DRAGOn</a> demonstrates non-reproducibility when corpora evolve over time.</p>
-<p>These papers address overlapping concerns. DRAGOn in particular asks how to verify what was in the store when an evaluation ran. HybridRAG-Bench’s use of time-framed corpus snapshots is also a form of corpus-level control for evaluation validity. <a href="https://arxiv.org/abs/2506.03401">RAGOps paper</a> supports the framing here, noting that current LLMOps tools focus on model and prompt management while offering limited support for data-related aspects of RAG systems.</p>
+<p>Several 2025 papers address RAG contamination, primarily from the <strong>memorization angle</strong> such as whether the LLM already knows the answer from pretraining and does not actually need retrieval. <a href="https://arxiv.org/abs/2506.15513">RePCS</a> proposes a retrieval-path contamination score. <a href="https://arxiv.org/abs/2602.10210">HybridRAG-Bench</a> uses time-framed corpora to reduce pretraining overlap. <a href="https://arxiv.org/abs/2507.05713">DRAGOn</a> addresses non-reproducibility by proposing dynamic benchmarks on periodically refreshed corpora, with versioned dataset snapshots uploaded to Hugging Face.</p>
+<p>These papers address overlapping concerns. DRAGOn in particular tackles the question of how to maintain evaluation validity when the underlying corpus changes between benchmark runs. HybridRAG-Bench’s use of time-framed corpus snapshots is also a form of corpus-level control for evaluation validity. <a href="https://arxiv.org/abs/2506.03401">RAGOps paper</a> supports the framing here, noting that current LLMOps tools focus on model and prompt management while offering limited support for data-related aspects of RAG systems.</p>
 </section>
 </section>
 <section id="a-landscape-review-what-gets-versioned-and-what-does-not" class="level2">
@@ -279,7 +278,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Three questions to ask about a current evaluation setup:</p>
 <section id="source-overlap-check" class="level4">
 <h4 class="anchored" data-anchor-id="source-overlap-check">Source Overlap Check</h4>
-<p>Were the eval QA pairs generated from documents that are currently in the retrieval corpus? If so, what percentage of the eval set has a source document in the store? This is a manual audit: pull the eval dataset, trace where the questions originated, and check whether those source documents are present in the store. In my experience, many teams have not done this, and the overlap is often 100%.</p>
+<p>Were the eval QA pairs generated from documents that are currently in the retrieval corpus? If so, what percentage of the eval set has a source document in the store? This is a manual audit: pull the eval dataset, trace where the questions originated, and check whether those source documents are present in the store. In my experience, many teams have not done this. Among the teams I have worked with or consulted, the overlap was often 100%.</p>
 </section>
 <section id="the-abstention-i-dont-know-test" class="level4">
 <h4 class="anchored" data-anchor-id="the-abstention-i-dont-know-test">The Abstention (“I Don’t Know”) Test</h4>
@@ -333,13 +332,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The aggregate fingerprint is O(n) at evaluation time. Computing a corpus-level hash requires reading every entry in the manifest. At hundreds or low thousands of documents, this is trivial. At hundreds of thousands, <strong>incremental computation</strong> (e.g., a Merkle tree updated on each ingestion) becomes necessary. This is solvable but represents a different class of engineering effort.</p>
 <p>A single-file manifest does not support <strong>distributed writers</strong>. Atomic temp-file-then-rename writes work for a single machine with a single ingestion process. Multiple services writing to the same vector store require a database-backed manifest or distributed coordination.</p>
 <p><strong>Near-duplicates</strong> are invisible to content hashing. SHA-256 catches exact matches only. The same document with a different header, trailing whitespace, or encoding produces a different hash. Addressing semantic near-duplicates would require embedding-level similarity at ingestion time, a fundamentally different cost profile. The manifest tracks identical content, not semantically redundant content.</p>
+<p><strong>Chunking strategy changes are invisible at the document level.</strong> The content hashing pattern described here operates on source documents, not on the chunks derived from them. This is a deliberate choice because the contamination question is about whether the source information is present, not how it is segmented. However, different chunking strategies can change whether a question is actually answerable: a question that requires context spanning paragraphs 3 and 4 may succeed with 1024-token chunks but fail with 256-token chunks that split those paragraphs across chunk boundaries. The document-level hash will show no change even though the system’s effective retrieval capability has shifted. This is why the earlier discussion of an evaluation environment fingerprint includes chunking parameters alongside the corpus hash because the two are complementary, not redundant.</p>
 <p>For teams that work with hundreds to low-thousands of documents, running evaluations periodically, with a single ingestion pipeline, the pattern should work within these boundaries. Teams at larger scale should treat it as a starting point rather than a complete solution.</p>
 </section>
 <section id="suggestions-for-the-ecosystem" class="level2">
 <h2 class="anchored" data-anchor-id="suggestions-for-the-ecosystem">Suggestions for the Ecosystem</h2>
 <p>I want to be careful about positioning here. This is intended as a suggestion to existing tool builders, not a claim to have solved the problem comprehensively. Score tracking, dashboards, annotation workflows, prompt versioning, and experiment comparison are mature capabilities in tools like Braintrust, Langfuse, and LangSmith. These should not be rebuilt.</p>
 <p>What appears to be missing is a metadata interface. Evaluation tools could accept a corpus-state fingerprint alongside prompt version and model configuration. The ingestion pipeline or SDK would emit this metadata; the evaluation tool would record and surface it.</p>
-<p>The minimum viable version might be a <code>corpus_hash</code> field on evaluation runs, displayed in experiment comparison views. When two experiments have different corpus hashes, the tool could flag that the underlying data differed. Even this single field, if surfaced in the right context, could meaningfully change how teams interpret their evaluation results.</p>
+<p>The minimum viable version might be a <code>corpus_hash</code> field on evaluation runs, displayed in experiment comparison views. When two experiments have different corpus hashes, the tool could flag that the underlying data differed. Langfuse, for example, already versions dataset items and ties experiments to the exact dataset state at run time. Extending that pattern to accept a corpus fingerprint, emitted by the ingestion pipeline and logged alongside the eval dataset version, would be a natural next step, and the schema change would be minimal. Even this single field, if surfaced in experiment comparison views, could meaningfully change how teams interpret their evaluation results.</p>
 <p>A more complete vision might include corpus-version comparison dashboards, CI/CD gates on corpus quality regressions, and diff-aware re-evaluation triggered by corpus changes. These are natural extensions of experiment management into the data dimension, and I suspect they are not prohibitively expensive to build for teams that already have the experiment infrastructure in place.</p>
 <p>The underlying observation is straightforward: evaluation tools already version most aspects of the evaluation environment except the data the system retrieves from. Closing that gap does not require a paradigm shift and I believe it requires one additional metadata field and the discipline to populate it.</p>
 </section>
@@ -352,7 +352,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <ul>
-<li>Xu, F. et al.&nbsp;(2025). “RAGOps: Managing Data in Retrieval-Augmented Generation Systems.” arXiv:2506.03401. CSIRO, TU Munich, Fraunhofer.</li>
+<li>Xu, X. et al.&nbsp;(2025). “RAGOps: Operating and Managing Retrieval-Augmented Generation Pipelines.” arXiv:2506.03401. CSIRO, KU Leuven.</li>
 <li>RePCS (2025). “Retrieval-Path Contamination Scoring.” arXiv:2506.15513.</li>
 <li>HybridRAG-Bench (2025). “Benchmarking RAG with Time-Framed Corpora.” arXiv:2602.10210.</li>
 <li>DRAGOn (2025). “Non-Reproducibility with Evolving Corpora in RAG.” arXiv:2507.05713.</li>
