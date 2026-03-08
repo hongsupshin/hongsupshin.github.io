@@ -1,0 +1,277 @@
+---
+title: "Filling the Gaps in Police Shooting Data with an Agentic AI Pipeline"
+author: "Hongsup Shin"
+date: 2026-03-08
+description: "Texas requires every officer-involved shooting to be reported, but the mandatory forms leave critical fields blank. I built an agentic AI pipeline that fills those gaps by finding and cross-referencing news articles, with human reviewers making the final call. This post covers the architecture, a 100-record evaluation with fairness analysis, and what I learned about knowing when not to use an LLM."
+image: fig.png
+categories:
+  - Agentic AI
+  - LangGraph
+  - Data Quality
+  - Evaluation
+  - Open Source
+toc: true
+---
+
+Every officer-involved shooting in Texas must be reported to the Attorney General. But the mandatory reporting forms leave critical fields blank such as officer names, weapon types, civilian demographics. These are the crucial details that researchers, journalists, and policymakers need. 
+
+I learned this while co-authoring a [report on officer-involved shootings in Texas](https://texasjusticeinitiative.org/publications/officer-involved-shootings-in-texas) (2016-2019) for the [Texas Justice Initiative](https://texasjusticeinitiative.org/) (TJI), where I've volunteered since 2019. TJI collects, analyzes, and publishes criminal justice data in Texas. The information usually exists somewhere, mostly in news articles. News reporters interview witnesses, name officers and victims, and describe circumstances that government filings omit. But connecting scattered news articles back to specific incident records is tedious, manual work. A college student volunteer and I once attempted to go through every record by manually searching dates and locations, cross-referencing articles, typing extracted details into the database. With nearly 2,000 records, we gave up.
+
+This post is about [the system I built](https://github.com/hongsupshin/police-data-intelligence/) to automate that workflow. It's an agentic pipeline (not a chatbot, not a demo) that searches news articles, validates they match the right incident, extracts structured fields, flags conflicts between sources, and routes uncertain cases to human reviewers without modifying the database on its own.
+
+## 1. The Data Quality Problem
+
+TJI maintains two datasets: **civilians-shot** (1,674 records, 144 fields) and **officers-shot** (282 records, 48 fields) — 1,956 records total spanning 2014–2024.
+
+The gaps are substantial. In the civilians-shot dataset, 22.5% of civilian names and 57% of weapon information are missing. In the officers-shot dataset, 40% of officer names are absent. These are the crucial details that researchers, journalists, and policymakers need to understand what happened.
+
+## 2. System Overview
+
+Before getting into architecture, here's what the system looks like from a user's perspective.
+
+- **Input**: An incident record with missing fields, pulled from PostgreSQL.
+- **Output**: A JSON file containing 
+    - Extracted values
+    - Source article URLs
+    - Verbatim quotes supporting each extraction
+    - Flagged conflicts ready for human review
+    - Escalation report if the system can't find enough information or encounters irreconcilable source disagreements with zero agreed fields, routed to a human review queue.
+
+Here's a trimmed example of the output:
+
+```json
+{
+  "incident_id": "792",
+  "extracted_fields": [
+    {
+      "field_name": "weapon",
+      "value": "Knife (possessed by civilian ...)",
+      "confidence": "medium",
+      "sources": ["https://www.click2houston.com/news/local/2020/02/19/..."],
+      "extraction_method": "llm"
+    }
+  ],
+  "conflicting_fields": [],
+  "outcome_summary": "Enriched 7 fields for incident 792 (civilians_shot)"
+}
+```
+
+**Human-in-the-loop is the main driver of the system design** here and it shaped the entire output format. Building reliability for a public-facing dataset with sensitive information requires implementing output structure that includes source URLs and verbatim quotes, surfaces conflicts rather than silently resolving them. Every design choice was informed by the question: **what does a human reviewer need to verify this?**
+
+In practice, each record takes **~7 seconds at $0.15** (~$290 projected for all 1,956 records), compared to 15–30 minutes of volunteer time. LLM extraction is about 70% of the cost, web search about 30%. With 10 concurrent workers, projected wall-clock time for all 1,956 records drops from ~3.5 hours to ~20 minutes.
+
+## 3. Architecture
+
+The system is a single-agent pipeline built with [LangGraph](https://langchain-ai.github.io/langgraph/), using a hub-and-spoke topology with 7 nodes: 
+
+- 4 processing nodes: **Extract, Search, Validate, Merge**
+- 1 central **Coordinator**
+- 2 terminal nodes: **Complete, Escalate**
+
+```{mermaid}
+flowchart TD
+    Start([Start]) --> Extract
+    Extract[<b>Extract</b><br/>DB → state fields]
+    Search[<b>Search</b><br/>Tavily API]
+    Validate[<b>Validate</b><br/>Date, Location, Name]
+    Merge[<b>Merge</b><br/>LLM extraction]
+    Coord{<b>Coordinator</b>}
+    Complete([<b>Complete</b><br/>Write JSON])
+    Escalate([<b>Escalate</b><br/>Human review])
+
+    Extract --> Coord
+    Coord -- "Fields OK" --> Search
+    Search --> Coord
+    Coord -- "Results > 0" --> Validate
+    Coord -- "Retry: next strategy" --> Search
+    Validate --> Coord
+    Coord -- "Articles valid" --> Merge
+    Merge --> Coord
+    Coord -- "Fields extracted" --> Complete
+    Coord -- "Error / max retries / zero extractions" --> Escalate
+
+    classDef llmNode fill:#FEF3C7,stroke:#B45309,stroke-width:2px
+    class Merge llmNode
+```
+
+The flow:
+
+- **Extract** reads the incident from PostgreSQL.
+- **Search** retrieves news articles via the Tavily API.
+- **Validate** checks date proximity (±5 days), geographic match, and optional name matching.
+- **Merge** uses an LLM to extract structured fields from confirmed articles.
+
+After each step, the **Coordinator** decides: proceed, retry with a broader search strategy, or escalate to a human. The Coordinator implements an escalating search strategy: **exact match → temporal expansion (month + year) → partial name (drop officer name) → entity relaxation (drop both names) → escalate**. This matters because many incidents have thin news coverage. A rigid single-query approach would miss articles that exist but require a looser search.
+
+Six design choices are worth calling out.
+
+### Single LLM Node
+
+The temptation in agentic AI is to make everything LLM-powered, but routing, validation, and search query construction are all more reliable, faster, and cheaper as deterministic code. The LLM is reserved for the one step that genuinely requires language understanding: **extracting structured fields from unstructured news text**. The Coordinator's retry loop is **structurally similar to a ReAct agent but implemented as threshold checks**. This way, we get the same outcomes but in a faster, cheaper, and fully testable manner. Multi-agent architectures earn their complexity when agents need to reason about genuine ambiguity, but here, every routing decision is a binary threshold check.
+
+| Node            | Type          | Purpose                                                                    |
+| --------------- | ------------- | -------------------------------------------------------------------------- |
+| **Extract**     | Deterministic | Reads incident record from PostgreSQL, populates state fields              |
+| **Search**      | Deterministic | Constructs query from incident fields, calls Tavily API for news articles  |
+| **Validate**    | Rule-based    | Checks date proximity (±5 days), location match, and optional name match   |
+| **Merge**       | LLM-powered   | Extracts structured fields from articles, checks cross-article consistency |
+| **Coordinator** | Rule-based    | Gates after each stage — decides retry, proceed, or escalate               |
+| **Complete**    | Terminal      | Writes enrichment results to JSON                                          |
+| **Escalate**    | Terminal      | Writes escalation report to JSON for human review                          |
+
+### Partial Completion over Escalation
+
+Early versions escalated the entire record whenever a single field had a conflict between sources. This was correct in a strict sense, but it threw away all the agreed-upon fields too. Thus, the system outputs the agreed fields and flags the conflicts separately for human review. This single change improved completion rate from 7.5% to 70%.
+
+```python
+# coordinate_node.py — partial completion logic
+if state.extracted_fields:
+    # Some fields agreed — complete with what we have
+    if state.conflicting_fields:
+        state.requires_human_review = True
+    state.next_stage = PipelineStage.COMPLETE
+else:
+    # Zero fields extracted — full escalation
+    state.escalation_reason = EscalationReason.CONFLICT
+    state.requires_human_review = True
+    state.next_stage = PipelineStage.ESCALATE
+return state
+```
+
+### Explicit Conflict Detection
+
+When sources disagree, the system generates a `FieldConflict` record rather than picking a value. The original TJI database based on the government data is treated as immutable, so if a news article contradicts the database, that's flagged too, not overwritten.
+
+```python
+# state.py — conflict tracking
+class FieldConflict(BaseModel):
+    field_name: str
+    conflict_type: ConflictType  # enum: articles_disagree | reference_mismatch
+    values: list[str]
+    sources: list[list[str]]
+    reference_value: str | None = None  # database value on mismatch
+```
+
+### Validation as a Trust Boundary
+
+The validation node is the system's defense against a class of errors that are invisible at search time. During the pilot study, the pipeline retrieved articles from aggregation sites like [Fatal Encounters](https://fatalencounters.org/) and Wikipedia that compile data across hundreds of incidents. These pages passed naive date and location checks because they mention many incidents, but they contaminated extraction by mixing details from unrelated incidents. The fix was implementing two exclusion layers rather than one, for both search and validation stages:
+
+```python
+# search_node.py — first layer: block at retrieval
+client.search(query, exclude_domains=["wikipedia.org", "fatalencounters.org"])
+
+# validate_node.py — second layer: catch anything that slips through
+_EXCLUDED_URL_PATTERNS = (".pdf", ".csv", "fatalencounters.org")
+```
+
+The search node blocks known aggregation sites before articles even enter the pipeline. The validation node independently filters non-article URLs (PDFs, CSVs; aggregated data sources which can confuse LLM easily) and rechecks for aggregation domains. So if a new aggregation source appears in search results, it still has to pass validation. This defense-in-depth pattern allows each layer to operate independently, and neither assumes the other caught everything.
+
+### Testing the Untestable Parts
+
+The pipeline depends on two external services ([Tavily](https://www.tavily.com/) for search, Anthropic for LLM extraction) that are non-deterministic and expensive to call. Rather than mocking at the patch level, nodes that need external dependencies receive them through LangGraph's `RunnableConfig`, making it straightforward to inject mock implementations in tests. The 328 tests cover node-level unit tests, Coordinator routing logic for every transition path, end-to-end graph wiring, and the eval framework itself. When something breaks, I can pinpoint which node failed and why, rather than debugging an opaque chain of LLM calls.
+
+### State Checkpointing
+
+Each node wraps external API calls in try/except blocks that populate an `error_message` field rather than crashing. The Coordinator routes errors to retry or escalation like any other outcome. LangGraph's `SqliteSaver` checkpoints state at every node boundary, so a failed record can be rerun from its last successful step. Each search attempt is logged with its query, strategy, result count, and relevance scores, and terminal nodes write structured JSON with full provenance. This isn't production-grade observability because currently there is no alerting or no dashboards. But for a batch pipeline processing ~2,000 records, per-record structured logs and deterministic thread IDs provide enough visibility to diagnose why any particular record was escalated.
+
+## 4. Evaluation
+
+Evaluation is where I spent the most engineering effort. I evaluated on a 100-record holdout with stratified sampling, per-field accuracy metrics, and fairness analysis across demographic groups.
+
+### Methodology
+
+A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, merge normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.
+
+The holdout leverages a natural property of the data: **many records already do have ground truth** values for fields like age, race, and weapon, but they are not used during enrichment. Since the pipeline only receives date, location, and names as search inputs, I can compare extracted values from the pipeline output against the withheld ground truth using field-appropriate matching (exact, fuzzy, and categorical). Full methodology details will be in a forthcoming companion post on evaluation.
+
+### Pipeline-Level Results
+
+70 of 100 records completed, 30 escalated (**30% escalation rate**). Of the 30 escalations, 97% were retrieval gaps (i.e., no relevant articles found), not extraction errors. This tells us the bottleneck is article availability, not pipeline quality.
+
+### Per-Field Extraction Quality
+
+| Field             | N evaluable | Coverage | Exact match | Fuzzy match |
+| ----------------- | ----------- | -------- | ----------- | ----------- |
+| `civilian_age`    | 100         | 49%      | 90%         | 90%         |
+| `time_of_day`     | 96          | 32%      | 94%         | 94%         |
+| `location_detail` | 100         | 38%      | 18%         | 97%         |
+| `outcome`         | 100         | 68%      | 84%         | 84%         |
+| `weapon`          | 84          | 50%      | 79%         | 79%         |
+| `civilian_race`   | 100         | 17%      | 65%         | 65%         |
+
+Aggregate: 72% exact / 84% fuzzy across 245 extracted values. Age and time of day are the strongest fields. Location is 97% correct by fuzzy match, and the exact-match gap is formatting differences only ("200 block of Main St" vs. "200 Main Street"). 
+
+::: {.callout-important}
+## No false-negative deaths
+The pipeline never reported a civilian as surviving when the database recorded a fatality in the evaluation (N=100). For a system enriching police shooting data, this is the most safety-critical property; getting an outcome wrong in this direction could mislead researchers and cause real harm.
+:::
+
+### The Race Accuracy Story
+
+Race accuracy jumped from 35% in the pilot to 65% in the holdout, not from switching to a better model, but from fixing a normalization bug. The Texas government reporting forms use a simple race categorization: White, Black, Hispanic, and Other. So the pipeline needs to map whatever language news articles use into those four categories. Similarly, gender in the government data is binary (male/female), which is how the reporting forms record it. 
+
+The merge node originally used an alias dictionary (`{"African American": "Black", "Caucasian": "White", ...}`) that couldn't handle variations like "Hispanic/Latino male." The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.
+
+### Fairness Analysis
+
+I measured completion rate across all racial groups to compare the fairness metrics of the pipeline performance. The rates vary across racial groups: 50% for Black civilians, 83% for Hispanic, 75% for White. While extraction accuracy is consistent when articles are found (67–71% across groups). The gap is retrieval, not extraction: 97% of escalations are retrieval failures where no relevant articles were found at all.
+
+In the holdout sample, Black civilians in this evaluation dataset skew toward older incidents (2014–2016), whose news articles are more likely to have disappeared from the web. News availability is not uniformly distributed across time, and time is not uniformly distributed across demographics. For police shooting data specifically, this matters: if the pipeline systematically enriches certain groups less than others, it risks reproducing the same coverage gaps that make the data incomplete in the first place.
+
+I track completion rates by demographic group as a standing metric. If gaps widened or the dataset grew, the response would be supplementing web search with alternative sources such as court records, [FOIA](https://www.foia.gov/) documents, local newspaper archives, rather than accepting retrieval-driven disparities as given.
+
+### Recent Records Drop Off
+
+The 2022–2024 cohort has only 47% completion despite 83–87% accuracy when articles are found, likely because recent incidents have had less time to be indexed. And 6 records extracted only the `outcome` field with 17% accuracy probable due to entity confusion. Excluding these, outcome accuracy rises from 84% to 90%. Both are areas for targeted improvement.
+
+## 5. Lessons
+
+### Evaluation Is the Hard Part
+
+The pilot study revealed failure modes invisible during development. For instance, the merge node treated "Black" and "African American" as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.
+
+### Knowing When Not to Use an LLM
+
+I decided early on to limit the pipeline to a single LLM node, but I had to defend that boundary repeatedly during development. When validation was catching too few articles, the instinct was to add an LLM-powered relevance filter. When search queries weren't returning good results, the temptation was to have an LLM generate queries. In every case, the better fix turned out to be a tighter rule or a better threshold, and those fixes were faster to build and test, and cheaper to run. The lesson is that maintaining the architectural boundary takes ongoing discipline, especially when an LLM-shaped solution feels like the path of least resistance.
+
+### Human-in-the-Loop Shaped the Architecture
+
+It's tempting to treat human review as something you add at the end. Here, it drove decisions at every level: output format (source URLs and verbatim quotes for verification), conflict detection as a first-class data structure, escalation triggers that route genuinely hard cases rather than hiding uncertainty, and the principle that the government database is immutable. The architecture would look fundamentally different without this constraint.
+
+### The Generalizable Pattern
+
+Enriching structured databases from unstructured web sources is a common problem. This design can be generalized to any domain where structured records have gaps that scattered web sources could fill. The most portable pieces are 
+
+- The search→validate→extract→conflict→escalate loop
+- The partial completion pattern (output what you can, flag what you can't)
+- The natural holdout evaluation design (withholding ground truth the pipeline doesn't need as inputs)
+- The iterative evaluation approach: pilot → failure taxonomy → targeted fixes → holdout
+
+## 6. What's Next
+
+I submitted this work to the SciPy 2026 conference, which is currently under review. Major planned work includes batch processing across all remaining records with priority ordering, evaluation on the officers-shot dataset, and a human review UI.
+Some improvements also include tightening the extraction prompt to fix time-of-day parse errors, adding an outcome-only completion guard that requires at least two extracted fields. 
+
+But other improvements need domain expertise from TJI volunteers and organizers. The weapon category map, for instance, currently misses mappings like sawed-off shotgun → shotgun and machete → knife because the government reporting forms use a fixed set of categories that don't always match how news articles describe weapons. Expanding that map correctly requires someone who understands both the reporting conventions and the real-world ambiguities. For instance, a BB gun and a pellet gun might look the same in a news article but may carry different legal weight. Similar judgment calls will come up as the system processes more records and encounters edge cases in race categorization, location naming, and outcome classification. This is collaborative work, not just engineering work.
+
+Thanks to TJI and Executive Director Eva Ruth Moravec for the collaboration and for making this data publicly available.
+
+The project is open-source under the MIT license: [github.com/hongsupshin/police-data-intelligence](https://github.com/hongsupshin/police-data-intelligence).
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2026-agentic-data-enrichment,
+    author = {Hongsup Shin},
+    title = {Filling the Gaps in Police Shooting Data with an Agentic AI Pipeline},
+    year = {2026},
+    month = {3},
+    day = {8},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/},
+}
+```
