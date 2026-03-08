@@ -10,7 +10,567 @@
 <atom:link href="https://hongsupshin.github.io/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.8.26</generator>
-<lastBuildDate>Sun, 22 Feb 2026 06:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 08 Mar 2026 06:00:00 GMT</lastBuildDate>
+<item>
+  <title>Filling the Gaps in Police Shooting Data with an Agentic AI Pipeline</title>
+  <dc:creator>Hongsup Shin</dc:creator>
+  <link>https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Every officer-involved shooting in Texas must be reported to the Attorney General. But the mandatory reporting forms leave critical fields blank such as officer names, weapon types, civilian demographics. These are the crucial details that researchers, journalists, and policymakers need.</p>
+<p>I learned this while co-authoring a <a href="https://texasjusticeinitiative.org/publications/officer-involved-shootings-in-texas">report on officer-involved shootings in Texas</a> (2016-2019) for the <a href="https://texasjusticeinitiative.org/">Texas Justice Initiative</a> (TJI), where I’ve volunteered since 2019. TJI collects, analyzes, and publishes criminal justice data in Texas. The information usually exists somewhere, mostly in news articles. News reporters interview witnesses, name officers and victims, and describe circumstances that government filings omit. But connecting scattered news articles back to specific incident records is tedious, manual work. A college student volunteer and I once attempted to go through every record by manually searching dates and locations, cross-referencing articles, typing extracted details into the database. With nearly 2,000 records, we gave up.</p>
+<p>This post is about <a href="https://github.com/hongsupshin/police-data-intelligence/">the system I built</a> to automate that workflow. It’s an agentic pipeline (not a chatbot, not a demo) that searches news articles, validates they match the right incident, extracts structured fields, flags conflicts between sources, and routes uncertain cases to human reviewers without modifying the database on its own.</p>
+<section id="the-data-quality-problem" class="level2">
+<h2 class="anchored" data-anchor-id="the-data-quality-problem">1. The Data Quality Problem</h2>
+<p>TJI maintains two datasets: <strong>civilians-shot</strong> (1,674 records, 144 fields) and <strong>officers-shot</strong> (282 records, 48 fields) — 1,956 records total spanning 2014–2024.</p>
+<p>The gaps are substantial. In the civilians-shot dataset, 22.5% of civilian names and 57% of weapon information are missing. In the officers-shot dataset, 40% of officer names are absent. These are the crucial details that researchers, journalists, and policymakers need to understand what happened.</p>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">2. System Overview</h2>
+<p>Before getting into architecture, here’s what the system looks like from a user’s perspective.</p>
+<ul>
+<li><strong>Input</strong>: An incident record with missing fields, pulled from PostgreSQL.</li>
+<li><strong>Output</strong>: A JSON file containing
+<ul>
+<li>Extracted values</li>
+<li>Source article URLs</li>
+<li>Verbatim quotes supporting each extraction</li>
+<li>Flagged conflicts ready for human review</li>
+<li>Escalation report if the system can’t find enough information or encounters irreconcilable source disagreements with zero agreed fields, routed to a human review queue.</li>
+</ul></li>
+</ul>
+<p>Here’s a trimmed example of the output:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"incident_id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"792"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"extracted_fields"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb1-4">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-5">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"field_name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"weapon"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-6">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"value"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Knife (possessed by civilian ...)"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"confidence"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"medium"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-8">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"sources"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.click2houston.com/news/local/2020/02/19/..."</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-9">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"extraction_method"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"llm"</span></span>
+<span id="cb1-10">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-11">  <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-12">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"conflicting_fields"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-13">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"outcome_summary"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Enriched 7 fields for incident 792 (civilians_shot)"</span></span>
+<span id="cb1-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p><strong>Human-in-the-loop is the main driver of the system design</strong> here and it shaped the entire output format. Building reliability for a public-facing dataset with sensitive information requires implementing output structure that includes source URLs and verbatim quotes, surfaces conflicts rather than silently resolving them. Every design choice was informed by the question: <strong>what does a human reviewer need to verify this?</strong></p>
+<p>In practice, each record takes <strong>~7 seconds at $0.15</strong> (~$290 projected for all 1,956 records), compared to 15–30 minutes of volunteer time. LLM extraction is about 70% of the cost, web search about 30%. With 10 concurrent workers, projected wall-clock time for all 1,956 records drops from ~3.5 hours to ~20 minutes.</p>
+</section>
+<section id="architecture" class="level2">
+<h2 class="anchored" data-anchor-id="architecture">3. Architecture</h2>
+<p>The system is a single-agent pipeline built with <a href="https://langchain-ai.github.io/langgraph/">LangGraph</a>, using a hub-and-spoke topology with 7 nodes:</p>
+<ul>
+<li>4 processing nodes: <strong>Extract, Search, Validate, Merge</strong></li>
+<li>1 central <strong>Coordinator</strong></li>
+<li>2 terminal nodes: <strong>Complete, Escalate</strong></li>
+</ul>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    Start([Start]) --&gt; Extract
+    Extract[&lt;b&gt;Extract&lt;/b&gt;&lt;br/&gt;DB → state fields]
+    Search[&lt;b&gt;Search&lt;/b&gt;&lt;br/&gt;Tavily API]
+    Validate[&lt;b&gt;Validate&lt;/b&gt;&lt;br/&gt;Date, Location, Name]
+    Merge[&lt;b&gt;Merge&lt;/b&gt;&lt;br/&gt;LLM extraction]
+    Coord{&lt;b&gt;Coordinator&lt;/b&gt;}
+    Complete([&lt;b&gt;Complete&lt;/b&gt;&lt;br/&gt;Write JSON])
+    Escalate([&lt;b&gt;Escalate&lt;/b&gt;&lt;br/&gt;Human review])
+
+    Extract --&gt; Coord
+    Coord -- "Fields OK" --&gt; Search
+    Search --&gt; Coord
+    Coord -- "Results &gt; 0" --&gt; Validate
+    Coord -- "Retry: next strategy" --&gt; Search
+    Validate --&gt; Coord
+    Coord -- "Articles valid" --&gt; Merge
+    Merge --&gt; Coord
+    Coord -- "Fields extracted" --&gt; Complete
+    Coord -- "Error / max retries / zero extractions" --&gt; Escalate
+
+    classDef llmNode fill:#FEF3C7,stroke:#B45309,stroke-width:2px
+    class Merge llmNode
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>The flow:</p>
+<ul>
+<li><strong>Extract</strong> reads the incident from PostgreSQL.</li>
+<li><strong>Search</strong> retrieves news articles via the Tavily API.</li>
+<li><strong>Validate</strong> checks date proximity (±5 days), geographic match, and optional name matching.</li>
+<li><strong>Merge</strong> uses an LLM to extract structured fields from confirmed articles.</li>
+</ul>
+<p>After each step, the <strong>Coordinator</strong> decides: proceed, retry with a broader search strategy, or escalate to a human. The Coordinator implements an escalating search strategy: <strong>exact match → temporal expansion (month + year) → partial name (drop officer name) → entity relaxation (drop both names) → escalate</strong>. This matters because many incidents have thin news coverage. A rigid single-query approach would miss articles that exist but require a looser search.</p>
+<p>Six design choices are worth calling out.</p>
+<section id="single-llm-node" class="level3">
+<h3 class="anchored" data-anchor-id="single-llm-node">Single LLM Node</h3>
+<p>The temptation in agentic AI is to make everything LLM-powered, but routing, validation, and search query construction are all more reliable, faster, and cheaper as deterministic code. The LLM is reserved for the one step that genuinely requires language understanding: <strong>extracting structured fields from unstructured news text</strong>. The Coordinator’s retry loop is <strong>structurally similar to a ReAct agent but implemented as threshold checks</strong>. This way, we get the same outcomes but in a faster, cheaper, and fully testable manner. Multi-agent architectures earn their complexity when agents need to reason about genuine ambiguity, but here, every routing decision is a binary threshold check.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 72%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Node</th>
+<th>Type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Extract</strong></td>
+<td>Deterministic</td>
+<td>Reads incident record from PostgreSQL, populates state fields</td>
+</tr>
+<tr class="even">
+<td><strong>Search</strong></td>
+<td>Deterministic</td>
+<td>Constructs query from incident fields, calls Tavily API for news articles</td>
+</tr>
+<tr class="odd">
+<td><strong>Validate</strong></td>
+<td>Rule-based</td>
+<td>Checks date proximity (±5 days), location match, and optional name match</td>
+</tr>
+<tr class="even">
+<td><strong>Merge</strong></td>
+<td>LLM-powered</td>
+<td>Extracts structured fields from articles, checks cross-article consistency</td>
+</tr>
+<tr class="odd">
+<td><strong>Coordinator</strong></td>
+<td>Rule-based</td>
+<td>Gates after each stage — decides retry, proceed, or escalate</td>
+</tr>
+<tr class="even">
+<td><strong>Complete</strong></td>
+<td>Terminal</td>
+<td>Writes enrichment results to JSON</td>
+</tr>
+<tr class="odd">
+<td><strong>Escalate</strong></td>
+<td>Terminal</td>
+<td>Writes escalation report to JSON for human review</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="partial-completion-over-escalation" class="level3">
+<h3 class="anchored" data-anchor-id="partial-completion-over-escalation">Partial Completion over Escalation</h3>
+<p>Early versions escalated the entire record whenever a single field had a conflict between sources. This was correct in a strict sense, but it threw away all the agreed-upon fields too. Thus, the system outputs the agreed fields and flags the conflicts separately for human review. This single change improved completion rate from 7.5% to 70%.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># coordinate_node.py — partial completion logic</span></span>
+<span id="cb2-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> state.extracted_fields:</span>
+<span id="cb2-3">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Some fields agreed — complete with what we have</span></span>
+<span id="cb2-4">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> state.conflicting_fields:</span>
+<span id="cb2-5">        state.requires_human_review <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span></span>
+<span id="cb2-6">    state.next_stage <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> PipelineStage.COMPLETE</span>
+<span id="cb2-7"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb2-8">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Zero fields extracted — full escalation</span></span>
+<span id="cb2-9">    state.escalation_reason <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> EscalationReason.CONFLICT</span>
+<span id="cb2-10">    state.requires_human_review <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span></span>
+<span id="cb2-11">    state.next_stage <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> PipelineStage.ESCALATE</span>
+<span id="cb2-12"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> state</span></code></pre></div></div>
+</section>
+<section id="explicit-conflict-detection" class="level3">
+<h3 class="anchored" data-anchor-id="explicit-conflict-detection">Explicit Conflict Detection</h3>
+<p>When sources disagree, the system generates a <code>FieldConflict</code> record rather than picking a value. The original TJI database based on the government data is treated as immutable, so if a news article contradicts the database, that’s flagged too, not overwritten.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># state.py — conflict tracking</span></span>
+<span id="cb3-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> FieldConflict(BaseModel):</span>
+<span id="cb3-3">    field_name: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span></span>
+<span id="cb3-4">    conflict_type: ConflictType  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># enum: articles_disagree | reference_mismatch</span></span>
+<span id="cb3-5">    values: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]</span>
+<span id="cb3-6">    sources: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]]</span>
+<span id="cb3-7">    reference_value: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># database value on mismatch</span></span></code></pre></div></div>
+</section>
+<section id="validation-as-a-trust-boundary" class="level3">
+<h3 class="anchored" data-anchor-id="validation-as-a-trust-boundary">Validation as a Trust Boundary</h3>
+<p>The validation node is the system’s defense against a class of errors that are invisible at search time. During the pilot study, the pipeline retrieved articles from aggregation sites like <a href="https://fatalencounters.org/">Fatal Encounters</a> and Wikipedia that compile data across hundreds of incidents. These pages passed naive date and location checks because they mention many incidents, but they contaminated extraction by mixing details from unrelated incidents. The fix was implementing two exclusion layers rather than one, for both search and validation stages:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># search_node.py — first layer: block at retrieval</span></span>
+<span id="cb4-2">client.search(query, exclude_domains<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"wikipedia.org"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"fatalencounters.org"</span>])</span>
+<span id="cb4-3"></span>
+<span id="cb4-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># validate_node.py — second layer: catch anything that slips through</span></span>
+<span id="cb4-5">_EXCLUDED_URL_PATTERNS <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".pdf"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".csv"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"fatalencounters.org"</span>)</span></code></pre></div></div>
+<p>The search node blocks known aggregation sites before articles even enter the pipeline. The validation node independently filters non-article URLs (PDFs, CSVs; aggregated data sources which can confuse LLM easily) and rechecks for aggregation domains. So if a new aggregation source appears in search results, it still has to pass validation. This defense-in-depth pattern allows each layer to operate independently, and neither assumes the other caught everything.</p>
+</section>
+<section id="testing-the-untestable-parts" class="level3">
+<h3 class="anchored" data-anchor-id="testing-the-untestable-parts">Testing the Untestable Parts</h3>
+<p>The pipeline depends on two external services (<a href="https://www.tavily.com/">Tavily</a> for search, Anthropic for LLM extraction) that are non-deterministic and expensive to call. Rather than mocking at the patch level, nodes that need external dependencies receive them through LangGraph’s <code>RunnableConfig</code>, making it straightforward to inject mock implementations in tests. The 328 tests cover node-level unit tests, Coordinator routing logic for every transition path, end-to-end graph wiring, and the eval framework itself. When something breaks, I can pinpoint which node failed and why, rather than debugging an opaque chain of LLM calls.</p>
+</section>
+<section id="state-checkpointing" class="level3">
+<h3 class="anchored" data-anchor-id="state-checkpointing">State Checkpointing</h3>
+<p>Each node wraps external API calls in try/except blocks that populate an <code>error_message</code> field rather than crashing. The Coordinator routes errors to retry or escalation like any other outcome. LangGraph’s <code>SqliteSaver</code> checkpoints state at every node boundary, so a failed record can be rerun from its last successful step. Each search attempt is logged with its query, strategy, result count, and relevance scores, and terminal nodes write structured JSON with full provenance. This isn’t production-grade observability because currently there is no alerting or no dashboards. But for a batch pipeline processing ~2,000 records, per-record structured logs and deterministic thread IDs provide enough visibility to diagnose why any particular record was escalated.</p>
+</section>
+</section>
+<section id="evaluation" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation">4. Evaluation</h2>
+<p>Evaluation is where I spent the most engineering effort. I evaluated on a 100-record holdout with stratified sampling, per-field accuracy metrics, and fairness analysis across demographic groups.</p>
+<section id="methodology" class="level3">
+<h3 class="anchored" data-anchor-id="methodology">Methodology</h3>
+<p>A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, merge normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.</p>
+<p>The holdout leverages a natural property of the data: <strong>many records already do have ground truth</strong> values for fields like age, race, and weapon, but they are not used during enrichment. Since the pipeline only receives date, location, and names as search inputs, I can compare extracted values from the pipeline output against the withheld ground truth using field-appropriate matching (exact, fuzzy, and categorical). Full methodology details will be in a forthcoming companion post on evaluation.</p>
+</section>
+<section id="pipeline-level-results" class="level3">
+<h3 class="anchored" data-anchor-id="pipeline-level-results">Pipeline-Level Results</h3>
+<p>70 of 100 records completed, 30 escalated (<strong>30% escalation rate</strong>). Of the 30 escalations, 97% were retrieval gaps (i.e., no relevant articles found), not extraction errors. This tells us the bottleneck is article availability, not pipeline quality.</p>
+</section>
+<section id="per-field-extraction-quality" class="level3">
+<h3 class="anchored" data-anchor-id="per-field-extraction-quality">Per-Field Extraction Quality</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 18%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>N evaluable</th>
+<th>Coverage</th>
+<th>Exact match</th>
+<th>Fuzzy match</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>civilian_age</code></td>
+<td>100</td>
+<td>49%</td>
+<td>90%</td>
+<td>90%</td>
+</tr>
+<tr class="even">
+<td><code>time_of_day</code></td>
+<td>96</td>
+<td>32%</td>
+<td>94%</td>
+<td>94%</td>
+</tr>
+<tr class="odd">
+<td><code>location_detail</code></td>
+<td>100</td>
+<td>38%</td>
+<td>18%</td>
+<td>97%</td>
+</tr>
+<tr class="even">
+<td><code>outcome</code></td>
+<td>100</td>
+<td>68%</td>
+<td>84%</td>
+<td>84%</td>
+</tr>
+<tr class="odd">
+<td><code>weapon</code></td>
+<td>84</td>
+<td>50%</td>
+<td>79%</td>
+<td>79%</td>
+</tr>
+<tr class="even">
+<td><code>civilian_race</code></td>
+<td>100</td>
+<td>17%</td>
+<td>65%</td>
+<td>65%</td>
+</tr>
+</tbody>
+</table>
+<p>Aggregate: 72% exact / 84% fuzzy across 245 extracted values. Age and time of day are the strongest fields. Location is 97% correct by fuzzy match, and the exact-match gap is formatting differences only (“200 block of Main St” vs.&nbsp;“200 Main Street”).</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>No false-negative deaths
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The pipeline never reported a civilian as surviving when the database recorded a fatality in the evaluation (N=100). For a system enriching police shooting data, this is the most safety-critical property; getting an outcome wrong in this direction could mislead researchers and cause real harm.</p>
+</div>
+</div>
+</section>
+<section id="the-race-accuracy-story" class="level3">
+<h3 class="anchored" data-anchor-id="the-race-accuracy-story">The Race Accuracy Story</h3>
+<p>Race accuracy jumped from 35% in the pilot to 65% in the holdout, not from switching to a better model, but from fixing a normalization bug. The Texas government reporting forms use a simple race categorization: White, Black, Hispanic, and Other. So the pipeline needs to map whatever language news articles use into those four categories. Similarly, gender in the government data is binary (male/female), which is how the reporting forms record it.</p>
+<p>The merge node originally used an alias dictionary (<code>{"African American": "Black", "Caucasian": "White", ...}</code>) that couldn’t handle variations like “Hispanic/Latino male.” The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.</p>
+</section>
+<section id="fairness-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="fairness-analysis">Fairness Analysis</h3>
+<p>I measured completion rate across all racial groups to compare the fairness metrics of the pipeline performance. The rates vary across racial groups: 50% for Black civilians, 83% for Hispanic, 75% for White. While extraction accuracy is consistent when articles are found (67–71% across groups). The gap is retrieval, not extraction: 97% of escalations are retrieval failures where no relevant articles were found at all.</p>
+<p>In the holdout sample, Black civilians in this evaluation dataset skew toward older incidents (2014–2016), whose news articles are more likely to have disappeared from the web. News availability is not uniformly distributed across time, and time is not uniformly distributed across demographics. For police shooting data specifically, this matters: if the pipeline systematically enriches certain groups less than others, it risks reproducing the same coverage gaps that make the data incomplete in the first place.</p>
+<p>I track completion rates by demographic group as a standing metric. If gaps widened or the dataset grew, the response would be supplementing web search with alternative sources such as court records, <a href="https://www.foia.gov/">FOIA</a> documents, local newspaper archives, rather than accepting retrieval-driven disparities as given.</p>
+</section>
+<section id="recent-records-drop-off" class="level3">
+<h3 class="anchored" data-anchor-id="recent-records-drop-off">Recent Records Drop Off</h3>
+<p>The 2022–2024 cohort has only 47% completion despite 83–87% accuracy when articles are found, likely because recent incidents have had less time to be indexed. And 6 records extracted only the <code>outcome</code> field with 17% accuracy probable due to entity confusion. Excluding these, outcome accuracy rises from 84% to 90%. Both are areas for targeted improvement.</p>
+</section>
+</section>
+<section id="lessons" class="level2">
+<h2 class="anchored" data-anchor-id="lessons">5. Lessons</h2>
+<section id="evaluation-is-the-hard-part" class="level3">
+<h3 class="anchored" data-anchor-id="evaluation-is-the-hard-part">Evaluation Is the Hard Part</h3>
+<p>The pilot study revealed failure modes invisible during development. For instance, the merge node treated “Black” and “African American” as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.</p>
+</section>
+<section id="knowing-when-not-to-use-an-llm" class="level3">
+<h3 class="anchored" data-anchor-id="knowing-when-not-to-use-an-llm">Knowing When Not to Use an LLM</h3>
+<p>I decided early on to limit the pipeline to a single LLM node, but I had to defend that boundary repeatedly during development. When validation was catching too few articles, the instinct was to add an LLM-powered relevance filter. When search queries weren’t returning good results, the temptation was to have an LLM generate queries. In every case, the better fix turned out to be a tighter rule or a better threshold, and those fixes were faster to build and test, and cheaper to run. The lesson is that maintaining the architectural boundary takes ongoing discipline, especially when an LLM-shaped solution feels like the path of least resistance.</p>
+</section>
+<section id="human-in-the-loop-shaped-the-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="human-in-the-loop-shaped-the-architecture">Human-in-the-Loop Shaped the Architecture</h3>
+<p>It’s tempting to treat human review as something you add at the end. Here, it drove decisions at every level: output format (source URLs and verbatim quotes for verification), conflict detection as a first-class data structure, escalation triggers that route genuinely hard cases rather than hiding uncertainty, and the principle that the government database is immutable. The architecture would look fundamentally different without this constraint.</p>
+</section>
+<section id="the-generalizable-pattern" class="level3">
+<h3 class="anchored" data-anchor-id="the-generalizable-pattern">The Generalizable Pattern</h3>
+<p>Enriching structured databases from unstructured web sources is a common problem. This design can be generalized to any domain where structured records have gaps that scattered web sources could fill. The most portable pieces are</p>
+<ul>
+<li>The search→validate→extract→conflict→escalate loop</li>
+<li>The partial completion pattern (output what you can, flag what you can’t)</li>
+<li>The natural holdout evaluation design (withholding ground truth the pipeline doesn’t need as inputs)</li>
+<li>The iterative evaluation approach: pilot → failure taxonomy → targeted fixes → holdout</li>
+</ul>
+</section>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">6. What’s Next</h2>
+<p>I submitted this work to the SciPy 2026 conference, which is currently under review. Major planned work includes batch processing across all remaining records with priority ordering, evaluation on the officers-shot dataset, and a human review UI. Some improvements also include tightening the extraction prompt to fix time-of-day parse errors, adding an outcome-only completion guard that requires at least two extracted fields.</p>
+<p>But other improvements need domain expertise from TJI volunteers and organizers. The weapon category map, for instance, currently misses mappings like sawed-off shotgun → shotgun and machete → knife because the government reporting forms use a fixed set of categories that don’t always match how news articles describe weapons. Expanding that map correctly requires someone who understands both the reporting conventions and the real-world ambiguities. For instance, a BB gun and a pellet gun might look the same in a news article but may carry different legal weight. Similar judgment calls will come up as the system processes more records and encounters edge cases in race categorization, location naming, and outcome classification. This is collaborative work, not just engineering work.</p>
+<p>Thanks to TJI and Executive Director Eva Ruth Moravec for the collaboration and for making this data publicly available.</p>
+<p>The project is open-source under the MIT license: <a href="https://github.com/hongsupshin/police-data-intelligence">github.com/hongsupshin/police-data-intelligence</a>.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb5-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb5-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2026</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">agentic</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">data</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">enrichment</span>,</span>
+<span id="cb5-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb5-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Filling the Gaps in Police Shooting Data with an Agentic AI Pipeline},</span>
+<span id="cb5-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2026},</span>
+<span id="cb5-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {3},</span>
+<span id="cb5-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {8},</span>
+<span id="cb5-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb5-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb5-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/},</span>
+<span id="cb5-11">}</span></code></pre></div></div>
+
+
+</section>
+
+ ]]></description>
+  <category>Agentic AI</category>
+  <category>LangGraph</category>
+  <category>Data Quality</category>
+  <category>Evaluation</category>
+  <category>Open Source</category>
+  <guid>https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/</guid>
+  <pubDate>Sun, 08 Mar 2026 06:00:00 GMT</pubDate>
+  <media:content url="https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/fig.png" medium="image" type="image/png" height="132" width="144"/>
+</item>
 <item>
   <title>The Corpus-Provenance Gap in RAG Evaluation</title>
   <dc:creator>Hongsup Shin</dc:creator>
@@ -7253,114 +7813,6 @@ empty &lt;class 'str'&gt;</code></pre>
   <guid>https://hongsupshin.github.io/posts/2022-12-15/</guid>
   <pubDate>Thu, 15 Dec 2022 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png" medium="image" type="image/png" height="124" width="144"/>
-</item>
-<item>
-  <title>“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</title>
-  <dc:creator>Hongsup Shin</dc:creator>
-  <link>https://hongsupshin.github.io/posts/2022-10-27/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<p>Many ML articles exist but few talk about how the sausage gets made. They are often based on toy or clean benchmark datasets, which are quite different from what we get in real world. That’s why I enjoy reading survey papers. They interview people in the field like us and try to address common pain points to find a broader picture.</p>
-<p>For the past several years, I have been noticing a trend in ML community. Many practitioners tend to ignore data quality but instead put all their efforts into models and algorithms. I find it very troubling because many problems in real-world ML are caused by data-related issues. <a href="https://research.google/pubs/pub49953/">“Everyone wants to do the model work, not the data work”: Data Cascades in High-Stakes AI</a> talks about this pattern based on the interviews from dozens of ML practitioners all over the globe. I presented the paper in Austin ML Journal Club in Oct 2022.</p>
-<section id="data-cascades" class="level2">
-<h2 class="anchored" data-anchor-id="data-cascades">Data cascades</h2>
-<p>The paper focuses on “data cascades,” a series of compounding negative events due to data-related issues. The authors say the problems are wildly prevalent (92% reported experience at least one type of data cascades). <font color="blue">During the discussion, we thought about sampling bias because those who are ignorant of these problems may not be able to recognize them.</font> Indeed, they are often opaque because there are no clear indicators and often discovered later. Data cascades often lead to technical debt and harm to beneficiary communities. They can sour relationships between stakeholders and in extremely cases, force ML practitioners discard entire datasets. Figure 1 shows the schematic of the data cascades. <font color="blue">We thought the figure wasn’t particularly informative because too many arrows exist between the points. We hoped that the authors explained why there aren’t arrows between certain points.</font></p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI full.png" class="img-fluid figure-img"></p>
-<figcaption>Figure 1. Data cascades in high-stakes AI</figcaption>
-</figure>
-</div>
-</section>
-<section id="high-stake-domains" class="level2">
-<h2 class="anchored" data-anchor-id="high-stake-domains">High-stake domains</h2>
-<p>Data cascades are more critical in high stake domains such as landslide detection, suicide prevention, and cancer detection. There are several reasons:</p>
-<ul>
-<li>More ML applications are deployed in these domains where more direct humanitarian impact exists.</li>
-<li>This impact can be disproportionate towards vulnerable communities.</li>
-<li>It is often very challenging to acquire high quality data in these domains.</li>
-<li>The problems frequently require more multidisciplinary approach.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://hongsupshin.github.io/posts/2022-10-27/Summary of participant demographics.png" class="img-fluid figure-img"></p>
-<figcaption>Table 1. Summary of participant demographics; Domain</figcaption>
-</figure>
-</div>
-<p>The authors find that the problems are due to human factors. Unfortunately solutions have been focusing on other issues such as database, legal, or license. To gather firsthand experience in the field, the authors interviewed 50+ ML practitioners all over the world, ranging from the US to India and African countries, and from founders to developers. Table 1 summarizes various high-stake domains. <font color="blue">It was fascinating for us to learn that ML is used in areas as landslide detection, poaching prevention, or regenerative farming. It would have been more interesting to see how data cascades create specific negative consequences in some domains.</font></p>
-</section>
-<section id="data-cascade-triggers" class="level2">
-<h2 class="anchored" data-anchor-id="data-cascade-triggers">Data cascade triggers</h2>
-<p>The authors introduce three triggers that cause data cascades.</p>
-<section id="physical-world-brittleness" class="level3">
-<h3 class="anchored" data-anchor-id="physical-world-brittleness">Physical world brittleness</h3>
-<p>Physical world changes over time and thus often ML systems can’t produce robust results. Data drifts due to hardware (measurements) and environmental changes are commonly mentioned in ML Ops literature. In high-stake domains, they become more pronounced because training data are very limited and policy or regulation changes can impact the ML systems in various ways.</p>
-</section>
-<section id="inadequate-application-domain-expertise" class="level3">
-<h3 class="anchored" data-anchor-id="inadequate-application-domain-expertise">Inadequate application-domain expertise</h3>
-<p>Most ML practitioners are not equipped with domain knowledge. <font color="blue">All of us admitted that our academic background does not match to the domain that we work in.</font> Even though close collaboration between domain experts and ML practitioners is always emphasized, in practice the authors find that domain experts are often detached from the larger impact of the applications. The authors explain two specific types of problems:</p>
-<p><strong>Subjectivity in ground truth:</strong> Areas such as insurance claim approval or medical imaging for cancer detection involve highly specialized and often subjective decision-making. To build a reliable and robust ML system, it is necessary to standardize the decision-making criteria and find consensus. However, ML practitioners are asked to rush through the development process, and thus do not have time to address it.</p>
-<p><strong>Poor domain expertise in finding representative data:</strong> ML practitioners often start building ML applications without involving domain experts much because the practitioners simply believe that data are reliable. However, because they lack domain knowledge, practitioners make incomplete assumptions, which results in disparity between data collection and deployment. This often leads to poor and unreliable model performance.</p>
-</section>
-<section id="conflicting-reward-system" class="level3">
-<h3 class="anchored" data-anchor-id="conflicting-reward-system">Conflicting reward system</h3>
-<p>Data collection and any data-related work are often considered non-technical and undervalued. The situation gets worse for frontline workers because they are asked to collect and curate field data on top of their existing responsibilities but they are not well compensated.</p>
-</section>
-<section id="poor-cross-organizational-documentation" class="level3">
-<h3 class="anchored" data-anchor-id="poor-cross-organizational-documentation">Poor cross-organizational documentation</h3>
-<p>Metadata about data collection, quality, and curation are also often missing. Some good practices the authors suggest involve keeping good documentation on reproducible assets such as data collection plan, data strategy handbooks, design documents, file conventions, field notes, and so on.</p>
-</section>
-</section>
-<section id="broader-context" class="level2">
-<h2 class="anchored" data-anchor-id="broader-context">Broader context</h2>
-<p>Data cascades discussion can be extended to bigger problems in ML community.</p>
-<section id="incentives-and-currency-in-ai" class="level3">
-<h3 class="anchored" data-anchor-id="incentives-and-currency-in-ai">Incentives and currency in AI</h3>
-<p>Because of the low incentives, data-related work are not rewarded or even tracked. This makes us difficult to get buy-in from stakeholders. The situation is similar in academia as well. Most practitioners and researchers focus on developing algorithms but they rarely mention or work on data. <font color="blue">The title <em>“Everyone wants to do the model work, not the data work”</em> was a verbatim from an interviewee. Unfortunately, we were all able to relate to this quote.</font></p>
-</section>
-<section id="data-education" class="level3">
-<h3 class="anchored" data-anchor-id="data-education">Data education</h3>
-<p>Most ML or data science curricula lack any mention of data quality or ethics. They use toy datasets or very clean benchmark datasets. <font color="blue">As experience ML practitioners, we wholeheartedly agreed with this finding. We lamented that these courses do not prepare students with practical knowledge because one never works with clean datasets in real world. Some of us have experienced this pattern firsthand because we have been interviewing candidates for an ML practitioner position and found that the candidates who only worked with clean datasets (or primarily worked on algorithms) often lack basic practical ML knowledge.</font></p>
-</section>
-<section id="data-bootstrapping" class="level3">
-<h3 class="anchored" data-anchor-id="data-bootstrapping">Data bootstrapping</h3>
-<p>Data bootstrapping describes ML practitioners’ use of other data sources such as established data services or existing datasets to create their own dataset. <font color="blue">For most of us, it was surprising to learn that many ML practitioners in high-stake domains in countries from Global South had to collect data from scratch. We agreed that challenges in data collection and lack of access to quality data would create inequality between countries.</font></p>
-</section>
-</section>
-<section id="how-to-address-data-cascades" class="level2">
-<h2 class="anchored" data-anchor-id="how-to-address-data-cascades">How to address data cascades</h2>
-<p>The authors introduce several ways of addressing the problem of data cascades. They introduce the concept of <em>“data excellence”</em>, an effort to <strong>“focus on the practices, politics, and values of humans of the data pipeline to improve the quality and sanctity of data, through the use of processes, standards, infrastructure and incentives”</strong>.</p>
-<section id="from-goodness-of-fit-to-goodness-of-data" class="level3">
-<h3 class="anchored" data-anchor-id="from-goodness-of-fit-to-goodness-of-data">From goodness-of-fit to goodness-of-data</h3>
-<p>The first is to use the right metric to evaluate data quality. Many ML practitioners use model performance metrics such as accuracy and RMSE to evaluate data quality. <font color="blue">Some of us had a similar experience. We had to argue that model metrics shouldn’t be used to make a decision on data-pipeline and data-quality features. We hope that the authors can introduce specific examples of goodness-of-data metrics in the future.</font></p>
-</section>
-<section id="incentives-for-data-excellence" class="level3">
-<h3 class="anchored" data-anchor-id="incentives-for-data-excellence">Incentives for data excellence</h3>
-<p>There are several ways to address the low incentives of data work. First, journals and conferences should require dataset documentation, provenance, and ethics as mandatory disclosure. Second, organizations should reward data-related work similar to how good software engineering is rewarded. Finally, partnership between stakeholders can nurture data excellence by sharing the reward on data-related work such as data collection, anomaly identification, and model verification.</p>
-</section>
-<section id="education-and-visibility" class="level3">
-<h3 class="anchored" data-anchor-id="education-and-visibility">Education and visibility</h3>
-<p>The authors argue for real-world data literacy in AI education, which includes training on data collection, infrastructure building, data documentation, data sense-making, and data ethics and responsible AI in general. Increasing the data visibility in ML lifecycle is important as well; implementing good monitoring system is one of the most important ML Ops practices anyway.</p>
-</section>
-</section>
-<section id="journal-club-discussion" class="level2">
-<h2 class="anchored" data-anchor-id="journal-club-discussion">Journal club discussion</h2>
-<p>Some of us found this paper vindicating because we have been advocating for data quality at work and had to fight for the attention it deserves. The paper helped us share our own practices at work that address data-related issues especially data collection, curation, and post-deployment data problems. Even though we generally agreed with authors’ suggestions, some of us wanted something more specific, like a case study. Overall, we found the paper interesting and insightful. We thought it would be beneficial to read the paper with our colleagues at work to start a discussion for data excellence.</p>
-
-
-</section>
-
- ]]></description>
-  <category>paper</category>
-  <category>data</category>
-  <category>responsible AI</category>
-  <guid>https://hongsupshin.github.io/posts/2022-10-27/</guid>
-  <pubDate>Thu, 27 Oct 2022 05:00:00 GMT</pubDate>
-  <media:content url="https://hongsupshin.github.io/posts/2022-10-27/Data cascades in high-stakes AI.png" medium="image" type="image/png" height="70" width="144"/>
 </item>
 </channel>
 </rss>
