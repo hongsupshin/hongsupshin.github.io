@@ -3,11 +3,7 @@ title: Tutorials at FAccT 2021
 date: "2021-03-04"
 description: FAccT 2021 (virtual) tutorial summary. Causal analysis, XAI, and algorithmic impact
 author: Hongsup Shin
-categories: 
-    - conference
-    - fairness
-    - responsible AI
-    - ML
+categories: [Conference, Responsible AI, ML]
 ---
 
 Last year during the SciPy 2020 conference, I participated in a mentoring program and I've got to know a fellow data scientist, [Henrik Hain](https://twitter.com/MrHenHan). He diligently uploaded a daily update during the conference, which was impressive. Inspired by him, I've decided to follow his practice and to write notes during my attendance in the FAccT 2021 this year.

@@ -4,11 +4,7 @@ author: "Hongsup Shin"
 date: 2026-02-22
 description: "RAG evaluation tooling versions prompts, model configurations, and scores, but not the retrieval corpus. When eval data are generated from documents already in the vector store, scores are inflated by construction. This post addresses this corpus-eval contamination, and proposes a content hashing pattern to detect and prevent it at three levels of effort."
 image: "fig.png"
-categories:
-  - RAG
-  - evaluation
-  - LLMOps
-  - data-provenance
+categories: [LLM, Evaluation, MLOps, Data]
 toc: true
 ---
 

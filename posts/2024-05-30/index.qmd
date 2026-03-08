@@ -4,7 +4,7 @@ author: Hongsup Shin
 date: 2024-05-30
 image: Fig 1.png
 description: Tabular data synthesis (data augmentation) is an under-studied area compared to unstructured data. This paper uses GAN to model unique properties of tabular data such as mixed data types and class imbalance. This technique has many potentials for model improvement and privacy. The technique is currently available under the [*Synthetic Data Vault*](https://sdv.dev/) library in Python.
-categories: [paper, GenAI, ML]
+categories: [Paper Review, LLM, ML]
 ---
 
 At work, I train models using tabular data with extreme class imbalance, which is often quite challenging. To tackle this, I have been looking into data augmentation techniques for tabular data, which is a relatively understudied domain compared to unstructured data. [Synthetic Data Vault](https://docs.sdv.dev/sdv) is a popular python library for tabular data synthesis, and the main techniques originate from the paper above. Since class imbalance is a common problem in real-world data and most of us work with tabular data, I think this will be an interesting paper to discuss. I presented the paper in Austin ML Journal Club in May 2024.

@@ -562,11 +562,9 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-03-
 </section>
 
  ]]></description>
-  <category>Agentic AI</category>
-  <category>LangGraph</category>
-  <category>Data Quality</category>
+  <category>AI Agents</category>
+  <category>Data</category>
   <category>Evaluation</category>
-  <category>Open Source</category>
   <guid>https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/</guid>
   <pubDate>Sun, 08 Mar 2026 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2026-03-08-agentic_data_enrichment/fig.png" medium="image" type="image/png" height="132" width="144"/>
@@ -749,10 +747,10 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-02-
 </section>
 
  ]]></description>
-  <category>RAG</category>
-  <category>evaluation</category>
-  <category>LLMOps</category>
-  <category>data-provenance</category>
+  <category>LLM</category>
+  <category>Evaluation</category>
+  <category>MLOps</category>
+  <category>Data</category>
   <guid>https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/</guid>
   <pubDate>Sun, 22 Feb 2026 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2026-02-22-rag_data_provenance/fig.png" medium="image" type="image/png" height="150" width="144"/>
@@ -885,10 +883,9 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-
 </section>
 
  ]]></description>
-  <category>AI</category>
-  <category>SDK-design</category>
-  <category>engineering-leadership</category>
-  <category>AIOps</category>
+  <category>Leadership</category>
+  <category>MLOps</category>
+  <category>LLM</category>
   <guid>https://hongsupshin.github.io/posts/2026-01-24-conway-law/</guid>
   <pubDate>Sat, 24 Jan 2026 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2026-01-24-conway-law/fig.png" medium="image" type="image/png" height="128" width="144"/>
@@ -1753,11 +1750,9 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-
 </section>
 
  ]]></description>
-  <category>LangGraph</category>
   <category>AI Agents</category>
   <category>LLM</category>
-  <category>Production</category>
-  <category>Debugging</category>
+  <category>MLOps</category>
   <guid>https://hongsupshin.github.io/posts/2026-01-12/</guid>
   <pubDate>Mon, 12 Jan 2026 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2026-01-12/fig.png" medium="image" type="image/png" height="111" width="144"/>
@@ -1817,7 +1812,7 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-
 
  ]]></description>
   <category>ML</category>
-  <category>leadership</category>
+  <category>Leadership</category>
   <guid>https://hongsupshin.github.io/posts/2025-02-23/</guid>
   <pubDate>Sun, 23 Feb 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-02-23/fig.png" medium="image" type="image/png" height="126" width="144"/>
@@ -2245,7 +2240,7 @@ NDCG with exponential gain: 0.4097</code></pre>
 
  ]]></description>
   <category>ML</category>
-  <category>Learning-to-rank</category>
+  <category>Learning to Rank</category>
   <guid>https://hongsupshin.github.io/posts/2025-02-08/</guid>
   <pubDate>Sat, 08 Feb 2025 06:00:00 GMT</pubDate>
 </item>
@@ -2472,8 +2467,8 @@ Figure&nbsp;5: Mean test-set ranking performance of the binary classification (â
 
  ]]></description>
   <category>ML</category>
-  <category>verification</category>
-  <category>Learning-to-rank</category>
+  <category>Verification</category>
+  <category>Learning to Rank</category>
   <guid>https://hongsupshin.github.io/posts/2025-02-01/</guid>
   <pubDate>Sat, 01 Feb 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-02-01/Fig1.png" medium="image" type="image/png" height="82" width="144"/>
@@ -3420,8 +3415,8 @@ font-style: inherit;">"WandB-RayTune-LightGBM"</span>)]</span>
 
  ]]></description>
   <category>ML</category>
-  <category>ML Ops</category>
-  <category>visualization</category>
+  <category>MLOps</category>
+  <category>Visualization</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-25/</guid>
   <pubDate>Sat, 25 Jan 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-01-25/Fig.png" medium="image" type="image/png" height="139" width="144"/>
@@ -4296,7 +4291,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 
  ]]></description>
   <category>ML</category>
-  <category>verification</category>
+  <category>Verification</category>
   <category>Bayesian</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-18/</guid>
   <pubDate>Sat, 18 Jan 2025 06:00:00 GMT</pubDate>
@@ -4350,7 +4345,7 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 
  ]]></description>
   <category>ML</category>
-  <category>collaboration</category>
+  <category>Collaboration</category>
   <guid>https://hongsupshin.github.io/posts/2025-01-12/</guid>
   <pubDate>Sun, 12 Jan 2025 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2025-01-12/Fig.png" medium="image" type="image/png" height="129" width="144"/>
@@ -4396,8 +4391,8 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 
  ]]></description>
   <category>ML</category>
-  <category>ML Ops</category>
-  <category>data</category>
+  <category>MLOps</category>
+  <category>Data</category>
   <guid>https://hongsupshin.github.io/posts/2024-10-05/</guid>
   <pubDate>Sat, 05 Oct 2024 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2024-10-05/GPTbenchmark.png" medium="image" type="image/png" height="128" width="144"/>
@@ -4461,8 +4456,8 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 </section>
 
  ]]></description>
-  <category>paper</category>
-  <category>GenAI</category>
+  <category>Paper Review</category>
+  <category>LLM</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2024-05-30/</guid>
   <pubDate>Thu, 30 May 2024 05:00:00 GMT</pubDate>
@@ -5226,10 +5221,9 @@ font-style: inherit;">15</span>)</span>
 </section>
 
  ]]></description>
-  <category>paper</category>
+  <category>Paper Review</category>
   <category>ML</category>
-  <category>ethics</category>
-  <category>fairness</category>
+  <category>Responsible AI</category>
   <guid>https://hongsupshin.github.io/posts/2024-03-28/</guid>
   <pubDate>Thu, 28 Mar 2024 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2024-03-28/Fig 1b.png" medium="image" type="image/png" height="151" width="144"/>
@@ -5319,9 +5313,8 @@ font-style: inherit;">15</span>)</span>
 </section>
 
  ]]></description>
-  <category>ethics</category>
-  <category>fairness</category>
-  <category>criminal justice</category>
+  <category>Responsible AI</category>
+  <category>Criminal Justice</category>
   <guid>https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/</guid>
   <pubDate>Wed, 11 Oct 2023 05:00:00 GMT</pubDate>
   <media:content url="https://assets-c3.propublica.org/legacy/images/_threeTwo800w/20160523-machine-bias-630x420_1.jpg" medium="image" type="image/jpeg"/>
@@ -5385,7 +5378,7 @@ font-style: inherit;">15</span>)</span>
 </section>
 
  ]]></description>
-  <category>ethics</category>
+  <category>Responsible AI</category>
   <guid>https://hongsupshin.github.io/posts/2023-10-04-ethics-week1/</guid>
   <pubDate>Wed, 04 Oct 2023 05:00:00 GMT</pubDate>
   <media:content url="https://upload.wikimedia.org/wikipedia/en/c/c3/TheOnesWhoWalkAwayFromOmelas.jpg" medium="image" type="image/jpeg"/>
@@ -5527,8 +5520,7 @@ font-style: inherit;">15</span>)</span>
 </section>
 
  ]]></description>
-  <category>paper</category>
-  <category>GenAI</category>
+  <category>Paper Review</category>
   <category>LLM</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-08-31/</guid>
@@ -5614,9 +5606,9 @@ font-style: inherit;">15</span>)</span>
 </section>
 
  ]]></description>
-  <category>paper</category>
+  <category>Paper Review</category>
   <category>Bayesian</category>
-  <category>visualization</category>
+  <category>Visualization</category>
   <category>ML</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-29/</guid>
   <pubDate>Wed, 29 Mar 2023 05:00:00 GMT</pubDate>
@@ -6672,7 +6664,7 @@ font-style: inherit;">'subsample'</span>])</span></code></pre></div></div>
 
  ]]></description>
   <category>ML</category>
-  <category>ML Ops</category>
+  <category>MLOps</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/2023-03-17-mlflow-lightgbm-dask.html</guid>
   <pubDate>Fri, 17 Mar 2023 05:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2023-03-17-mlflow-lightgbm-dask/images/index.png" medium="image" type="image/png" height="109" width="144"/>
@@ -7740,7 +7732,7 @@ empty &lt;class 'str'&gt;</code></pre>
 
  ]]></description>
   <category>ML</category>
-  <category>data</category>
+  <category>Data</category>
   <guid>https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/2023-03-02-compare-type-inference.html</guid>
   <pubDate>Thu, 02 Mar 2023 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2023-03-02-compare-type-inference/Fig.png" medium="image" type="image/png" height="87" width="144"/>
@@ -7808,8 +7800,8 @@ empty &lt;class 'str'&gt;</code></pre>
 </section>
 
  ]]></description>
-  <category>paper</category>
-  <category>GenAI</category>
+  <category>Paper Review</category>
+  <category>LLM</category>
   <guid>https://hongsupshin.github.io/posts/2022-12-15/</guid>
   <pubDate>Thu, 15 Dec 2022 06:00:00 GMT</pubDate>
   <media:content url="https://hongsupshin.github.io/posts/2022-12-15/Fig 8.png" medium="image" type="image/png" height="124" width="144"/>

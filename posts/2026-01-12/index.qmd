@@ -4,7 +4,7 @@ author: Hongsup Shin
 date: 2026-01-12
 description: Everyone says you can build an agent in several lines of code. Making it work in production is a different story. This guide covers four main patterns to handle transient failures, LLM-recoverable errors, missing user input, and unexpected failures in LangGraph workflows.
 image: fig.png
-categories: [LangGraph, AI Agents, LLM, Production, Debugging]
+categories: [AI Agents, LLM, MLOps]
 toc: true
 ---
 

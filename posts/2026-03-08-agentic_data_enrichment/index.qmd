@@ -4,12 +4,7 @@ author: "Hongsup Shin"
 date: 2026-03-08
 description: "Texas requires every officer-involved shooting to be reported, but the mandatory forms leave critical fields blank. I built an agentic AI pipeline that fills those gaps by finding and cross-referencing news articles, with human reviewers making the final call. This post covers the architecture, a 100-record evaluation with fairness analysis, and what I learned about knowing when not to use an LLM."
 image: fig.png
-categories:
-  - Agentic AI
-  - LangGraph
-  - Data Quality
-  - Evaluation
-  - Open Source
+categories: [AI Agents, Data, Evaluation]
 toc: true
 ---
 

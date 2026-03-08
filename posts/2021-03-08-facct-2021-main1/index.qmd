@@ -4,10 +4,7 @@ date: "2021-03-08"
 description: Summary of Day 1 at FAccT 2021. Algorithm audit, impact assessment, data governance, trust in AI, and explainable AI
 image: "data dev cycle.png"
 author: Hongsup Shin
-categories: 
-    - conference
-    - responsible AI
-    - ML
+categories: [Conference, Responsible AI, ML]
 ---
 
 This year, for the first time, the FAccT conference has more than one track and there are 27 sessions (+80 talks) happening in 3 days. This is a summary of the first day of the main conference. My summary is based on the talks I attended based on my interest.

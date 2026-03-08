@@ -4,9 +4,7 @@ date: "2021-05-25"
 description: Lessons I've learned from my own experience by working with various nonprofit organizations such as DataKind and Texas Justice Initiative
 image: "datakind.png"
 author: Hongsup Shin
-categories: 
-    - volunteering
-    - ML
+categories: [Volunteering, ML]
 ---
 
 Throughout my career, I have met many tech workers interested in using their technical skills in more meaningful ways. When I started my industry career, I had similar thoughts and luckily I have been able to volunteer at various non-profits for several occasions. Some may say volunteering will require much less effort than paid labor because the work is free but because of that exact reason, more caution is required. Based on my experience, I would like to share some tips especially regarding using ML and data science skills for tech volunteering. 

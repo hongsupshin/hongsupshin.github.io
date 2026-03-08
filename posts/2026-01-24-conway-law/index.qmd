@@ -4,7 +4,7 @@ author: "Hongsup Shin"
 date: "2026-01-24"
 image: fig.png
 description: "Many organizations build AI SDKs before understanding real user needs, leading to low adoption despite technical quality. SDK engineers who embed with solution teams, build actual applications first, and extract patterns from repeated observations achieve organic adoption. The difference is organizational design, not technical capability."
-categories: [AI, SDK-design, engineering-leadership, AIOps]
+categories: [Leadership, MLOps, LLM]
 toc: true
 ---
 

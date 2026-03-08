@@ -3,10 +3,7 @@ title: "Fairness in ML at ACM FAT 2019"
 date: "2019-02-01"
 image: "2019-02-01-acm-fat.jpeg"
 author: Hongsup Shin
-categories: 
-    - conference
-    - fairness
-    - ML
+categories: [Conference, Responsible AI, ML]
 description: Several key moments from the conference and my thoughts at the FAT (Fairness, Accountability, and Transparency in ML) conference
 ---
 

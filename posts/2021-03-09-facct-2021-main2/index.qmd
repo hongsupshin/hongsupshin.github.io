@@ -4,10 +4,7 @@ date: "2021-03-09"
 description: Summary of Day 2 at FAccT 2021. Automated decision-making, accountability and recourse, and model robustness
 image: "toolkit.png"
 author: Hongsup Shin
-categories: 
-    - conference
-    - responsible AI
-    - ML
+categories: [Conference, Responsible AI, ML]
 ---
 
 ## Keynote: In Praise of (Flawed) Mathematical Models

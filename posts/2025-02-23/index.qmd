@@ -4,7 +4,7 @@ author: Hongsup Shin
 date: 2025-02-23
 description: Good ML tech leadership is undoubtedly challenging. I've learned (sometimes the hard way) that great ML tech leadership requires a unique blend of technical vision, people skills, and operational excellence. While no one perfectly embodies all of these, I think understanding them is crucial for developing good tech leads in ML community, myself included.
 image: fig.png
-categories: [ML, leadership]
+categories: [ML, Leadership]
 ---
 
 Over my near-decade career in ML, I've witnessed firsthand how technical leadership can make or break a team's success. As both a tech lead and someone who has worked with various tech leads, I've learned that typical engineering management is not enough to handle unique challenges of ML projects. The ML field moves at a fast pace, and projects require orchestrating multiple stakeholders with diverse expertise. Teams must constantly balance research with production while assessing the inherent uncertainty in ML systems. In addition, it is necessary to nurture collaboration between highly skilled individuals who bring their own innovative perspectives. Without effective technical leadership, even the most promising ML projects can unravel, leading to missed opportunities and team burnout.
