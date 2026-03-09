@@ -291,7 +291,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="architecture">3. Architecture</h2>
 <p>The system is a single-agent pipeline built with <a href="https://langchain-ai.github.io/langgraph/">LangGraph</a>, using a hub-and-spoke topology with 7 nodes:</p>
 <ul>
-<li>4 processing nodes: <strong>Extract, Search, Validate, Merge</strong></li>
+<li>4 processing nodes: <strong>Load, Search, Validate, Synthesize</strong></li>
 <li>1 central <strong>Coordinator</strong></li>
 <li>2 terminal nodes: <strong>Complete, Escalate</strong></li>
 </ul>
@@ -301,28 +301,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p></p><figure class="figure"><p></p>
 <div>
 <pre class="mermaid mermaid-js">flowchart TD
-    Start([Start]) --&gt; Extract
-    Extract[&lt;b&gt;Extract&lt;/b&gt;&lt;br/&gt;DB → state fields]
+    Start([Start]) --&gt; Load
+    Load[&lt;b&gt;Load&lt;/b&gt;&lt;br/&gt;DB → state fields]
     Search[&lt;b&gt;Search&lt;/b&gt;&lt;br/&gt;Tavily API]
     Validate[&lt;b&gt;Validate&lt;/b&gt;&lt;br/&gt;Date, Location, Name]
-    Merge[&lt;b&gt;Merge&lt;/b&gt;&lt;br/&gt;LLM extraction]
+    Synthesize[&lt;b&gt;Synthesize&lt;/b&gt;&lt;br/&gt;LLM extraction]
     Coord{&lt;b&gt;Coordinator&lt;/b&gt;}
     Complete([&lt;b&gt;Complete&lt;/b&gt;&lt;br/&gt;Write JSON])
     Escalate([&lt;b&gt;Escalate&lt;/b&gt;&lt;br/&gt;Human review])
 
-    Extract --&gt; Coord
+    Load --&gt; Coord
     Coord -- "Fields OK" --&gt; Search
     Search --&gt; Coord
     Coord -- "Results &gt; 0" --&gt; Validate
     Coord -- "Retry: next strategy" --&gt; Search
     Validate --&gt; Coord
-    Coord -- "Articles valid" --&gt; Merge
-    Merge --&gt; Coord
+    Coord -- "Articles valid" --&gt; Synthesize
+    Synthesize --&gt; Coord
     Coord -- "Fields extracted" --&gt; Complete
     Coord -- "Error / max retries / zero extractions" --&gt; Escalate
 
     classDef llmNode fill:#FEF3C7,stroke:#B45309,stroke-width:2px
-    class Merge llmNode
+    class Synthesize llmNode
 </pre>
 </div>
 <p></p></figure><p></p>
@@ -331,10 +331,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The flow:</p>
 <ul>
-<li><strong>Extract</strong> reads the incident from PostgreSQL.</li>
+<li><strong>Load</strong> reads the incident from PostgreSQL.</li>
 <li><strong>Search</strong> retrieves news articles via the Tavily API.</li>
 <li><strong>Validate</strong> checks date proximity (±5 days), geographic match, and optional name matching.</li>
-<li><strong>Merge</strong> uses an LLM to extract structured fields from confirmed articles.</li>
+<li><strong>Synthesize</strong> uses an LLM to extract structured fields from confirmed articles.</li>
 </ul>
 <p>After each step, the <strong>Coordinator</strong> decides: proceed, retry with a broader search strategy, or escalate to a human. The Coordinator implements an escalating search strategy: <strong>exact match → temporal expansion (month + year) → partial name (drop officer name) → entity relaxation (drop both names) → escalate</strong>. This matters because many incidents have thin news coverage. A rigid single-query approach would miss articles that exist but require a looser search.</p>
 <p>Six design choices are worth calling out.</p>
@@ -356,7 +356,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Extract</strong></td>
+<td><strong>Load</strong></td>
 <td>Deterministic</td>
 <td>Reads incident record from PostgreSQL, populates state fields</td>
 </tr>
@@ -371,7 +371,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>Checks date proximity (±5 days), location match, and optional name match</td>
 </tr>
 <tr class="even">
-<td><strong>Merge</strong></td>
+<td><strong>Synthesize</strong></td>
 <td>LLM-powered</td>
 <td>Extracts structured fields from articles, checks cross-article consistency</td>
 </tr>
@@ -444,7 +444,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Evaluation is where I spent the most engineering effort. I evaluated on a 100-record holdout with stratified sampling, per-field accuracy metrics, and fairness analysis across demographic groups.</p>
 <section id="methodology" class="level3">
 <h3 class="anchored" data-anchor-id="methodology">Methodology</h3>
-<p>A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, merge normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.</p>
+<p>A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, synthesize normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.</p>
 <p>The holdout leverages a natural property of the data: <strong>many records already do have ground truth</strong> values for fields like age, race, and weapon, but they are not used during enrichment. Since the pipeline only receives date, location, and names as search inputs, I can compare extracted values from the pipeline output against the withheld ground truth using field-appropriate matching (exact, fuzzy, and categorical). Full methodology details will be in a forthcoming companion post on evaluation.</p>
 </section>
 <section id="pipeline-level-results" class="level3">
@@ -533,7 +533,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-race-accuracy-story" class="level3">
 <h3 class="anchored" data-anchor-id="the-race-accuracy-story">The Race Accuracy Story</h3>
 <p>Race accuracy jumped from 35% in the pilot to 65% in the holdout, not from switching to a better model, but from fixing a normalization bug. The Texas government reporting forms use a simple race categorization: White, Black, Hispanic, and Other. So the pipeline needs to map whatever language news articles use into those four categories. Similarly, gender in the government data is binary (male/female), which is how the reporting forms record it.</p>
-<p>The merge node originally used an alias dictionary (<code>{"African American": "Black", "Caucasian": "White", ...}</code>) that couldn’t handle variations like “Hispanic/Latino male.” The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.</p>
+<p>The synthesize node originally used an alias dictionary (<code>{"African American": "Black", "Caucasian": "White", ...}</code>) that couldn’t handle variations like “Hispanic/Latino male.” The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.</p>
 </section>
 <section id="fairness-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="fairness-analysis">Fairness Analysis</h3>
@@ -550,7 +550,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="lessons">5. Lessons</h2>
 <section id="evaluation-is-the-hard-part" class="level3">
 <h3 class="anchored" data-anchor-id="evaluation-is-the-hard-part">Evaluation Is the Hard Part</h3>
-<p>The pilot study revealed failure modes invisible during development. For instance, the merge node treated “Black” and “African American” as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.</p>
+<p>The pilot study revealed failure modes invisible during development. For instance, the synthesize node treated “Black” and “African American” as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.</p>
 </section>
 <section id="knowing-when-not-to-use-an-llm" class="level3">
 <h3 class="anchored" data-anchor-id="knowing-when-not-to-use-an-llm">Knowing When Not to Use an LLM</h3>
