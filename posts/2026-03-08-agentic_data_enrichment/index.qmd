@@ -59,42 +59,42 @@ In practice, each record takes **~7 seconds at $0.15** (~$290 projected for all 
 
 The system is a single-agent pipeline built with [LangGraph](https://langchain-ai.github.io/langgraph/), using a hub-and-spoke topology with 7 nodes: 
 
-- 4 processing nodes: **Extract, Search, Validate, Merge**
+- 4 processing nodes: **Load, Search, Validate, Synthesize**
 - 1 central **Coordinator**
 - 2 terminal nodes: **Complete, Escalate**
 
 ```{mermaid}
 flowchart TD
-    Start([Start]) --> Extract
-    Extract[<b>Extract</b><br/>DB → state fields]
+    Start([Start]) --> Load
+    Load[<b>Load</b><br/>DB → state fields]
     Search[<b>Search</b><br/>Tavily API]
     Validate[<b>Validate</b><br/>Date, Location, Name]
-    Merge[<b>Merge</b><br/>LLM extraction]
+    Synthesize[<b>Synthesize</b><br/>LLM extraction]
     Coord{<b>Coordinator</b>}
     Complete([<b>Complete</b><br/>Write JSON])
     Escalate([<b>Escalate</b><br/>Human review])
 
-    Extract --> Coord
+    Load --> Coord
     Coord -- "Fields OK" --> Search
     Search --> Coord
     Coord -- "Results > 0" --> Validate
     Coord -- "Retry: next strategy" --> Search
     Validate --> Coord
-    Coord -- "Articles valid" --> Merge
-    Merge --> Coord
+    Coord -- "Articles valid" --> Synthesize
+    Synthesize --> Coord
     Coord -- "Fields extracted" --> Complete
     Coord -- "Error / max retries / zero extractions" --> Escalate
 
     classDef llmNode fill:#FEF3C7,stroke:#B45309,stroke-width:2px
-    class Merge llmNode
+    class Synthesize llmNode
 ```
 
 The flow:
 
-- **Extract** reads the incident from PostgreSQL.
+- **Load** reads the incident from PostgreSQL.
 - **Search** retrieves news articles via the Tavily API.
 - **Validate** checks date proximity (±5 days), geographic match, and optional name matching.
-- **Merge** uses an LLM to extract structured fields from confirmed articles.
+- **Synthesize** uses an LLM to extract structured fields from confirmed articles.
 
 After each step, the **Coordinator** decides: proceed, retry with a broader search strategy, or escalate to a human. The Coordinator implements an escalating search strategy: **exact match → temporal expansion (month + year) → partial name (drop officer name) → entity relaxation (drop both names) → escalate**. This matters because many incidents have thin news coverage. A rigid single-query approach would miss articles that exist but require a looser search.
 
@@ -106,10 +106,10 @@ The temptation in agentic AI is to make everything LLM-powered, but routing, val
 
 | Node            | Type          | Purpose                                                                    |
 | --------------- | ------------- | -------------------------------------------------------------------------- |
-| **Extract**     | Deterministic | Reads incident record from PostgreSQL, populates state fields              |
+| **Load**        | Deterministic | Reads incident record from PostgreSQL, populates state fields              |
 | **Search**      | Deterministic | Constructs query from incident fields, calls Tavily API for news articles  |
 | **Validate**    | Rule-based    | Checks date proximity (±5 days), location match, and optional name match   |
-| **Merge**       | LLM-powered   | Extracts structured fields from articles, checks cross-article consistency |
+| **Synthesize**  | LLM-powered   | Extracts structured fields from articles, checks cross-article consistency |
 | **Coordinator** | Rule-based    | Gates after each stage — decides retry, proceed, or escalate               |
 | **Complete**    | Terminal      | Writes enrichment results to JSON                                          |
 | **Escalate**    | Terminal      | Writes escalation report to JSON for human review                          |
@@ -175,7 +175,7 @@ Evaluation is where I spent the most engineering effort. I evaluated on a 100-re
 
 ### Methodology
 
-A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, merge normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.
+A pilot study on 10 records identified 4 systematic failure modes: aggregation source contamination, synthesize normalization bugs, genuinely conflicting accounts, and identity ambiguity. After targeted fixes and regression tests, a holdout evaluation ran on 100 records stratified by incident year (2014–2024) with strict dev/holdout separation.
 
 The holdout leverages a natural property of the data: **many records already do have ground truth** values for fields like age, race, and weapon, but they are not used during enrichment. Since the pipeline only receives date, location, and names as search inputs, I can compare extracted values from the pipeline output against the withheld ground truth using field-appropriate matching (exact, fuzzy, and categorical). Full methodology details will be in a forthcoming companion post on evaluation.
 
@@ -205,7 +205,7 @@ The pipeline never reported a civilian as surviving when the database recorded a
 
 Race accuracy jumped from 35% in the pilot to 65% in the holdout, not from switching to a better model, but from fixing a normalization bug. The Texas government reporting forms use a simple race categorization: White, Black, Hispanic, and Other. So the pipeline needs to map whatever language news articles use into those four categories. Similarly, gender in the government data is binary (male/female), which is how the reporting forms record it. 
 
-The merge node originally used an alias dictionary (`{"African American": "Black", "Caucasian": "White", ...}`) that couldn't handle variations like "Hispanic/Latino male." The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.
+The synthesize node originally used an alias dictionary (`{"African American": "Black", "Caucasian": "White", ...}`) that couldn't handle variations like "Hispanic/Latino male." The fix was keyword-based matching that strips gender words first, then maps to canonical categories using regex word boundaries. The lesson here is that a 30% accuracy improvement came from a string matching fix that only surfaced during evaluation.
 
 ### Fairness Analysis
 
@@ -223,7 +223,7 @@ The 2022–2024 cohort has only 47% completion despite 83–87% accuracy when ar
 
 ### Evaluation Is the Hard Part
 
-The pilot study revealed failure modes invisible during development. For instance, the merge node treated "Black" and "African American" as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.
+The pilot study revealed failure modes invisible during development. For instance, the synthesize node treated "Black" and "African American" as conflicts because of brittle alias matching, and aggregation sources slipped past validation before I built the exclusion list. The race accuracy jump from 35% to 65% came from fixing a keyword matching bug that had no symptoms until I evaluated against ground truth. Building the eval framework and analyzing its results took more engineering effort than building the pipeline itself.
 
 ### Knowing When Not to Use an LLM
 
