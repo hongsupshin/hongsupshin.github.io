@@ -55,3 +55,21 @@ Through this process, we learned that **getting more involved in ML product deve
 We are currently working on launching a new version of our ML application to accommodate a new CPU project that has launched recently. We expect that the new version can be used in the early stage of verification, which is new territory to us. At the same time, we are exploring various research areas. For example, explainable AI for feature assessment and counterfactuals, various unsupervised learning techniques to target novel bugs more effectively, methods to design ML-friendly test benches, and other verification-related problems such as assessing coverage. We are also putting efforts into standardizing our workflow and automating existing features. We anticipate that our work will bring more consistent and reliable model performance over time. We also expect that it will showcase a successful tech transfer example for ML deployment that can be applied to solving other engineering problems inside Arm with ML.
 
 Learn more about our research in our paper presented at [DAC (Design Automation Conference) 2020](https://www.dac.com/), and please do reach out to me if you have any questions!
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2020-ml-hardware-verification,
+    author = {Hongsup Shin},
+    title = {Efficient bug discovery with ML for hardware verification},
+    year = {2020},
+    month = {9},
+    day = {22},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2020-09-22-arm-rsh-blog-verification/},
+}
+```

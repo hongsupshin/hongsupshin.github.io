@@ -50,4 +50,21 @@ When developing standards, we should avoid rigid and overly complicated standard
 ## Summary
 
 After a decade in industry, I’ve learned that technical excellence alone is insufficient for successful ML projects. As ML has become ubiquitous, technical standards have soared, yet truly effective ML teams remain rare. And with ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear: research excellence, strong technical vision, open culture, and thoughtful technical standards. Look for these elements to separate teams that merely dabble in ML from those that transform their organizations through it.
- 
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2025-effective-ml-teams,
+    author = {Hongsup Shin},
+    title = {Building effective ML teams: lessons from industry},
+    year = {2025},
+    month = {1},
+    day = {12},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2025-01-12/},
+}
+```

@@ -56,3 +56,21 @@ The dual nature here means as a moral agent, we can inhibit immoral behaviors bu
 All in all, I very much enjoyed the reading material and the discussion during the course. Prof. Reich's guiding words were also crucial to understand the bigger picture and idea of moral complicity. When we were talking about how we identify this uncomfortable feeling about the Omelas story, I confessed that it often felt like walking on the fine line between hope and despair. Moral complicity can have a profound emotional impact on one's psyche and potentially put us in depression because the overwhelming complexity and the amount of complicity and injustice in the world makes us feel helpless and hopeless. 
 
 But I think that's why we want to call this exercise as moral caffeination. Once we recognize this situation, we don't want to just stay feeling uncomfortable, disoriented, and depressed. We want to alert ourselves and think about "now what?" as Prof. Reich said. Personally, I think learning about the complicity and thinking about it in depth with others is a first step towards solving ethics problems in tech.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2023-moral-complicity-disengagement,
+    author = {Hongsup Shin},
+    title = {Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)},
+    year = {2023},
+    month = {10},
+    day = {4},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2023-10-04-ethics-week1/},
+}
+```

@@ -147,3 +147,21 @@ This might be a radical and debatable idea, but if the conference is truly inter
 [^28]: V. Marda and S. Narayan, “Data in New Delhi’s predictive policing system,” Proc. 2020 Conf. Fairness Account. Transpar., pp. 317–324, Jan. 2020, doi: 10.1145/3351095.3372865.
 [^29]: J. Bates et al., “Integrating FATE/Critical Data Studies into Data Science Curricula: Where are we going and how do we get there?,” p. 11, 2020.
 [^30]: M. Bogen, A. Rieke, and S. Ahmed, “Awareness in Practice: Tensions in Access to Sensitive Attribute Data for Antidiscrimination,” p. 9, 2020.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2020-critiquing-rethinking-acm-fat,
+    author = {Hongsup Shin},
+    title = {Critiquing and rethinking at ACM FAT 2020},
+    year = {2020},
+    month = {3},
+    day = {1},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2020-03-01-acm-fat-2020/},
+}
+```

@@ -73,3 +73,21 @@ The authors argue for real-world data literacy in AI education, which includes t
 
 ## Journal club discussion
 Some of us found this paper vindicating because we have been advocating for data quality at work and had to fight for the attention it deserves. The paper helped us share our own practices at work that address data-related issues especially data collection, curation, and post-deployment data problems. Even though we generally agreed with authors' suggestions, some of us wanted something more specific, like a case study. Overall, we found the paper interesting and insightful. We thought it would be beneficial to read the paper with our colleagues at work to start a discussion for data excellence.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2022-data-cascades-high-stakes-ai,
+    author = {Hongsup Shin},
+    title = {"Everyone wants to do the model work, not the data work": Data Cascades in High-Stakes AI},
+    year = {2022},
+    month = {10},
+    day = {27},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2022-10-27/},
+}
+```

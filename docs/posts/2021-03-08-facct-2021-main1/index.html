@@ -23,6 +23,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -205,6 +240,19 @@ ul.task-list li input[type="checkbox"] {
 <p>They also point out the lack of good governance practice in data maintenance. Understanding ML model performance often requires good and detailed understanding of training data. However, validation and verification of training data is rarely conducted in ML engineering pipelines.</p>
 <p>Finally, the authors didn’t forget to mention the power imbalanced between ML practitioners and data providers. I often feel extremely fortunate that I have experienced the entire end-to-end process of an academic research. I started from scratch and designed a process to collect the data by myself, which required great care and intense labor. In the current ML trend, this step is often conveniently removed and thus creates a bad habit of ignoring labor and responsibility in the data collection and development process.</p>
 <p>I really appreciated the simplicity of the authors’ suggestion on this problem; <strong>“acknowledge that datasets are technical infrastructures.”</strong> Since many ML practitioners are familiar with tech infrastructures such as software programs, the authors suggest that we simply apply existing practices to datasets; create <strong>requirements, design, and tests</strong>. Once this formally becomes a part of infrastructure, it also becomes easy to get all the existing stakeholders in the pipeline involved.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">hongsupshin</span>-<span class="ot">2021</span>-<span class="ot">facct</span>-<span class="ot">ai</span>-<span class="ot">audit</span>-<span class="ot">governance</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">title</span> = {FAccT 2021. AI audit, governance, and trustworthiness},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> = {2021},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">month</span> = {3},</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">day</span> = {8},</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">howpublished</span> = {<span class="ch">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">url</span> = {https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/},</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

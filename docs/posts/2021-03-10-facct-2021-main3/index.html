@@ -23,6 +23,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -196,6 +231,19 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="language-models">Language Models</h2>
 <p>What happens when an authoritarian government and AI meet? <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445916"><em>Censorship of Online Encyclopedias: Implications for NLP Models</em></a> explores how censorship in training data influence downstream processes in NLP applications using Chinese language models. One of the dataset they looked into was <a href="https://en.wikipedia.org/wiki/Baidu_Baike">Baidu Baike</a>, a censored language dataset that is often used in Chinese language models. They first checked the word embeddings and examined the position of words such as <em>democracy, surveillance, social control, CCP (Chinese Communist Party)</em> with respect to positive and negative words. They found that <em>democracy</em> often appeared with negative words and the rest in the example were the opposite. They also found similar pattern in a sentiment classification application that uses web news headlines. These results were concerning because as the authors addressed, these applications can be used to monitor public opinion and curate social media posts, essentially as a highly effective propaganda machine in a massive scale.</p>
 <p>For those who’ve been following the news of Timit Gebru, an AI ethics researcher who was fired by Google, <a href="https://dl.acm.org/doi/pdf/10.1145/3442188.3445922"><em>On the Dangers of Stochastic Parrots:Can Language Models Be Too Big?</em></a> was the paper that was at the core. The paper explores potential risks of the current trend in language modeling where researchers and practitioner pay more attention to larger models. As shown in the paper, these models have <strong>billions, sometimes trillions of parameters</strong>. The first risk the authors bring up is environmental and financial cost. Studies have shown that <strong>training a single BERT base model (without tuning) requires as much energy as a trans-American flight</strong>. This gets more problematic if you become aware that <strong>most language models serve English-speaking communities</strong> and the most impacted communities from climate change are not those. There are more sinister risks too such as training data still lacking diversity (i.e., <strong>“big” doesn’t mean “diverse.”</strong>) and lacking oversight, which creates harmful effects. Plus, since many efforts and resources in ML community go into building large language models, other research topics are naturally overlooked. The authors suggest simple mitigation strategies - <strong>step back and think</strong>; evaluate various approaches, ask yourself if we really need large models, and conduct <strong>pre-mortem</strong> analysis.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">hongsupshin</span>-<span class="ot">2021</span>-<span class="ot">facct</span>-<span class="ot">journalism</span>-<span class="ot">data</span>-<span class="ot">leverage</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">title</span> = {FAccT 2021. Journalism, data leverage, education, and language models},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> = {2021},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">month</span> = {3},</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">day</span> = {10},</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">howpublished</span> = {<span class="ch">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">url</span> = {https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/},</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

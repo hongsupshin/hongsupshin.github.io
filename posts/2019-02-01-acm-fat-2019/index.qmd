@@ -76,3 +76,20 @@ There were two dedicated sessions just for economic fairness, new to this yearâ€
 
 I enjoy this conference very much not just because of personal interest but also of the fact that studies discussed here emphasize robustness and responsibility of ML algorithms, often ignored in ML community. Plus, the crosstalk between different domains enlighten me because they the topics can be applied to many aspects of ML engineering work. The theoretical studies provide new insights on how to measure abstract concepts like fairness and bias, transferrable to processes like problem statement that are highly important in ML. The empirical studies help theoretical studies grounded and more realistic. Finally, the law and policy side of works emphasizes the real implementation of these studies, which resembles constructing deployment plans and the results with stakeholders.
 
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2019-fairness-ml-acm-fat,
+    author = {Hongsup Shin},
+    title = {Fairness in ML at ACM FAT 2019},
+    year = {2019},
+    month = {2},
+    day = {1},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2019-02-01-acm-fat-2019/},
+}
+```
