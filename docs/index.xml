@@ -1807,6 +1807,51 @@ font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2026-01-
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
 <p>Yes, good ML tech leadership is undoubtedly challenging. While these qualities might seem daunting taken all at once, remember that great tech leadership develops over time through experience, reflection, and genuine care for both the technical craft and the people we work with. As our field continues to evolve and diversify, the need grows for exceptional ML tech leads who can balance technical excellence with human understanding, drive both innovation and value, and help their teams navigate the complex landscape of modern ML development.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2025</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">ml</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">tech</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">lead</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">qualities</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Essential qualities of ML tech leads},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2025},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {2},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {23},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2025-02-23/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -2462,6 +2507,51 @@ Figure&nbsp;5: Mean test-set ranking performance of the binary classification (�
 <h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
 <p>One of the biggest lessons from this project was the importance of reducing the gap between the business objective and the optimization objective of ML models especially when it is challenging to accommodate the former. By switching from binary classification to learning-to-rank, we achieved similar bug discovery rate with 75% fewer tests, while better identifying rare and never-seen failure signatures. The LTR model’s success in learning patterns among rare failures suggests there may be underlying commonalities in these rare failures that require further investigation.</p>
 <p>The lightweight nature of our approach - using only test settings without design features - makes it particularly practical for verification teams. While not attempting to fundamentally solve the verification problem like RL studies, this approach offers a more deployment-friendly solution that allows verification engineers to focus their efforts on more challenging bugs. Future work could explore incorporating design features, LTR model fine-tuning, and using test output features for ranking.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2025</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">learning</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">to</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">rank</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hardware</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Learning-to-rank for hardware bug discovery},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2025},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {2},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {1},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2025-02-01/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -4340,6 +4430,49 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
 <p>After a decade in industry, I’ve learned that technical excellence alone is insufficient for successful ML projects. As ML has become ubiquitous, technical standards have soared, yet truly effective ML teams remain rare. And with ML tools and expertise becoming increasingly democratized, the factors differentiating teams will be clear: research excellence, strong technical vision, open culture, and thoughtful technical standards. Look for these elements to separate teams that merely dabble in ML from those that transform their organizations through it.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2025</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">effective</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">ml</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">teams</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Building effective ML teams: lessons from industry},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2025},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {1},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {12},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2025-01-12/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -4386,6 +4519,49 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <section id="other-considerations" class="level2">
 <h2 class="anchored" data-anchor-id="other-considerations">Other considerations</h2>
 <p>Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it’s important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2024</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">datasets</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">model</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">benchmarking</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Building datasets for model benchmarking in production},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2024},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {10},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {5},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2024-10-05/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -4452,6 +4628,51 @@ font-style: inherit;">'+1 Failure'</span>)</span>
 <p>We also questioned the validity of the VGM technique because it is the core of creating the embedding of continuous variables. The proposed model does not have checks that evaluate the fidelity of VGM estimation, and thus poor estimation of a multi-model distribution by it can further compromise model performance in general.</p>
 <p>We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the <em>ML efficacy</em> metric the authors proposed. Finally, the proposed models for the regression problem showed <em>negative</em> R scores, suggesting that the models performed quite poorly.</p>
 <p>Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2024</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">tabular</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">data</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">conditional</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">gan</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Modeling tabular data using conditional GAN},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2024},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {5},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {30},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2024-05-30/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -5309,6 +5530,51 @@ font-style: inherit;">15</span>)</span>
 <p>During the breakout session, instead of talking about fairness, ADS, and algorithmic accountability, we were asked to think about when we were denied to talk about tech ethics at work or work-adjacent settings, and why we thought that was the case. Then we did an exercise where we listed various values we care about and see whether any values are diametrical.</p>
 <p>To begin with, the breakout session (group discussion) was short, but I was quite unhappy that the discussion was not much related to the topics or the readings. Yes, when building an ADS system, one needs to think about how to handle the trade-offs between different values but especially since this course was advertised as “for practitioners,” I was looking for something more concrete. The post-it exercise was in a way useful but I also thought it prevented us from having an actual conversational discussion.</p>
 <p>Overall, this week has been a review of the stuff that I was mostly familiar with (thank you FAccT conferences!). I hope there are more active and practical engagements in the coming weeks.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2023</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">algorithmic</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">decision</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">making</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">fairness</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Algorithmic decision-making and fairness (Stanford Tech Ethics course, Week 1)},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2023},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {10},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {11},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -5374,6 +5640,49 @@ font-style: inherit;">15</span>)</span>
 <h2 class="anchored" data-anchor-id="final-thoughts-on-week-1">Final thoughts on Week 1</h2>
 <p>All in all, I very much enjoyed the reading material and the discussion during the course. Prof.&nbsp;Reich’s guiding words were also crucial to understand the bigger picture and idea of moral complicity. When we were talking about how we identify this uncomfortable feeling about the Omelas story, I confessed that it often felt like walking on the fine line between hope and despair. Moral complicity can have a profound emotional impact on one’s psyche and potentially put us in depression because the overwhelming complexity and the amount of complicity and injustice in the world makes us feel helpless and hopeless.</p>
 <p>But I think that’s why we want to call this exercise as moral caffeination. Once we recognize this situation, we don’t want to just stay feeling uncomfortable, disoriented, and depressed. We want to alert ourselves and think about “now what?” as Prof.&nbsp;Reich said. Personally, I think learning about the complicity and thinking about it in depth with others is a first step towards solving ethics problems in tech.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2023</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">moral</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">complicity</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">disengagement</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Moral complicity and moral disengagement (Stanford Tech Ethics course, Week 1)},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2023},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {10},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {4},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2023-10-04-ethics-week1/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -5515,6 +5824,49 @@ font-style: inherit;">15</span>)</span>
 <section id="the-double-edged-sword" class="level3">
 <h3 class="anchored" data-anchor-id="the-double-edged-sword">The double-edged sword</h3>
 <p>Finally, some of us were disappointed that the authors didn’t elaborate much on the potential harm of their approach. They spent a lot of time talking about harmlessness of their algorithms and yet they really fell short when talking about social impacts of their model, especially regarding lowering the barrier for experimenting with LMs and automating supervision by removing human further out of the loop. Particularly for the former, we agreed that it wouldn’t be surprising to see, in near future bad actors take advantage of this approach and come up with a highly toxic, malicious, and harmful AI assistant.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2023</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">constitutional</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">ai</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">harmlessness</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Constitutional AI: harmlessness from AI feedback},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2023},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {8},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {31},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2023-08-31/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -5602,6 +5954,49 @@ font-style: inherit;">15</span>)</span>
 <p>We had a lengthy discussion about the choice of prior and how tricky it can be. As the authors mentioned in conclusion, we were also slightly worried about double-dipping the data when running prior predictive checks and potential data leakage. It was also interesting to share our own experience on Bayesian inference ranging from dealing with prior assumptions, model comparison, to decision-making with uncertainty. But we all agreed that Bayesian data analysis is more empowering for us modellers compared to the typical top-down approach in ML where we often don’t have any generative models about data. We also agreed that Bayesian data anlsysis is absolutely more powerful when we suffer from a small data problem.</p>
 <p>But we also some downsides of Bayesian data analysis too. It’s difficult to scalable and someone we ML practitioners are not the domain experts and without the domain expertise, it’s difficult to come up with a good DAG. Due to the nature of Bayesian analysis where we don’t often make a point-estimate summary, we appreciated that the paper spent a good amount of time discussing how to summarize a posterior distribution. We also discussed the importance of loss function when decision making with uncertainty.</p>
 <p>In general, we liked the paper but we thought it fell slightly short because it wasn’t focusing on understanding scientific mechanism but rather on predictive modeling nature of Bayesian analysis. When it comes to model comparison particularly, we thought it’s important to evaluate the structure of the model too in addition to evaluating the goodness of fit. For instance, if the model performance varies across the regions, the way we compare the models would like to change as well, and potentially the DAGs too.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2023</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">visualization</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">bayesian</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">workflow</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Visualization in Bayesian workflow},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2023},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {3},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {29},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2023-03-29/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>
@@ -7796,6 +8191,53 @@ empty &lt;class 'str'&gt;</code></pre>
 <section id="final-thoughts" class="level2">
 <h2 class="anchored" data-anchor-id="final-thoughts">Final thoughts</h2>
 <p>Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to <em>amuse</em> general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">@article</span>{</span>
+<span id="cb1-2">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">hongsupshin</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">2022</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">zero</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">shot</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">text</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">to</span>-<span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">image</span>,</span>
+<span id="cb1-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">title</span> = {Zero-shot text-to-image generation},</span>
+<span id="cb1-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">year</span> = {2022},</span>
+<span id="cb1-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">month</span> = {12},</span>
+<span id="cb1-7">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">day</span> = {15},</span>
+<span id="cb1-8">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">howpublished</span> = {<span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">url</span> = {https://hongsupshin.github.io/posts/2022-12-15/},</span>
+<span id="cb1-11">}</span></code></pre></div></div>
 
 
 </section>

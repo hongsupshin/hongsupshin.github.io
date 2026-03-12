@@ -58,3 +58,21 @@ Another huge benefit is **transparency**. If our repository and pull requests ar
 ## Final thoughts
 
 It is true that markup languages may not always be perfect for writing a manuscript. Some people are more familiar with traditional word processing softwares where styles are immediately rendered and more style options are available. However, based on my experience with the SciPy conference, especially, being at the both ends of the review process, I can say the benefits of using markup language for scientific writing and using GitHub for review outweighs its caveats. Manuscripts written in markup languages can be easily reviewed in GitHub where we can utilize its excellent built-in tools to achieve **better tracking, communication, and transparency.**
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2020-markdown-github-scientific-writing,
+    author = {Hongsup Shin},
+    title = {Markdown and GitHub for scientific writing},
+    year = {2020},
+    month = {11},
+    day = {24},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2020-11-24-github-manuscript-review/},
+}
+```

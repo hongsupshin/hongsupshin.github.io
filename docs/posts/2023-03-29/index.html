@@ -23,6 +23,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -268,6 +303,19 @@ window.Quarto = {
 <p>We had a lengthy discussion about the choice of prior and how tricky it can be. As the authors mentioned in conclusion, we were also slightly worried about double-dipping the data when running prior predictive checks and potential data leakage. It was also interesting to share our own experience on Bayesian inference ranging from dealing with prior assumptions, model comparison, to decision-making with uncertainty. But we all agreed that Bayesian data analysis is more empowering for us modellers compared to the typical top-down approach in ML where we often don’t have any generative models about data. We also agreed that Bayesian data anlsysis is absolutely more powerful when we suffer from a small data problem.</p>
 <p>But we also some downsides of Bayesian data analysis too. It’s difficult to scalable and someone we ML practitioners are not the domain experts and without the domain expertise, it’s difficult to come up with a good DAG. Due to the nature of Bayesian analysis where we don’t often make a point-estimate summary, we appreciated that the paper spent a good amount of time discussing how to summarize a posterior distribution. We also discussed the importance of loss function when decision making with uncertainty.</p>
 <p>In general, we liked the paper but we thought it fell slightly short because it wasn’t focusing on understanding scientific mechanism but rather on predictive modeling nature of Bayesian analysis. When it comes to model comparison particularly, we thought it’s important to evaluate the structure of the model too in addition to evaluating the goodness of fit. For instance, if the model performance varies across the regions, the way we compare the models would like to change as well, and potentially the DAGs too.</p>
+<hr>
+<p><em>If you found this post useful, you can cite it as:</em></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">@article</span>{</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="ot">hongsupshin</span>-<span class="ot">2023</span>-<span class="ot">visualization</span>-<span class="ot">bayesian</span>-<span class="ot">workflow</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">author</span> = {Hongsup Shin},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">title</span> = {Visualization in Bayesian workflow},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> = {2023},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">month</span> = {3},</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">day</span> = {29},</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">howpublished</span> = {<span class="ch">\url</span>{https://hongsupshin.github.io}},</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">journal</span> = {Hongsup Shin's Blog},</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">url</span> = {https://hongsupshin.github.io/posts/2023-03-29/},</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

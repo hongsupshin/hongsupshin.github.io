@@ -82,3 +82,21 @@ During the breakout session, instead of talking about fairness, ADS, and algorit
 To begin with, the breakout session (group discussion) was short, but I was quite unhappy that the discussion was not much related to the topics or the readings. Yes, when building an ADS system, one needs to think about how to handle the trade-offs between different values but especially since this course was advertised as "for practitioners," I was looking for something more concrete. The post-it exercise was in a way useful but I also thought it prevented us from having an actual conversational discussion.
 
 Overall, this week has been a review of the stuff that I was mostly familiar with (thank you FAccT conferences!). I hope there are more active and practical engagements in the coming weeks.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2023-algorithmic-decision-making-fairness,
+    author = {Hongsup Shin},
+    title = {Algorithmic decision-making and fairness (Stanford Tech Ethics course, Week 1)},
+    year = {2023},
+    month = {10},
+    day = {11},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2023-10-11-ethics-week2/},
+}
+```

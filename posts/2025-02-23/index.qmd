@@ -50,3 +50,21 @@ Team leads should champion achievements from their team to leadership by highlig
 ## Summary
 
 Yes, good ML tech leadership is undoubtedly challenging. While these qualities might seem daunting taken all at once, remember that great tech leadership develops over time through experience, reflection, and genuine care for both the technical craft and the people we work with. As our field continues to evolve and diversify, the need grows for exceptional ML tech leads who can balance technical excellence with human understanding, drive both innovation and value, and help their teams navigate the complex landscape of modern ML development.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2025-ml-tech-lead-qualities,
+    author = {Hongsup Shin},
+    title = {Essential qualities of ML tech leads},
+    year = {2025},
+    month = {2},
+    day = {23},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2025-02-23/},
+}
+```

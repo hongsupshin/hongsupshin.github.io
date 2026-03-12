@@ -34,3 +34,21 @@ In research settings, benchmark datasets are static and rarely updated. In produ
 ## Other considerations
 
 Beyond these, there are other important factors to consider. If we can define a measure of diversity of benchmark (e.g., subgroup diversity), it's important that the benchmark is diverse and inclusive. Resource optimization, particularly in terms of data volume, must be balanced according to experiment design. Perhaps most critically, benchmark dataset development must go thorough privacy, security, and ethical evaluations as well to guarantee they meet regulation standards.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2024-datasets-model-benchmarking,
+    author = {Hongsup Shin},
+    title = {Building datasets for model benchmarking in production},
+    year = {2024},
+    month = {10},
+    day = {5},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2024-10-05/},
+}
+```

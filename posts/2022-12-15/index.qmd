@@ -54,3 +54,21 @@ To be blunt, **the main highlight of this paper seemed to be the scale**. They w
 
 ## Final thoughts
 Thanks to the paper, we learned that VQ-VAE and transformer together can generate images from text inputs. However, we questioned the results and model validation especially due to the lack of investigation on model failure. We also thought about ethical aspect of this model being available in public. Just because it belongs to computer vision, which tends to *amuse* general audience, it does not mean that it is exempt from any social responsibility. And in deep learning with image and speech data, it is often the case that model validation is often looser than tabular data used in industries with higher stakes such as health care, finance, or risk assessment. That said, we would like to learn more about other techniques mentioned in the paper to have a deeper understanding of how they work.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2022-zero-shot-text-to-image,
+    author = {Hongsup Shin},
+    title = {Zero-shot text-to-image generation},
+    year = {2022},
+    month = {12},
+    day = {15},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2022-12-15/},
+}
+```

@@ -35,3 +35,21 @@ Since last year, the conference has been including more papers about ethics educ
 What happens when an authoritarian government and AI meet? [*Censorship of Online Encyclopedias: Implications for NLP Models*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445916) explores how censorship in training data influence downstream processes in NLP applications using Chinese language models. One of the dataset they looked into was [Baidu Baike](https://en.wikipedia.org/wiki/Baidu_Baike), a censored language dataset that is often used in Chinese language models. They first checked the word embeddings and examined the position of words such as *democracy, surveillance, social control, CCP (Chinese Communist Party)* with respect to positive and negative words. They found that *democracy* often appeared with negative words and the rest in the example were the opposite. They also found similar pattern in a sentiment classification application that uses web news headlines. These results were concerning because as the authors addressed, these applications can be used to monitor public opinion and curate social media posts, essentially as a highly effective propaganda machine in a massive scale.
 
 For those who've been following the news of Timit Gebru, an AI ethics researcher who was fired by Google, [*On the Dangers of Stochastic Parrots:Can Language Models Be Too Big?*](https://dl.acm.org/doi/pdf/10.1145/3442188.3445922) was the paper that was at the core. The paper explores potential risks of the current trend in language modeling where researchers and practitioner pay more attention to larger models. As shown in the paper, these models have **billions, sometimes trillions of parameters**. The first risk the authors bring up is environmental and financial cost. Studies have shown that **training a single BERT base model (without tuning) requires as much energy as a trans-American flight**. This gets more problematic if you become aware that **most language models serve English-speaking communities** and the most impacted communities from climate change are not those. There are more sinister risks too such as training data still lacking diversity (i.e., **"big" doesn't mean "diverse."**) and lacking oversight, which creates harmful effects. Plus, since many efforts and resources in ML community go into building large language models, other research topics are naturally overlooked. The authors suggest simple mitigation strategies - **step back and think**; evaluate various approaches, ask yourself if we really need large models, and conduct **pre-mortem** analysis.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2021-facct-journalism-data-leverage,
+    author = {Hongsup Shin},
+    title = {FAccT 2021. Journalism, data leverage, education, and language models},
+    year = {2021},
+    month = {3},
+    day = {10},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2021-03-10-facct-2021-main3/},
+}
+```

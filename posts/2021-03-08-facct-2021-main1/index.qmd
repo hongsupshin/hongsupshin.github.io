@@ -50,3 +50,21 @@ They also point out the lack of good governance practice in data maintenance. Un
 Finally, the authors didn't forget to mention the power imbalanced between ML practitioners and data providers. I often feel extremely fortunate that I have experienced the entire end-to-end process of an academic research. I started from scratch and designed a process to collect the data by myself, which required great care and intense labor. In the current ML trend, this step is often conveniently removed and thus creates a bad habit of ignoring labor and responsibility in the data collection and development process.
 
 I really appreciated the simplicity of the authors' suggestion on this problem; **"acknowledge that datasets are technical infrastructures."** Since many ML practitioners are familiar with tech infrastructures such as software programs, the authors suggest that we simply apply existing practices to datasets; create **requirements, design, and tests**. Once this formally becomes a part of infrastructure, it also becomes easy to get all the existing stakeholders in the pipeline involved.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2021-facct-ai-audit-governance,
+    author = {Hongsup Shin},
+    title = {FAccT 2021. AI audit, governance, and trustworthiness},
+    year = {2021},
+    month = {3},
+    day = {8},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2021-03-08-facct-2021-main1/},
+}
+```

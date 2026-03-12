@@ -70,3 +70,21 @@ When I saw ads for the event, I hesitated whether I should register. I was unsur
 [^5]: T. Gebru et al., “Datasheets for Datasets,” ArXiv180309010 Cs, Apr. 2019.
 
 [^6]: R. Richardson, J. M. Schultz, and V. M. Southerland, “LITIGATING ALGORITHMS 2019 US REPORT:,” p. 32.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2020-usf-tech-policy-ethics,
+    author = {Hongsup Shin},
+    title = {Reflection on USF tech policy and data ethics workshop},
+    year = {2020},
+    month = {1},
+    day = {30},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2020-01-30-cade-workshop-refelection/},
+}
+```

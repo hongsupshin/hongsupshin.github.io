@@ -49,3 +49,21 @@ We also questioned the validity of the VGM technique because it is the core of c
 We also thought their claim on CT-GAN was a bit exaggerated. First, in most benchmark datasets, it was actually TVAE model that performed the best. In the performance comparison table, there was only one regression data, which we thought insufficient to evaluate the *ML efficacy* metric the authors proposed. Finally, the proposed models for the regression problem showed *negative* R scores, suggesting that the models performed quite poorly.
 
 Overall, we thought the approach was novel but the evaluation could have been improved given that tabular datasets are quite diverse. Also, given that GAN is expensive train, we would have liked to learn more practical aspects of the implementation.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2024-tabular-data-conditional-gan,
+    author = {Hongsup Shin},
+    title = {Modeling tabular data using conditional GAN},
+    year = {2024},
+    month = {5},
+    day = {30},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2024-05-30/},
+}
+```

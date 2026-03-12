@@ -36,3 +36,21 @@ Finally, [Epistemic Values in Feature Importance Methods: Lessons From Feminist 
 It's well known that proxy features can contain information about sensitive attributes such as race and gender. Often people try to remove these spurious features from the dataset. In fact, this practice is not just limited to applications that use datasets with sensitive attributes. ML practitioners drop correlated or spurious features to build more robust models. [Removing Spurious Features can Hurt Accuracy and Affect Groups Disproportionately](https://dl.acm.org/doi/pdf/10.1145/3442188.3445883) shows that **removing these features can lead to performance drop**. The authors mitigated the problem by using a technique called [Robust Self-Training](https://arxiv.org/abs/2002.10716). The authors of this paper also investigated how the performance drop is manifested among different groups in the data.
 
 [Fairness Through Robustness: Investigating Robustness Disparity in Deep Learning](https://dl.acm.org/doi/pdf/10.1145/3442188.3445910) is an interesting paper that they define the group **fairness in terms of model vulnerability against adversarial attacks**. They first address that in deep learning models, it is possible for a certain subgroup to be more vulnerable to those attacks, and thus the model is less robust for particular subgroups. You can easily picture this as a classification with a decision boundary. If the model is not robust and changes its decision boundary when the attack occurs, samples that are closer to the original boundary may be more likely to be misclassified with the attack. The authors identified that for deep learning models, this is a complex matter because it is about data drift and the learning process of the model. However, as a first attempt, they added a simple regularization term to the model to equalize the robustness bias among the subgroups in some examples.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2021-facct-automated-decision-making,
+    author = {Hongsup Shin},
+    title = {FAccT 2021. Automated decision-making, causal accountability, and robustness},
+    year = {2021},
+    month = {3},
+    day = {9},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2021-03-09-facct-2021-main2/},
+}
+```

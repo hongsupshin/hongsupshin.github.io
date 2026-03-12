@@ -167,3 +167,20 @@ One of the biggest lessons from this project was the importance of reducing the 
 
 The lightweight nature of our approach - using only test settings without design features - makes it particularly practical for verification teams. While not attempting to fundamentally solve the verification problem like RL studies, this approach offers a more deployment-friendly solution that allows verification engineers to focus their efforts on more challenging bugs. Future work could explore incorporating design features, LTR model fine-tuning, and using test output features for ranking.
 
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2025-learning-to-rank-hardware,
+    author = {Hongsup Shin},
+    title = {Learning-to-rank for hardware bug discovery},
+    year = {2025},
+    month = {2},
+    day = {1},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2025-02-01/},
+}
+```

@@ -60,3 +60,21 @@ What was interesting was that the optimal algorithm isn't just about prediction 
 The whole idea of strategic prediction is very interesting because it's about **human users trying to game the system if they start understanding the rule of the game**. For instance, if students learn about the criteria universities use for their admission process, they will try to find ways to cross that threshold so that they can be admitted. This tutorial gave an overview of this phenomenon from the perspective each stakeholder group in the process; institution (algorithm designers), individual (data provider), and society (all people as a whole).
 
 Instead of doing a deep dive on a specific topic, the tutorial presented various topics in the domain. **Recourse and incentivization** was one of them. If the deployed algorithm uses a feature that can harm individuals because the feature incentivizes them to behave in a certain way, automated harm at a massive scale will be expected. Another way to look at the strategic prediction is through causality. If we find a true **causal relationship between features and model predictions**, it might be able to utilize the benefit of strategic prediction from the institution's perspective and to encourage improvement without encouraging gaming, which will be crucial for modellers.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2021-facct-tutorials,
+    author = {Hongsup Shin},
+    title = {Tutorials at FAccT 2021},
+    year = {2021},
+    month = {3},
+    day = {4},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2021-03-04-facct-2021-tutorial/},
+}
+```

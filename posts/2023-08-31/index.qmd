@@ -108,3 +108,21 @@ In Appendix C, the authors provided a comprehensive list of all principles they 
 ### The double-edged sword
 
 Finally, some of us were disappointed that the authors didn't elaborate much on the potential harm of their approach. They spent a lot of time talking about harmlessness of their algorithms and yet they really fell short when talking about social impacts of their model, especially regarding lowering the barrier for experimenting with LMs and automating supervision by removing human further out of the loop. Particularly for the former, we agreed that it wouldn't be surprising to see, in near future bad actors take advantage of this approach and come up with a highly toxic, malicious, and harmful AI assistant.
+
+---
+
+*If you found this post useful, you can cite it as:*
+
+```bibtex
+@article{
+    hongsupshin-2023-constitutional-ai-harmlessness,
+    author = {Hongsup Shin},
+    title = {Constitutional AI: harmlessness from AI feedback},
+    year = {2023},
+    month = {8},
+    day = {31},
+    howpublished = {\url{https://hongsupshin.github.io}},
+    journal = {Hongsup Shin's Blog},
+    url = {https://hongsupshin.github.io/posts/2023-08-31/},
+}
+```
